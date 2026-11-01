@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ironhold: Idle Dominion</title>
+<meta name="description" content="Ironhold: Idle Dominion — a single-player idle RPG city builder. Grow your population, run your economy, train an army and send it on expeditions." />
+<meta name="theme-color" content="#0f1218" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%8F%B0%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* =====================================================================
+   THEME
+   ===================================================================== */
+:root {
+  --bg: #0d1016;
+  --bg-2: #131823;
+  --panel: rgba(22, 27, 38, 0.92);
+  --panel-2: #1b2130;
+  --panel-3: #232b3d;
+  --border: #2b3447;
+  --border-hi: #3c4862;
+  --text: #e6e9f0;
+  --muted: #8d97ab;
+  --dim: #5f6a80;
+  --accent: #e3b04b;
+  --accent-2: #f4cf7a;
+  --teal: #3fc1b0;
+  --good: #5bd17f;
+  --bad: #ef6461;
+  --warn: #f0a446;
+  --war: #c084fc;
+  --gold: #f2c14e;
+  --food: #8fd16a;
+  --stone: #a9b4c2;
+  --steel: #6fb6e8;
+  --relics: #c38cff;
+  --radius: 12px;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --font-display: "Cinzel", Georgia, serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --bg-art: none;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(180deg, rgba(13,16,22,0.78) 0%, rgba(13,16,22,0.93) 45%, rgba(13,16,22,0.98) 100%),
+    var(--bg-art),
+    radial-gradient(1200px 600px at 20% -10%, #2a2335 0%, transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, #1b2b33 0%, transparent 60%);
+  background-size: cover, cover, auto, auto;
+  background-position: center top;
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.45;
+  min-height: 100vh;
+}
+button { font-family: inherit; }
+img { display: block; }
+h1, h2, h3 { font-family: var(--font-display); letter-spacing: 0.02em; margin: 0; }
+.muted { color: var(--muted); }
+.dim { color: var(--dim); }
+.good { color: var(--good); }
+.bad { color: var(--bad); }
+.warn { color: var(--warn); }
+.hidden { display: none !important; }
+
+/* =====================================================================
+   HEADER
+   ===================================================================== */
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(13, 16, 22, 0.88);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+}
+.brand { display: flex; align-items: center; gap: 10px; min-width: 210px; }
+.brand img { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--border-hi); object-fit: cover; }
+.brand h1 { font-size: 18px; color: var(--accent-2); line-height: 1.1; }
+.brand small { display: block; color: var(--muted); font-size: 11px; font-family: var(--font-body); letter-spacing: 0.08em; text-transform: uppercase; }
+.res-strip { display: flex; gap: 8px; flex-wrap: wrap; flex: 1; }
+.res-chip {
+  display: grid; grid-template-columns: 34px 1fr; gap: 2px 8px; align-items: center;
+  background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px;
+  padding: 6px 10px 7px 6px; min-width: 150px; flex: 1 1 150px; max-width: 220px;
+  position: relative; overflow: hidden;
+}
+.res-chip img { grid-row: span 2; width: 34px; height: 34px; border-radius: 8px; object-fit: cover; }
+.res-chip .rv { font-weight: 700; font-variant-numeric: tabular-nums; font-size: 14px; white-space: nowrap; }
+.res-chip .rv .cap { color: var(--dim); font-weight: 500; font-size: 12px; }
+.res-chip .rr { font-size: 11.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.res-chip .fill { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--c, var(--accent)); width: 0; transition: width 1s linear; opacity: 0.85; }
+.res-chip.full { border-color: color-mix(in srgb, var(--c) 60%, var(--border)); }
+.res-chip.bump .rv { animation: bump 0.45s ease; }
+@keyframes bump { 0% { transform: translateY(0); } 40% { transform: translateY(-2px); color: var(--accent-2); } 100% { transform: translateY(0); } }
+.pop-chip { min-width: 230px; max-width: 320px; flex: 1 1 230px; }
+.pop-grid { display: grid; grid-template-columns: repeat(4, auto); gap: 0 10px; font-size: 11.5px; color: var(--muted); }
+.pop-grid b { color: var(--text); font-variant-numeric: tabular-nums; }
+
+/* =====================================================================
+   LAYOUT
+   ===================================================================== */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(330px, 1.15fr) minmax(330px, 1.15fr) minmax(280px, 0.8fr);
+  gap: 14px; padding: 14px 16px 30px; max-width: 1680px; margin: 0 auto;
+  align-items: start;
+}
+.panel {
+  background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow); overflow: hidden;
+}
+.panel + .panel { margin-top: 14px; }
+.panel-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 12px 14px; border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
+}
+.panel-head h2 { font-size: 15px; color: var(--accent-2); }
+.panel-body { padding: 12px 14px; }
+.tabs { display: flex; gap: 4px; background: var(--bg-2); padding: 3px; border-radius: 9px; border: 1px solid var(--border); }
+.tab { background: transparent; border: 0; color: var(--muted); padding: 5px 11px; border-radius: 7px; cursor: pointer; font-weight: 600; font-size: 12.5px; }
+.tab.active { background: var(--panel-3); color: var(--text); }
+.col-scroll { max-height: calc(100vh - 160px); overflow-y: auto; }
+.section-title { font-family: var(--font-display); font-size: 13px; color: var(--muted); margin: 14px 0 8px; letter-spacing: 0.06em; text-transform: uppercase; }
+.section-title:first-child { margin-top: 0; }
+
+/* =====================================================================
+   BUTTONS
+   ===================================================================== */
+.btn {
+  background: var(--panel-3); color: var(--text); border: 1px solid var(--border-hi);
+  padding: 7px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12.5px;
+  transition: background 0.15s, border-color 0.15s, transform 0.05s, opacity 0.15s;
+  white-space: nowrap;
+}
+.btn:hover:not(:disabled) { background: #2c3650; border-color: #50607f; }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn:disabled { opacity: 0.42; cursor: not-allowed; }
+.btn.primary { background: linear-gradient(180deg, #e9b955, #c8923a); color: #1d1406; border-color: #f0c66d; }
+.btn.primary:hover:not(:disabled) { background: linear-gradient(180deg, #f2c665, #d39d42); }
+.btn.teal { background: linear-gradient(180deg, #3fc1b0, #2a998b); color: #06201c; border-color: #6ad8ca; }
+.btn.danger { background: #3a1f24; border-color: #7a3640; color: #ffc9c7; }
+.btn.danger:hover:not(:disabled) { background: #4a242b; }
+.btn.sm { padding: 4px 8px; font-size: 11.5px; border-radius: 6px; }
+.btn.block { width: 100%; }
+.btn-row { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* =====================================================================
+   CARDS
+   ===================================================================== */
+.grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.card {
+  background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px;
+  padding: 10px; display: grid; grid-template-columns: 64px 1fr; gap: 10px; align-items: start;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: var(--border-hi); }
+.card img.thumb { width: 64px; height: 64px; border-radius: 9px; object-fit: cover; border: 1px solid var(--border); background: var(--bg-2); }
+.card .title { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.card .title h3 { font-size: 13.5px; }
+.badge { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: var(--bg-2); border: 1px solid var(--border-hi); color: var(--accent-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.badge.teal { color: var(--teal); }
+.badge.war { color: var(--war); }
+.card .desc { font-size: 12px; color: var(--muted); margin: 3px 0 6px; }
+.card .effect { font-size: 12px; color: var(--teal); margin-bottom: 6px; }
+.card .foot { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.costs { display: flex; flex-wrap: wrap; gap: 4px 9px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.cost { display: inline-flex; align-items: center; gap: 4px; }
+.cost img { width: 15px; height: 15px; border-radius: 4px; object-fit: cover; }
+.cost.lack { color: var(--bad); }
+.req { font-size: 11.5px; color: var(--warn); grid-column: 1 / -1; }
+.req:empty { display: none; }
+
+/* Workforce */
+.job-row {
+  display: grid; grid-template-columns: 44px 1fr auto; gap: 10px; align-items: center;
+  background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 9px 10px; margin-bottom: 8px;
+}
+.job-row img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; }
+.job-row .jn { font-weight: 700; }
+.job-row .jd { font-size: 12px; color: var(--muted); }
+.job-row .ctrl { display: flex; gap: 4px; align-items: center; }
+.job-count { min-width: 64px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.slotbar { height: 4px; background: var(--bg-2); border-radius: 4px; overflow: hidden; margin-top: 5px; }
+.slotbar > i { display: block; height: 100%; background: var(--teal); width: 0; transition: width 0.4s ease; }
+.summary-box { background: var(--bg-2); border: 1px dashed var(--border-hi); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
+.summary-box b { font-variant-numeric: tabular-nums; }
+
+/* Progress bars */
+.bar { height: 8px; background: var(--bg-2); border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+.bar > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 1s linear; }
+.bar.teal > i { background: linear-gradient(90deg, #2a998b, var(--teal)); }
+.bar.war > i { background: linear-gradient(90deg, #8b5cf6, var(--war)); }
+.bar.good > i { background: linear-gradient(90deg, #2f9e57, var(--good)); }
+.bar.bad > i { background: linear-gradient(90deg, #b23b38, var(--bad)); }
+.bar.fast > i { transition: width 0.3s ease; }
+
+/* Military */
+.commander { display: grid; grid-template-columns: 72px 1fr; gap: 12px; align-items: center; background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 12px; }
+.commander img { width: 72px; height: 72px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border-hi); }
+.stat-row { display: flex; justify-content: space-between; font-size: 12px; margin: 3px 0; color: var(--muted); }
+.stat-row b { color: var(--text); font-variant-numeric: tabular-nums; }
+.queue { background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; padding: 9px 10px; margin: 10px 0 4px; font-size: 12.5px; }
+.queue-items { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.qitem { display: inline-flex; align-items: center; gap: 4px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px; padding: 2px 6px 2px 2px; font-size: 11.5px; }
+.qitem img { width: 20px; height: 20px; border-radius: 4px; object-fit: cover; }
+
+.mission {
+  position: relative; border-radius: 10px; overflow: hidden; border: 1px solid var(--border);
+  background: var(--panel-2); margin-bottom: 10px; min-height: 116px;
+}
+.mission .art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.38; }
+.mission .shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(19,23,33,0.97) 0%, rgba(19,23,33,0.82) 55%, rgba(19,23,33,0.45) 100%); }
+.mission .inner { position: relative; padding: 11px 12px; display: grid; gap: 6px; }
+.mission .mh { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.mission h3 { font-size: 14px; }
+.mission .meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted); }
+.mission .meta b { color: var(--text); }
+.mission.locked { filter: grayscale(0.85); opacity: 0.65; }
+.tag { font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 6px; border-radius: 5px; background: rgba(192,132,252,0.15); color: var(--war); border: 1px solid rgba(192,132,252,0.35); }
+
+.exp-active { background: var(--panel-2); border: 1px solid var(--border); border-left: 3px solid var(--war); border-radius: 10px; padding: 9px 11px; margin-bottom: 8px; }
+.exp-active .eh { display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 6px; gap: 8px; }
+.exp-active .eu { font-size: 11.5px; color: var(--muted); margin-top: 5px; }
+.empty { color: var(--dim); font-size: 12.5px; padding: 8px 2px; font-style: italic; }
+
+/* Log */
+.log { max-height: 380px; overflow-y: auto; font-size: 12.5px; display: flex; flex-direction: column; gap: 4px; }
+.log-entry { padding: 6px 9px; border-radius: 7px; background: var(--panel-2); border-left: 3px solid var(--dim); animation: slidein 0.3s ease; }
+.log-entry time { color: var(--dim); font-size: 11px; margin-right: 6px; font-variant-numeric: tabular-nums; }
+.log-entry.good { border-left-color: var(--good); }
+.log-entry.bad { border-left-color: var(--bad); }
+.log-entry.build { border-left-color: var(--accent); }
+.log-entry.war { border-left-color: var(--war); }
+.log-entry.info { border-left-color: var(--teal); }
+.log-entry.good, .log-entry.bad, .log-entry.war, .log-entry.info, .log-entry.build { color: var(--text); }
+@keyframes slidein { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+/* Forms */
+label.field { display: block; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+label.field span { display: block; margin-bottom: 4px; }
+input[type=text], input[type=password], input[type=number], select, textarea {
+  width: 100%; background: var(--bg-2); color: var(--text); border: 1px solid var(--border-hi);
+  border-radius: 8px; padding: 7px 9px; font-family: inherit; font-size: 13px;
+}
+textarea { min-height: 110px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11.5px; resize: vertical; }
+input:focus, select:focus, textarea:focus { outline: 2px solid rgba(227,176,75,0.45); outline-offset: 1px; }
+.note { font-size: 11.5px; color: var(--dim); margin: 6px 0 0; }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; font-size: 12.5px; }
+.kv b { font-variant-numeric: tabular-nums; text-align: right; }
+.save-status { font-size: 11.5px; color: var(--dim); }
+.art-progress { margin-top: 8px; }
+
+/* Modal */
+.modal-back { position: fixed; inset: 0; background: rgba(5, 7, 11, 0.72); backdrop-filter: blur(3px); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; animation: fade 0.2s ease; }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.modal { background: var(--panel-2); border: 1px solid var(--border-hi); border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.6); width: min(560px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; }
+.modal-head { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.modal-head h2 { font-size: 17px; color: var(--accent-2); }
+.modal-body { padding: 14px 16px; }
+.modal-foot { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.deploy-row { display: grid; grid-template-columns: 36px 1fr 150px; gap: 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.deploy-row img { width: 36px; height: 36px; border-radius: 7px; object-fit: cover; }
+.deploy-row .dc { display: flex; gap: 4px; align-items: center; }
+.deploy-row input { text-align: center; padding: 5px; }
+.chance { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Toast */
+.toasts { position: fixed; right: 16px; bottom: 16px; z-index: 60; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.toast { background: var(--panel-3); border: 1px solid var(--border-hi); border-left: 3px solid var(--accent); padding: 9px 13px; border-radius: 9px; box-shadow: var(--shadow); font-size: 13px; animation: slidein 0.25s ease; max-width: 340px; }
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .layout { grid-template-columns: 1fr 1fr; }
+  .col-right { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .col-right .panel + .panel { margin-top: 0; }
+}
+@media (max-width: 820px) {
+  .layout { grid-template-columns: 1fr; padding: 12px; }
+  .col-right { grid-template-columns: 1fr; }
+  .col-scroll { max-height: none; }
+  .topbar { position: static; }
+  .res-chip { max-width: none; }
+  .brand { min-width: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- =====================================================================
+     HEADER: live resource counters + population summary
+     ===================================================================== -->
+<header class="topbar">
+  <div class="brand">
+    <img data-asset="crest" alt="" />
+    <div><h1>Ironhold</h1><small>Idle Dominion</small></div>
+  </div>
+  <div class="res-strip" id="resStrip"></div>
+</header>
+
+<main class="layout">
+  <!-- LEFT: City map / buildings / workforce -->
+  <section class="col-left">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>The City</h2>
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-action="tab" data-tab="buildings">Buildings</button>
+          <button class="tab" data-action="tab" data-tab="workforce">Workforce</button>
+        </div>
+      </div>
+      <div class="panel-body col-scroll">
+        <div id="tab-buildings"><div class="grid-cards" id="buildingList"></div></div>
+        <div id="tab-workforce" class="hidden">
+          <div class="summary-box" id="popSummary"></div>
+          <div id="jobList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MIDDLE: military & expeditions -->
+  <section class="col-mid">
+    <div class="panel">
+      <div class="panel-head"><h2>War Council</h2><span class="badge war" id="armyBadge">0 soldiers</span></div>
+      <div class="panel-body col-scroll">
+        <div class="commander">
+          <img data-asset="commander" alt="" />
+          <div>
+            <div class="title" style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+              <h3 style="font-size:14px">Lord Commander</h3><span class="badge" id="cmdLevel">Lv 1</span>
+            </div>
+            <div class="bar war" style="margin:6px 0 4px"><i id="cmdXpBar"></i></div>
+            <div class="stat-row"><span>Experience</span><b id="cmdXp">0 / 40</b></div>
+            <div class="stat-row"><span>Morale</span><b id="moraleTxt">100%</b></div>
+            <div class="bar good fast"><i id="moraleBar"></i></div>
+          </div>
+        </div>
+
+        <div class="section-title">Barracks Training</div>
+        <div class="grid-cards" id="unitList"></div>
+        <div class="queue" id="queueBox"></div>
+
+        <div class="section-title">Standing Army</div>
+        <div class="summary-box" id="armySummary"></div>
+
+        <div class="section-title">Active Expeditions <span class="dim" id="expSlots"></span></div>
+        <div id="activeExp"></div>
+
+        <div class="section-title">Expedition Board</div>
+        <div id="missionList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RIGHT: log, controls, artwork -->
+  <section class="col-right">
+    <div class="panel">
+      <div class="panel-head"><h2>Chronicle</h2><button class="btn sm" data-action="clearLog">Clear</button></div>
+      <div class="panel-body"><div class="log" id="log"></div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Realm Controls</h2><span class="save-status" id="saveStatus">Not saved yet</span></div>
+      <div class="panel-body">
+        <div class="btn-row" style="margin-bottom:10px">
+          <button class="btn primary" data-action="save">Save</button>
+          <button class="btn" data-action="export">Export Save</button>
+          <button class="btn" data-action="import">Import Save</button>
+          <button class="btn danger" data-action="reset">Reset</button>
+        </div>
+        <div class="kv" id="statsBox"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Artwork Forge</h2><span class="badge teal" id="artCount">0 / 0</span></div>
+      <div class="panel-body">
+        <p class="muted" style="margin:0 0 10px;font-size:12.5px">
+          The game uses AI art from <code>assets/generated/</code> when it's there. If not, it uses built-in icons.
+          You can also make art here in the browser with your own Signor API key.
+        </p>
+        <label class="field"><span>API key (only stored in this browser's localStorage)</span>
+          <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off" spellcheck="false" />
+        </label>
+        <label class="field"><span>Image model</span>
+          <select id="apiModel">
+            <option value="gemini-3.1-flash-image">gemini-3.1-flash-image (Nano Banana 2)</option>
+            <option value="gemini-3.1-flash-lite-image">gemini-3.1-flash-lite-image (fastest)</option>
+            <option value="gemini-nano-banana-2.1">gemini-nano-banana-2.1 (cheapest Gemini)</option>
+            <option value="gemini-3-pro-image">gemini-3-pro-image (highest quality)</option>
+            <option value="gpt-image-2-c">gpt-image-2-c</option>
+            <option value="gpt-image-2">gpt-image-2</option>
+            <option value="doubao-seedream-4-0-250828">doubao-seedream-4-0</option>
+          </select>
+        </label>
+        <label class="field"><span>API base URL</span>
+          <input type="text" id="apiBase" spellcheck="false" />
+        </label>
+        <div class="btn-row">
+          <button class="btn teal" data-action="genMissing" id="btnGenMissing">Generate missing art</button>
+          <button class="btn" data-action="genAll" id="btnGenAll">Regenerate all</button>
+          <button class="btn danger" data-action="clearArt">Clear cache</button>
+        </div>
+        <div class="art-progress hidden" id="artProgress">
+          <div class="stat-row"><span id="artStatus">Working…</span><b id="artPct">0%</b></div>
+          <div class="bar teal fast"><i id="artBar"></i></div>
+        </div>
+        <p class="note">Each image costs a little from your Signor wallet and takes about 10–80 s. If the browser can't reach the API (CORS), run <code>node tools/generate-assets.mjs</code> instead.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="toasts" id="toasts"></div>
+<div id="modalRoot"></div>
+
+<!-- =====================================================================
+     ASSET CATALOG (single source of truth for every generated image)
+     Read by the in-browser AssetPipeline AND by tools/generate-assets.mjs.
+     kind: icon (square 256) | portrait (square 384) | banner (16:9 960x540) | backdrop (16:9 1600x900)
+     ===================================================================== -->
+<script type="application/json" id="asset-catalog">
+{
+  "style": {
+    "base": "Painterly dark-fantasy medieval game art, rich warm lighting, high detail, polished mobile-RPG asset quality. Absolutely no text, letters, numbers, logos or watermarks.",
+    "icon": "Square game UI icon. One clear subject centered, filling most of the frame, on a dark slate-blue vignette background.",
+    "portrait": "Square character portrait, chest-up, facing slightly toward the viewer, dark moody background.",
+    "banner": "Wide cinematic establishing shot, 16:9 composition, atmospheric depth.",
+    "backdrop": "Wide panoramic 16:9 landscape, darker toward the bottom so UI text stays readable."
+  },
+  "assets": [
+    { "key": "crest",       "kind": "icon",     "emoji": "🏰", "hue": 40,  "prompt": "A heraldic shield crest with a golden castle tower and crossed swords, iron rim" },
+    { "key": "backdrop",    "kind": "backdrop", "emoji": "",   "hue": 230, "prompt": "A walled medieval fortress city at dusk on a hill above a river valley, smoke from chimneys, mountains behind" },
+    { "key": "commander",   "kind": "portrait", "emoji": "🛡️", "hue": 270, "prompt": "A battle-hardened medieval lord commander with a scar, fur-trimmed cloak over steel plate armor" },
+
+    { "key": "res_gold",    "kind": "icon", "emoji": "🪙", "hue": 45,  "prompt": "A heap of shiny gold coins spilling from a leather pouch" },
+    { "key": "res_food",    "kind": "icon", "emoji": "🍞", "hue": 95,  "prompt": "A rustic basket of bread loaves, wheat sheaves, apples and cheese" },
+    { "key": "res_stone",   "kind": "icon", "emoji": "🪨", "hue": 210, "prompt": "A stack of cut grey granite building blocks" },
+    { "key": "res_steel",   "kind": "icon", "emoji": "⚙️", "hue": 200, "prompt": "Gleaming blue-tinted steel ingots stacked in a pyramid" },
+    { "key": "res_relics",  "kind": "icon", "emoji": "🔮", "hue": 280, "prompt": "An ancient glowing purple rune-carved relic orb on a small stone pedestal" },
+    { "key": "pop",         "kind": "icon", "emoji": "👥", "hue": 170, "prompt": "A small group of medieval villagers standing together, a peasant, a smith and a farmer" },
+
+    { "key": "b_townhall",  "kind": "icon", "emoji": "🏛️", "hue": 40,  "prompt": "Isometric grand medieval town hall with a clock tower and banners" },
+    { "key": "b_farm",      "kind": "icon", "emoji": "🌾", "hue": 90,  "prompt": "Isometric medieval farmstead with golden wheat fields and a small barn" },
+    { "key": "b_quarry",    "kind": "icon", "emoji": "⛏️", "hue": 25,  "prompt": "Isometric stone quarry cut into a cliff with a wooden crane and pickaxes" },
+    { "key": "b_steelworks","kind": "icon", "emoji": "🔥", "hue": 15,  "prompt": "Isometric medieval steelworks forge with glowing furnace, anvil and chimney smoke" },
+    { "key": "b_house",     "kind": "icon", "emoji": "🏠", "hue": 30,  "prompt": "Isometric cozy timber-framed medieval cottage with thatched roof and lit windows" },
+    { "key": "b_warehouse", "kind": "icon", "emoji": "📦", "hue": 35,  "prompt": "Isometric large wooden medieval warehouse with crates and barrels outside" },
+    { "key": "b_granary",   "kind": "icon", "emoji": "🧺", "hue": 60,  "prompt": "Isometric round stone medieval granary with conical roof and grain sacks" },
+    { "key": "b_barracks",  "kind": "icon", "emoji": "⚔️", "hue": 0,   "prompt": "Isometric fortified medieval barracks with training yard, weapon racks and red banners" },
+
+    { "key": "job_farmer",     "kind": "portrait", "emoji": "👨‍🌾", "hue": 90,  "prompt": "A cheerful medieval farmer holding a scythe, straw hat" },
+    { "key": "job_miner",      "kind": "portrait", "emoji": "⛏️", "hue": 25,  "prompt": "A dusty medieval stone miner with a pickaxe over the shoulder" },
+    { "key": "job_blacksmith", "kind": "portrait", "emoji": "🔨", "hue": 15,  "prompt": "A muscular medieval blacksmith in a leather apron holding a hammer, forge glow" },
+    { "key": "job_recruit",    "kind": "portrait", "emoji": "🪖", "hue": 0,   "prompt": "A young eager medieval army recruit in a padded gambeson holding a wooden practice sword" },
+
+    { "key": "u_militia",   "kind": "portrait", "emoji": "🗡️", "hue": 30,  "prompt": "A medieval militia soldier with a spear and a round wooden shield, simple leather armor" },
+    { "key": "u_archer",    "kind": "portrait", "emoji": "🏹", "hue": 120, "prompt": "A hooded medieval longbow archer drawing an arrow, green cloak" },
+    { "key": "u_footman",   "kind": "portrait", "emoji": "🛡️", "hue": 210, "prompt": "A medieval footman in chainmail with a kite shield and arming sword" },
+    { "key": "u_siege",     "kind": "portrait", "emoji": "🪓", "hue": 35,  "prompt": "A medieval siege engineer with goggles next to a small trebuchet, holding blueprints" },
+    { "key": "u_knight",    "kind": "portrait", "emoji": "🐎", "hue": 50,  "prompt": "A heavily armored mounted medieval knight with a lance and a plumed great helm" },
+
+    { "key": "m_bandits",   "kind": "banner", "emoji": "🏕️", "hue": 30,  "prompt": "A bandit camp hidden in a dark forest clearing with campfires and stolen loot crates" },
+    { "key": "m_goblins",   "kind": "banner", "emoji": "👺", "hue": 100, "prompt": "Entrance to goblin warrens in a mossy hillside cave lit by green torches" },
+    { "key": "m_abbey",     "kind": "banner", "emoji": "⛪", "hue": 220, "prompt": "A haunted ruined gothic abbey under a pale moon, broken stained glass, mist" },
+    { "key": "m_orcs",      "kind": "banner", "emoji": "🏯", "hue": 10,  "prompt": "A brutal orc stronghold of spiked palisades and iron towers on a volcanic plain" },
+    { "key": "m_dragon",    "kind": "banner", "emoji": "🐉", "hue": 5,   "prompt": "A colossal red dragon sleeping on a mountain of gold inside a vast cavern" },
+    { "key": "m_citadel",   "kind": "banner", "emoji": "🌑", "hue": 270, "prompt": "A towering obsidian shadow citadel wreathed in purple storm clouds and lightning" }
+  ]
+}
+</script>
+
+<script>
+"use strict";
+/* =====================================================================
+   0. UTILITIES
+   ===================================================================== */
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const randInt = (lo, hi) => Math.floor(lo + Math.random() * (hi - lo + 1));
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function fmt(n) {
+  if (!isFinite(n)) return "∞";
+  const neg = n < 0; const a = Math.abs(n);
+  let out;
+  if (a < 1000) out = a < 100 && a % 1 !== 0 ? (Math.floor(a * 10) / 10).toString() : Math.floor(a).toString();
+  else {
+    const units = ["K", "M", "B", "T", "Qa", "Qi"];
+    let i = -1, v = a;
+    while (v >= 1000 && i < units.length - 1) { v /= 1000; i++; }
+    out = (v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : Math.floor(v).toString()) + units[i];
+  }
+  return (neg ? "-" : "") + out;
+}
+const fmtInt = (n) => Math.floor(n).toLocaleString("en-US");
+function fmtRate(r) {
+  const a = Math.abs(r);
+  const s = a < 10 ? a.toFixed(2) : a < 1000 ? a.toFixed(1) : fmt(a);
+  return (r >= 0 ? "+" : "−") + s;
+}
+function fmtTime(sec) {
+  sec = Math.max(0, Math.ceil(sec));
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  if (h) return `${h}h ${String(m).padStart(2, "0")}m`;
+  if (m) return `${m}m ${String(s).padStart(2, "0")}s`;
+  return `${s}s`;
+}
+
+/* =====================================================================
+   1. STATIC GAME DATA (definitions / formulas)
+   ===================================================================== */
+const RESOURCES = {
+  gold:   { name: "Gold",   asset: "res_gold",   color: "var(--gold)" },
+  food:   { name: "Food",   asset: "res_food",   color: "var(--food)" },
+  stone:  { name: "Stone",  asset: "res_stone",  color: "var(--stone)" },
+  steel:  { name: "Steel",  asset: "res_steel",  color: "var(--steel)" },
+  relics: { name: "Relics", asset: "res_relics", color: "var(--relics)" },
+};
+const STORABLE = ["gold", "food", "stone", "steel"];
+
+/* Cost formula: Cost = BaseCost * multiplier ^ Level (Level = current level, or level-1 for the Town Hall, which starts at 1). */
+const BUILDINGS = {
+  townhall:   { name: "Town Hall",  asset: "b_townhall",   base: { gold: 400, stone: 300, steel: 40 }, mult: 2.0,  max: 10,
+                desc: "Seat of power. +1 Gold/s, +8 housing, +5% production and +250 storage per level. Raises other buildings' level limits.",
+                popReq: (lvl) => 15 * lvl },
+  farm:       { name: "Farm",       asset: "b_farm",       base: { gold: 40, stone: 15 },              mult: 1.15, desc: "Adds 4 Farmer jobs. Each Farmer grows food." },
+  quarry:     { name: "Quarry",     asset: "b_quarry",     base: { gold: 50, food: 25 },               mult: 1.15, desc: "Adds 3 Miner jobs. Each Miner cuts stone." },
+  steelworks: { name: "Steelworks", asset: "b_steelworks", base: { gold: 120, stone: 80 },             mult: 1.18, desc: "Adds 2 Blacksmith jobs. Blacksmiths smelt stone into steel.", popReq: () => 10 },
+  house:      { name: "House",      asset: "b_house",      base: { gold: 35, stone: 20 },              mult: 1.15, desc: "Shelter for 5 more people.", maxPerTH: 8 },
+  warehouse:  { name: "Warehouse",  asset: "b_warehouse",  base: { gold: 80, stone: 60 },              mult: 1.17, desc: "+500 Gold, +500 Stone and +250 Steel storage." },
+  granary:    { name: "Granary",    asset: "b_granary",    base: { gold: 60, stone: 40 },              mult: 1.17, desc: "+600 Food storage. Keeps the larders full." },
+  barracks:   { name: "Barracks",   asset: "b_barracks",   base: { gold: 150, stone: 120, steel: 15 }, mult: 1.25, desc: "+5 Recruit jobs, +4 housing, +10% training speed. Unlocks units and more expedition slots.", popReq: () => 12 },
+};
+
+const JOBS = {
+  farmer:     { name: "Farmers",     asset: "job_farmer",     building: "farm",       slots: 4, desc: "+1.1 Food/s each" },
+  miner:      { name: "Miners",      asset: "job_miner",      building: "quarry",     slots: 3, desc: "+0.75 Stone/s each" },
+  blacksmith: { name: "Blacksmiths", asset: "job_blacksmith", building: "steelworks", slots: 2, desc: "−0.5 Stone → +0.35 Steel/s each" },
+  recruit:    { name: "Recruits",    asset: "job_recruit",    building: "barracks",   slots: 5, desc: "Drilled citizens ready to be trained into soldiers" },
+};
+
+const UNITS = {
+  militia: { name: "Militia",         asset: "u_militia", cost: { gold: 25, food: 10 },              time: 5,  power: 3,  upkeep: { food: 0.10, gold: 0.02 }, barracks: 1, desc: "Cheap, numerous levy troops." },
+  archer:  { name: "Archer",          asset: "u_archer",  cost: { gold: 40, steel: 5 },              time: 8,  power: 6,  upkeep: { food: 0.12, gold: 0.05 }, barracks: 2, desc: "Ranged support with longbows." },
+  footman: { name: "Footman",         asset: "u_footman", cost: { gold: 60, steel: 15 },             time: 10, power: 10, upkeep: { food: 0.15, gold: 0.08 }, barracks: 2, desc: "Disciplined chainmail infantry." },
+  siege:   { name: "Siege Engineer",  asset: "u_siege",   cost: { gold: 100, stone: 80, steel: 30 }, time: 20, power: 6,  upkeep: { food: 0.15, gold: 0.15 }, barracks: 3, siege: true, desc: "Breaks walls. Big bonus against fortified targets." },
+  knight:  { name: "Knight",          asset: "u_knight",  cost: { gold: 200, steel: 60, food: 40 },  time: 25, power: 28, upkeep: { food: 0.30, gold: 0.30 }, barracks: 5, desc: "Elite heavy cavalry." },
+};
+
+const MISSIONS = {
+  bandits: { name: "Bandit Camp",      asset: "m_bandits", diff: 15,   duration: 60,   level: 1,  xp: 15,   loot: { gold: [150, 260], steel: [8, 20] } },
+  goblins: { name: "Goblin Warrens",   asset: "m_goblins", diff: 45,   duration: 180,  level: 2,  xp: 35,   loot: { gold: [320, 520], steel: [30, 70], food: [80, 160] }, relic: { chance: 0.1, n: [1, 1] } },
+  abbey:   { name: "Ruined Abbey",     asset: "m_abbey",   diff: 90,   duration: 420,  level: 3,  xp: 70,   loot: { gold: [500, 800], stone: [250, 450] },               relic: { chance: 0.3, n: [1, 1] } },
+  orcs:    { name: "Orc Stronghold",   asset: "m_orcs",    diff: 200,  duration: 900,  level: 5,  xp: 150,  fortified: true, loot: { gold: [1100, 1600], steel: [180, 280] }, relic: { chance: 0.5, n: [1, 2] } },
+  dragon:  { name: "Dragon's Lair",    asset: "m_dragon",  diff: 520,  duration: 2400, level: 8,  xp: 400,  loot: { gold: [4500, 6500], steel: [600, 900] },             relic: { chance: 1, n: [3, 5] } },
+  citadel: { name: "Shadow Citadel",   asset: "m_citadel", diff: 1300, duration: 5400, level: 12, xp: 1000, fortified: true, loot: { gold: [11000, 15000], steel: [1800, 2600] }, relic: { chance: 1, n: [6, 10] } },
+};
+
+const BALANCE = {
+  tickSeconds: 1,
+  autosaveMs: 5000,
+  offlineCapSeconds: 12 * 3600,
+  offlineStepSeconds: 10,
+  foodPerCitizen: 0.1,
+  goldPerCitizen: 0.06,
+  goldPerWorker: 0.06,
+  starveInterval: 10,
+  desertInterval: 6,
+  relicBonus: 0.02,
+  relicBonusCap: 2.0,
+  maxQueue: 20,
+};
+
+/* =====================================================================
+   2. GAME STATE SCHEMA
+   ===================================================================== */
+const SAVE_KEY = "ironhold_save_v1";
+const GameState = {
+  current: null,
+  fresh() {
+    return {
+      version: 1,
+      createdAt: Date.now(),
+      lastTick: Date.now(),          // real-time timestamp used for offline progress
+      time: 0,                       // game clock (seconds), advances in both online & offline ticks
+      resources: { gold: 200, food: 150, stone: 100, steel: 0, relics: 0 },
+      buildings: { townhall: 1, farm: 1, quarry: 1, steelworks: 0, house: 1, warehouse: 0, granary: 0, barracks: 0 },
+      population: { citizens: 6, growth: 0, starve: 0 },
+      jobs: { farmer: 3, miner: 1, blacksmith: 0, recruit: 0 },
+      army: { militia: 0, archer: 0, footman: 0, siege: 0, knight: 0 },
+      queue: [],                     // [{unit, remaining, total}]
+      expeditions: [],               // [{id, mission, units, startAt, endAt}]
+      commander: { level: 1, xp: 0 },
+      morale: 100,
+      desert: 0,
+      nextId: 1,
+      log: [],                       // [{id, t, msg, type}]
+      stats: { goldEarned: 0, built: 0, trained: 0, won: 0, lost: 0, fallen: 0, deserted: 0, starved: 0, relicsFound: 0, playSeconds: 0, peakPop: 6 },
+    };
+  },
+  /** Merge a loaded save onto a fresh template so older saves gain new fields. */
+  hydrate(raw) {
+    const base = this.fresh();
+    const out = { ...base, ...raw };
+    for (const k of ["resources", "buildings", "population", "jobs", "army", "commander", "stats"]) out[k] = { ...base[k], ...(raw[k] || {}) };
+    out.queue = Array.isArray(raw.queue) ? raw.queue.filter((q) => UNITS[q.unit]) : [];
+    out.expeditions = Array.isArray(raw.expeditions) ? raw.expeditions.filter((e) => MISSIONS[e.mission]) : [];
+    out.log = Array.isArray(raw.log) ? raw.log.slice(-120) : [];
+    for (const k of Object.keys(out.resources)) if (!isFinite(out.resources[k])) out.resources[k] = 0;
+    return out;
+  },
+  load() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (raw) return this.hydrate(JSON.parse(raw));
+    } catch (e) { console.warn("Save could not be read, starting fresh", e); }
+    return null;
+  },
+  save(s = this.current) {
+    try {
+      s.lastTick = Date.now();
+      localStorage.setItem(SAVE_KEY, JSON.stringify(s));
+      return true;
+    } catch (e) { console.error("Save failed", e); return false; }
+  },
+  exportString(s = this.current) {
+    return btoa(unescape(encodeURIComponent(JSON.stringify(s))));
+  },
+  importString(str) {
+    str = str.trim();
+    let obj;
+    try { obj = JSON.parse(str); }
+    catch { obj = JSON.parse(decodeURIComponent(escape(atob(str)))); }
+    if (!obj || typeof obj !== "object" || !obj.resources || !obj.buildings) throw new Error("This doesn't look like an Ironhold save.");
+    return this.hydrate(obj);
+  },
+};
+
+function addLog(s, msg, type = "info") {
+  s.log.push({ id: s.nextId++, t: Date.now(), msg, type });
+  if (s.log.length > 120) s.log.splice(0, s.log.length - 120);
+}
+
+/* =====================================================================
+   3. ECONOMY MODULE (production, consumption, caps, population)
+   ===================================================================== */
+const Economy = {
+  employed(s) { return s.jobs.farmer + s.jobs.miner + s.jobs.blacksmith; },
+  assigned(s) { return this.employed(s) + s.jobs.recruit; },
+  unemployed(s) { return Math.max(0, s.population.citizens - this.assigned(s)); },
+  housing(s) { const b = s.buildings; return b.townhall * 8 + b.house * 5 + b.barracks * 4; },
+  totalPop(s) { return s.population.citizens + Military.soldierCount(s); },
+  jobSlots(s, job) { return s.buildings[JOBS[job].building] * JOBS[job].slots; },
+
+  caps(s) {
+    const b = s.buildings, th = (b.townhall - 1) * 250;
+    return {
+      gold: 1000 + th + b.warehouse * 500,
+      food: 600 + th + b.granary * 600,
+      stone: 600 + th + b.warehouse * 500,
+      steel: 300 + th + b.warehouse * 250,
+      relics: Infinity,
+    };
+  },
+  relicMultiplier(s) { return 1 + Math.min(BALANCE.relicBonusCap, s.resources.relics * BALANCE.relicBonus); },
+  multiplier(s) { return (1 + 0.05 * (s.buildings.townhall - 1)) * this.relicMultiplier(s); },
+
+  /**
+   * Per-second production & consumption.
+   * dt is only used to work out how efficient Blacksmiths are when stone runs out.
+   */
+  rates(s, dt = 1) {
+    const j = s.jobs, m = this.multiplier(s), cit = s.population.citizens;
+    const up = Military.upkeep(s);
+    const prod = {
+      gold: (s.buildings.townhall * 1.0 + cit * BALANCE.goldPerCitizen + this.employed(s) * BALANCE.goldPerWorker) * m,
+      food: j.farmer * 1.1 * m,
+      stone: j.miner * 0.75 * m,
+      steel: j.blacksmith * 0.35 * m,
+      relics: 0,
+    };
+    const cons = { gold: up.gold, food: cit * BALANCE.foodPerCitizen + up.food, stone: j.blacksmith * 0.5, steel: 0, relics: 0 };
+    // Blacksmiths can only smelt the stone that exists.
+    let smeltEff = 1;
+    if (cons.stone > 0) {
+      const avail = s.resources.stone + prod.stone * dt;
+      smeltEff = clamp(avail / (cons.stone * dt), 0, 1);
+      cons.stone *= smeltEff; prod.steel *= smeltEff;
+    }
+    const net = {};
+    for (const r of Object.keys(prod)) net[r] = prod[r] - cons[r];
+    return { prod, cons, net, smeltEff, upkeep: up };
+  },
+
+  /** Add resources while respecting storage caps. Returns what was actually added. */
+  grant(s, bundle, mult = 1) {
+    const caps = this.caps(s), got = {};
+    for (const [r, v] of Object.entries(bundle)) {
+      const before = s.resources[r];
+      s.resources[r] = Math.min(caps[r], before + v * mult);
+      got[r] = Math.max(0, s.resources[r] - before);
+    }
+    return got;
+  },
+  canAfford(s, cost) { return Object.entries(cost).every(([r, v]) => s.resources[r] >= v); },
+  pay(s, cost) { for (const [r, v] of Object.entries(cost)) s.resources[r] -= v; },
+
+  buildingCost(id, level) {
+    const def = BUILDINGS[id];
+    const exp = id === "townhall" ? level - 1 : level;
+    const out = {};
+    for (const [r, v] of Object.entries(def.base)) out[r] = Math.ceil(v * Math.pow(def.mult, exp));
+    return out;
+  },
+  buildingMax(s, id) {
+    const def = BUILDINGS[id];
+    if (def.max) return def.max;
+    return s.buildings.townhall * (def.maxPerTH || 5);
+  },
+  /** Why a building can't be built right now (null if it can). */
+  buildBlocker(s, id) {
+    const def = BUILDINGS[id], lvl = s.buildings[id];
+    if (lvl >= this.buildingMax(s, id)) return id === "townhall" ? "Max level reached" : `Upgrade Town Hall to raise the limit (${this.buildingMax(s, id)})`;
+    if (def.popReq) {
+      const need = def.popReq(lvl);
+      if (this.totalPop(s) < need) return `Requires ${need} population`;
+    }
+    if (!this.canAfford(s, this.buildingCost(id, lvl))) return "Not enough resources";
+    return null;
+  },
+  build(s, id) {
+    if (this.buildBlocker(s, id)) return false;
+    const lvl = s.buildings[id];
+    this.pay(s, this.buildingCost(id, lvl));
+    s.buildings[id]++;
+    s.stats.built++;
+    const name = BUILDINGS[id].name;
+    addLog(s, id === "townhall" ? `The Town Hall has been raised to level ${s.buildings[id]}!` : `Built ${name} (level ${s.buildings[id]}).`, "build");
+    return true;
+  },
+
+  assign(s, job, delta) {
+    const cur = s.jobs[job];
+    const slotsFree = this.jobSlots(s, job) - cur;
+    if (delta > 0) delta = Math.min(delta, slotsFree, this.unemployed(s));
+    else delta = Math.max(delta, -cur);
+    s.jobs[job] = cur + delta;
+    return delta;
+  },
+
+  /** Remove one citizen (starvation): unemployed first, then the largest workforce. */
+  removeCitizen(s) {
+    if (s.population.citizens <= 0) return false;
+    if (this.unemployed(s) <= 0) {
+      const job = Object.keys(s.jobs).filter((k) => s.jobs[k] > 0).sort((a, b) => s.jobs[b] - s.jobs[a])[0];
+      if (job) s.jobs[job]--;
+    }
+    s.population.citizens--;
+    return true;
+  },
+
+  growthPerSecond(s) {
+    const caps = this.caps(s);
+    if (this.totalPop(s) >= this.housing(s) || s.resources.food <= 0) return 0;
+    const r = this.rates(s);
+    const fill = clamp(s.resources.food / caps.food, 0, 1);
+    const surplus = r.net.food >= 0 ? 1 : 0.25;
+    return 0.06 * (0.5 + fill * 1.5) * surplus * (1 + 0.1 * (s.buildings.townhall - 1));
+  },
+
+  step(s, dt) {
+    const r = this.rates(s, dt);
+    const caps = this.caps(s);
+    const shortage = {};
+    for (const res of STORABLE) {
+      let v = s.resources[res] + r.net[res] * dt;
+      if (v < 0) { shortage[res] = true; v = 0; }
+      // A loot windfall can sit above the cap; production then just stops adding.
+      s.resources[res] = r.net[res] > 0 ? Math.max(s.resources[res], Math.min(caps[res], v)) : v;
+    }
+    s.stats.goldEarned += r.prod.gold * dt;
+
+    // ---- Population growth / starvation
+    const pop = s.population;
+    if (shortage.food) {
+      pop.growth = 0;
+      pop.starve += dt;
+      while (pop.starve >= BALANCE.starveInterval && pop.citizens > 0) {
+        pop.starve -= BALANCE.starveInterval;
+        this.removeCitizen(s);
+        s.stats.starved++;
+        addLog(s, "A citizen has starved to death. Get more farmers working!", "bad");
+      }
+    } else {
+      pop.starve = 0;
+      pop.growth += this.growthPerSecond(s) * dt;
+      while (pop.growth >= 1) {
+        pop.growth -= 1;
+        if (this.totalPop(s) >= this.housing(s)) { pop.growth = 0; break; }
+        pop.citizens++;
+        if (pop.citizens % 10 === 0) addLog(s, `Your city has grown to ${pop.citizens} citizens.`, "good");
+      }
+    }
+    s.stats.peakPop = Math.max(s.stats.peakPop, this.totalPop(s));
+    return shortage;
+  },
+};
+
+/* =====================================================================
+   4. MILITARY MODULE (training, upkeep, desertion, expeditions, combat)
+   ===================================================================== */
+const Military = {
+  homeCount(s) { return Object.values(s.army).reduce((a, b) => a + b, 0); },
+  awayCount(s) { return s.expeditions.reduce((a, e) => a + Object.values(e.units).reduce((x, y) => x + y, 0), 0); },
+  soldierCount(s) { return this.homeCount(s) + this.awayCount(s) + s.queue.length; },
+  allUnits(s) {
+    const t = { ...s.army };
+    for (const e of s.expeditions) for (const [u, n] of Object.entries(e.units)) t[u] = (t[u] || 0) + n;
+    for (const q of s.queue) t[q.unit] = (t[q.unit] || 0) + 1;
+    return t;
+  },
+  upkeep(s) {
+    const out = { food: 0, gold: 0 };
+    for (const [u, n] of Object.entries(this.allUnits(s))) {
+      out.food += UNITS[u].upkeep.food * n;
+      out.gold += UNITS[u].upkeep.gold * n;
+    }
+    return out;
+  },
+  trainSpeed(s) { return 1 + 0.1 * Math.max(0, s.buildings.barracks - 1); },
+  expeditionSlots(s) { return s.buildings.barracks > 0 ? 1 + Math.floor(s.buildings.barracks / 3) : 0; },
+  xpForLevel(lvl) { return Math.floor(40 * Math.pow(lvl, 1.6)); },
+
+  trainBlocker(s, id) {
+    const u = UNITS[id];
+    if (s.buildings.barracks < u.barracks) return `Requires Barracks level ${u.barracks}`;
+    if (s.jobs.recruit < 1) return "Needs a Recruit (assign one in Workforce)";
+    if (s.queue.length >= BALANCE.maxQueue) return "Training queue is full";
+    if (!Economy.canAfford(s, u.cost)) return "Not enough resources";
+    return null;
+  },
+  train(s, id, count = 1) {
+    let made = 0;
+    for (let i = 0; i < count; i++) {
+      if (this.trainBlocker(s, id)) break;
+      Economy.pay(s, UNITS[id].cost);
+      s.jobs.recruit--;                 // the recruit leaves civilian life...
+      s.population.citizens--;          // ...and becomes a soldier in training
+      s.queue.push({ unit: id, remaining: UNITS[id].time, total: UNITS[id].time });
+      made++;
+    }
+    return made;
+  },
+
+  power(s, units, mission) {
+    let base = 0, siege = 0;
+    for (const [u, n] of Object.entries(units)) { base += UNITS[u].power * n; if (UNITS[u].siege) siege += n; }
+    let mult = (0.6 + 0.4 * s.morale / 100) * (1 + 0.04 * (s.commander.level - 1));
+    if (mission && MISSIONS[mission].fortified) mult *= Math.min(1.5, 0.5 + 0.1 * siege);
+    return base * mult;
+  },
+  successChance(power, diff) {
+    if (power <= 0) return 0;
+    const ratio = power / diff;
+    return clamp(1 / (1 + Math.exp(-4 * (ratio - 0.9))), 0.03, 0.97);
+  },
+  lootMultiplier(s) { return 1 + 0.05 * (s.commander.level - 1); },
+
+  deployBlocker(s, missionId, units) {
+    const m = MISSIONS[missionId];
+    if (s.commander.level < m.level) return `Commander level ${m.level} required`;
+    if (s.expeditions.length >= this.expeditionSlots(s)) return s.buildings.barracks ? "No free expedition slots" : "Build a Barracks first";
+    const total = Object.values(units || {}).reduce((a, b) => a + b, 0);
+    if (units && total <= 0) return "Select at least one unit";
+    if (units) for (const [u, n] of Object.entries(units)) if (n > s.army[u]) return "Not enough troops at home";
+    if (!units && this.homeCount(s) <= 0) return "No troops at home";
+    return null;
+  },
+  deploy(s, missionId, units) {
+    if (this.deployBlocker(s, missionId, units)) return false;
+    const clean = {};
+    for (const [u, n] of Object.entries(units)) if (n > 0) { clean[u] = n; s.army[u] -= n; }
+    const m = MISSIONS[missionId];
+    s.expeditions.push({ id: s.nextId++, mission: missionId, units: clean, startAt: s.time, endAt: s.time + m.duration });
+    addLog(s, `An army of ${Object.values(clean).reduce((a, b) => a + b, 0)} marches on the ${m.name}.`, "war");
+    return true;
+  },
+  recall(s, expId) {
+    const i = s.expeditions.findIndex((e) => e.id === expId);
+    if (i < 0) return;
+    const e = s.expeditions[i];
+    for (const [u, n] of Object.entries(e.units)) s.army[u] += n;
+    s.expeditions.splice(i, 1);
+    addLog(s, `The expedition to the ${MISSIONS[e.mission].name} was called back. No loot was taken.`, "info");
+  },
+
+  /** Work out how an expedition ends: success roll, casualties, loot and XP. */
+  resolve(s, e) {
+    const m = MISSIONS[e.mission];
+    const power = this.power(s, e.units, e.mission);
+    const ratio = power / m.diff;
+    const chance = this.successChance(power, m.diff);
+    const win = Math.random() < chance;
+    const casFrac = win ? clamp(0.3 / ratio - 0.12, 0, 0.4) : clamp(0.65 / ratio - 0.1, 0.2, 0.85);
+    let lost = 0;
+    const survivors = {};
+    for (const [u, n] of Object.entries(e.units)) {
+      let dead = 0;
+      for (let i = 0; i < n; i++) if (Math.random() < casFrac) dead++;
+      if (win && dead === n && n > 0) dead = n - 1; // a victorious army always brings someone home
+      survivors[u] = n - dead; lost += dead;
+      s.army[u] += n - dead;
+    }
+    s.stats.fallen += lost;
+
+    const parts = [];
+    if (win) {
+      s.stats.won++;
+      const lm = this.lootMultiplier(s);
+      const bundle = {};
+      for (const [r, [lo, hi]] of Object.entries(m.loot)) bundle[r] = randInt(lo, hi);
+      const got = Economy.grant(s, bundle, lm);
+      for (const [r, v] of Object.entries(got)) if (v > 0) parts.push(`${fmt(v)} ${RESOURCES[r].name}`);
+      const wasted = Object.entries(bundle).some(([r, v]) => got[r] + 0.5 < v * lm);
+      if (m.relic && Math.random() < m.relic.chance) {
+        const n = randInt(m.relic.n[0], m.relic.n[1]);
+        s.resources.relics += n; s.stats.relicsFound += n;
+        parts.push(`${n} Relic${n > 1 ? "s" : ""}`);
+      }
+      addLog(s, `Victory at the ${m.name}! Loot: ${parts.join(", ") || "nothing"}. Casualties: ${lost}.${wasted ? " Some loot was lost to full storage." : ""}`, "good");
+    } else {
+      s.stats.lost++;
+      addLog(s, `Defeat at the ${m.name}. ${lost} soldiers fell and the survivors retreat.`, "bad");
+    }
+    this.addXp(s, Math.round(m.xp * (win ? 1 : 0.3)));
+    return { win, lost, parts };
+  },
+  addXp(s, xp) {
+    const c = s.commander;
+    c.xp += xp;
+    while (c.xp >= this.xpForLevel(c.level)) {
+      c.xp -= this.xpForLevel(c.level);
+      c.level++;
+      addLog(s, `Your Lord Commander reached level ${c.level}! Armies now fight harder and bring back more loot.`, "war");
+    }
+  },
+
+  desertOne(s) {
+    // the cheapest unit at home deserts first
+    const order = Object.keys(UNITS).sort((a, b) => UNITS[a].power - UNITS[b].power);
+    for (const u of order) if (s.army[u] > 0) { s.army[u]--; return UNITS[u].name; }
+    return null;
+  },
+
+  step(s, dt, shortage) {
+    // ---- training queue (overflow time carries over to the next unit)
+    let t = dt * this.trainSpeed(s);
+    while (s.queue.length && t > 0) {
+      const q = s.queue[0];
+      q.remaining -= t;
+      if (q.remaining <= 0) {
+        t = -q.remaining;
+        s.queue.shift();
+        s.army[q.unit]++;
+        s.stats.trained++;
+        if (!s.queue.length) addLog(s, `Training complete: the last ${UNITS[q.unit].name} has joined the army.`, "war");
+      } else t = 0;
+    }
+
+    // ---- upkeep penalties: morale and desertion
+    const hungry = shortage.food || shortage.gold;
+    if (hungry && this.soldierCount(s) > 0) {
+      s.morale = clamp(s.morale - 2 * dt, 0, 100);
+      s.desert += dt;
+      while (s.desert >= BALANCE.desertInterval) {
+        s.desert -= BALANCE.desertInterval;
+        const who = this.desertOne(s);
+        if (!who) { s.desert = 0; break; }
+        s.stats.deserted++;
+        addLog(s, `Unpaid and hungry, a ${who} deserted the army.`, "bad");
+      }
+    } else {
+      s.desert = 0;
+      s.morale = clamp(s.morale + 0.5 * dt, 0, 100);
+    }
+
+    // ---- expeditions return automatically
+    for (const e of s.expeditions.slice()) {
+      if (s.time >= e.endAt) {
+        s.expeditions.splice(s.expeditions.indexOf(e), 1);
+        this.resolve(s, e);
+      }
+    }
+  },
+};
+
+/* =====================================================================
+   5. ENGINE MODULE (game loop, offline progress, autosave)
+   ===================================================================== */
+const Engine = {
+  intervalId: null,
+  lastReal: 0,
+  lastSave: 0,
+
+  /** One simulation step of dt seconds. */
+  tick(s, dt) {
+    s.time += dt;
+    s.stats.playSeconds += dt;
+    const shortage = Economy.step(s, dt);
+    Military.step(s, dt, shortage);
+  },
+
+  /** Simulate a long gap in chunks so expeditions and starvation resolve in the right order. */
+  simulate(s, seconds) {
+    const step = BALANCE.offlineStepSeconds;
+    let left = seconds;
+    while (left > 0) {
+      const dt = Math.min(step, left);
+      this.tick(s, dt);
+      left -= dt;
+    }
+  },
+
+  /** On load: award progress made while the game was closed (capped). */
+  offlineProgress(s) {
+    const elapsed = (Date.now() - (s.lastTick || Date.now())) / 1000;
+    if (elapsed < 5) return null;
+    const secs = Math.min(elapsed, BALANCE.offlineCapSeconds);
+    const before = { ...s.resources, pop: Economy.totalPop(s), won: s.stats.won, lost: s.stats.lost, lvl: s.commander.level };
+    const logLen = s.nextId;
+    this.simulate(s, secs);
+    s.lastTick = Date.now();
+    return {
+      elapsed, secs, capped: elapsed > BALANCE.offlineCapSeconds,
+      delta: Object.fromEntries(Object.keys(RESOURCES).map((r) => [r, s.resources[r] - before[r]])),
+      pop: Economy.totalPop(s) - before.pop,
+      won: s.stats.won - before.won, lost: s.stats.lost - before.lost,
+      lvl: s.commander.level - before.lvl,
+      events: s.log.filter((l) => l.id >= logLen).length,
+    };
+  },
+
+  start() {
+    this.lastReal = Date.now();
+    this.lastSave = Date.now();
+    clearInterval(this.intervalId);
+    this.intervalId = setInterval(() => this.loop(), BALANCE.tickSeconds * 1000);
+  },
+  loop() {
+    const s = GameState.current;
+    const now = Date.now();
+    let dt = (now - this.lastReal) / 1000;
+    this.lastReal = now;
+    if (dt <= 0) return;
+    dt = Math.min(dt, BALANCE.offlineCapSeconds);
+    // Background tabs throttle timers; long gaps go through the chunked simulator.
+    if (dt > 3) this.simulate(s, dt); else this.tick(s, dt);
+    s.lastTick = now;
+    if (now - this.lastSave >= BALANCE.autosaveMs) { this.lastSave = now; UI.markSaved(GameState.save(), true); }
+    UI.update();
+  },
+};
+
+/* =====================================================================
+   6. ASSET PIPELINE / IMAGE API INTEGRATION
+   ---------------------------------------------------------------------
+   Lookup order for every image key (first match wins):
+     1. In-memory cache          (this.memory)
+     2. IndexedDB browser cache  (art the player made in the Artwork Forge)
+     3. Static pre-generated art (assets/manifest.json → assets/generated/*, made by tools/generate-assets.mjs)
+     4. Procedural SVG fallback  (emoji on a gradient tile, always available, works offline)
+
+   Request flow (Signor gateway, OpenAI-compatible chat endpoint):
+     POST {base}/chat/completions  { model, messages:[{role:"user", content: prompt}] }
+     → choices[0].message.content holds the image in one of four shapes:
+         a) ![image](data:image/png;base64,...)     Gemini / gpt-image-2-c
+         b) ![image](https://...png)                 gpt-image-2 / gpt-image-2-c
+         c) bare base64 PNG, or a markdown URL       gpt-image-2.5-*
+         d) [{"url":"https://..."}]                  Seedream (signed URLs that expire)
+     The result is cropped and resized on a canvas, saved as WebP and cached in IndexedDB.
+     Hosted URLs expire, so we always try to copy the pixels into the cache.
+   ===================================================================== */
+const AssetPipeline = {
+  catalog: JSON.parse(document.getElementById("asset-catalog").textContent),
+  byKey: {},
+  memory: new Map(),      // key -> src (data URL / URL)
+  staticManifest: {},     // key -> relative path
+  db: null,
+  busy: false,
+  SIZES: { icon: [256, 256], portrait: [384, 384], banner: [960, 540], backdrop: [1600, 900] },
+  DEFAULT_BASE: "https://api.code.signor.ai/api-2/v1",
+  KEY_STORAGE: "ironhold_api_key",
+  CFG_STORAGE: "ironhold_api_cfg",
+
+  /** Synchronous: index the catalog so fallbacks render correctly on the very first frame. */
+  indexCatalog() { for (const a of this.catalog.assets) this.byKey[a.key] = a; },
+
+  async init() {
+    this.indexCatalog();
+    await Promise.all([this.openDb().catch(() => null), this.loadStaticManifest()]);
+    if (this.db) {
+      const rows = await this.dbAll().catch(() => []);
+      for (const row of rows) if (this.byKey[row.key]) this.memory.set(row.key, row.src);
+    }
+    this.applyAll();
+  },
+
+  // ---------- resolution ----------
+  src(key) {
+    return this.memory.get(key) || this.staticManifest[key] || this.fallback(key);
+  },
+  hasArt(key) { return this.memory.has(key) || !!this.staticManifest[key]; },
+  fallback(key) {
+    const a = this.byKey[key] || { emoji: "❔", hue: 220, kind: "icon" };
+    const [w, h] = this.SIZES[a.kind] || [256, 256];
+    const hue = a.hue, fs = Math.round(Math.min(w, h) * 0.5);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+      <defs><radialGradient id="g" cx="50%" cy="38%" r="75%">
+        <stop offset="0%" stop-color="hsl(${hue},45%,34%)"/><stop offset="60%" stop-color="hsl(${hue},35%,16%)"/><stop offset="100%" stop-color="hsl(${hue},30%,8%)"/>
+      </radialGradient></defs>
+      <rect width="100%" height="100%" fill="url(#g)"/>
+      <rect x="3" y="3" width="${w - 6}" height="${h - 6}" rx="${Math.min(w, h) * 0.08}" fill="none" stroke="hsla(${hue},60%,70%,0.25)" stroke-width="3"/>
+      ${a.emoji ? `<text x="50%" y="54%" font-size="${fs}" text-anchor="middle" dominant-baseline="middle" font-family="Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif">${a.emoji}</text>` : ""}
+    </svg>`;
+    return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  },
+  /** Point every <img data-asset> (and the page backdrop) at the current best source. */
+  applyAll(root = document) {
+    for (const img of $$("img[data-asset]", root)) {
+      const want = this.src(img.dataset.asset);
+      if (img.getAttribute("src") !== want) {
+        img.onerror = () => { img.onerror = null; img.src = this.fallback(img.dataset.asset); };
+        img.src = want;
+      }
+    }
+    const bg = this.hasArt("backdrop") ? `url("${this.src("backdrop")}")` : "none";
+    document.documentElement.style.setProperty("--bg-art", bg);
+    UI.updateArtCount && UI.updateArtCount();
+  },
+
+  async loadStaticManifest() {
+    try {
+      const r = await fetch("assets/manifest.json", { cache: "no-cache" });
+      if (!r.ok) return;
+      const m = await r.json();
+      for (const [k, p] of Object.entries(m)) if (this.byKey[k] && typeof p === "string") this.staticManifest[k] = p;
+    } catch { /* file:// or no manifest: fall back silently */ }
+  },
+
+  // ---------- IndexedDB cache ----------
+  openDb() {
+    return new Promise((res, rej) => {
+      if (!("indexedDB" in window)) return rej(new Error("no idb"));
+      const req = indexedDB.open("ironhold-assets", 1);
+      req.onupgradeneeded = () => req.result.createObjectStore("images", { keyPath: "key" });
+      req.onsuccess = () => { this.db = req.result; res(this.db); };
+      req.onerror = () => rej(req.error);
+    });
+  },
+  dbTx(mode, fn) {
+    return new Promise((res, rej) => {
+      const tx = this.db.transaction("images", mode);
+      const out = fn(tx.objectStore("images"));
+      tx.oncomplete = () => res(out && out.result);
+      tx.onerror = () => rej(tx.error);
+    });
+  },
+  dbAll() { return this.dbTx("readonly", (st) => st.getAll()); },
+  dbPut(row) { return this.db ? this.dbTx("readwrite", (st) => st.put(row)) : Promise.resolve(); },
+  async clearCache() {
+    if (this.db) await this.dbTx("readwrite", (st) => st.clear());
+    this.memory.clear();
+    this.applyAll();
+  },
+
+  // ---------- config (API key never goes into the game save) ----------
+  config() {
+    let cfg = {};
+    try { cfg = JSON.parse(localStorage.getItem(this.CFG_STORAGE) || "{}"); } catch {}
+    let key = "";
+    try { key = localStorage.getItem(this.KEY_STORAGE) || ""; } catch {}
+    return { key, model: cfg.model || "gemini-3.1-flash-image", base: (cfg.base || this.DEFAULT_BASE).replace(/\/+$/, "") };
+  },
+  saveConfig({ key, model, base }) {
+    try {
+      if (key) localStorage.setItem(this.KEY_STORAGE, key); else localStorage.removeItem(this.KEY_STORAGE);
+      localStorage.setItem(this.CFG_STORAGE, JSON.stringify({ model, base }));
+    } catch {}
+  },
+
+  buildPrompt(a) {
+    const st = this.catalog.style;
+    return `${a.prompt}. ${st[a.kind] || ""} ${st.base}`.trim();
+  },
+
+  /** Pull an image reference out of any of the four reply shapes the gateway returns. */
+  extractImage(content) {
+    if (Array.isArray(content)) content = content.map((p) => (p && (p.image_url?.url || p.text)) || "").join("\n");
+    const s = String(content || "").trim();
+    let m = s.match(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/);
+    if (m) return m[0];
+    if (s.startsWith("[")) {
+      try { const arr = JSON.parse(s); const u = arr[0] && (arr[0].url || arr[0]); if (typeof u === "string") return u; } catch {}
+    }
+    m = s.match(/\]\((https?:\/\/[^)\s]+)\)/) || s.match(/\((https?:\/\/[^)\s]+)\)/);
+    if (m) return m[1];
+    m = s.match(/https?:\/\/[^\s"')]+/);
+    if (m) return m[0];
+    m = s.replace(/\s+/g, "").match(/[A-Za-z0-9+/]{400,}={0,2}/);
+    if (m) {
+      const b = m[0];
+      const mime = b.startsWith("/9j/") ? "image/jpeg" : b.startsWith("UklGR") ? "image/webp" : "image/png";
+      return `data:${mime};base64,${b}`;
+    }
+    return null;
+  },
+
+  /** Call the gateway. Retries on 429/503 (pool saturated) with exponential backoff. */
+  async requestImage(a, cfg) {
+    const body = { model: cfg.model, messages: [{ role: "user", content: this.buildPrompt(a) }] };
+    if (/^gpt-image-2-c$/.test(cfg.model)) body.size = a.kind === "banner" || a.kind === "backdrop" ? "1536x1024" : "1024x1024";
+    let lastErr;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 300000); // images take 10-80 s and aren't streamed
+      try {
+        const r = await fetch(`${cfg.base}/chat/completions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${cfg.key}` },
+          body: JSON.stringify(body),
+          signal: ctrl.signal,
+        });
+        clearTimeout(timer);
+        if (r.status === 429 || r.status === 503) { lastErr = new Error(`Provider busy (${r.status})`); await new Promise((ok) => setTimeout(ok, 3000 * 2 ** attempt)); continue; }
+        if (!r.ok) { const t = await r.text().catch(() => ""); throw new Error(`HTTP ${r.status}: ${t.slice(0, 160)}`); }
+        const j = await r.json();
+        const src = this.extractImage(j?.choices?.[0]?.message?.content);
+        if (!src) throw new Error("Reply did not contain an image");
+        return { src, cost: (j?.usage?.cost ?? Number(r.headers.get("x-signor-cost-usd"))) || 0 };
+      } catch (e) {
+        clearTimeout(timer);
+        if (e.name === "AbortError") lastErr = new Error("Timed out after 300 s");
+        else if (e instanceof TypeError) throw new Error("Network/CORS error. The API may not allow calls from a browser here. Use tools/generate-assets.mjs instead.");
+        else throw e;
+      }
+    }
+    throw lastErr || new Error("Image request failed");
+  },
+
+  loadImg(src) {
+    return new Promise((res, rej) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => res(img);
+      img.onerror = () => rej(new Error("image decode failed"));
+      img.src = src;
+    });
+  },
+  /** Cover-crop to the target size and re-encode as WebP (JPEG fallback) so the cache stays small. */
+  async normalize(src, kind) {
+    let objUrl = null;
+    try {
+      if (/^https?:/.test(src)) {
+        const r = await fetch(src);           // copy remote pixels before the signed URL expires
+        objUrl = URL.createObjectURL(await r.blob());
+      }
+      const img = await this.loadImg(objUrl || src);
+      const [w, h] = this.SIZES[kind] || [256, 256];
+      const c = document.createElement("canvas");
+      c.width = w; c.height = h;
+      const ctx = c.getContext("2d");
+      const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+      const dw = img.naturalWidth * scale, dh = img.naturalHeight * scale;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+      let out = c.toDataURL("image/webp", 0.86);
+      if (!out.startsWith("data:image/webp")) out = c.toDataURL("image/jpeg", 0.88);
+      return out;
+    } catch {
+      return src;                              // CORS-blocked remote image: keep the URL as-is
+    } finally {
+      if (objUrl) URL.revokeObjectURL(objUrl);
+    }
+  },
+
+  async generate(key, cfg) {
+    const a = this.byKey[key];
+    const { src, cost } = await this.requestImage(a, cfg);
+    const finalSrc = await this.normalize(src, a.kind);
+    this.memory.set(key, finalSrc);
+    await this.dbPut({ key, src: finalSrc, model: cfg.model, createdAt: Date.now() }).catch(() => {});
+    this.applyAll();
+    return cost;
+  },
+
+  /** Generate a batch with limited concurrency, reporting progress to the UI. */
+  async generateBatch(keys, onProgress) {
+    const cfg = this.config();
+    if (!cfg.key) throw new Error("Enter your API key first.");
+    this.busy = true;
+    let done = 0, failed = 0, cost = 0, idx = 0;
+    const errors = [];
+    const worker = async () => {
+      while (idx < keys.length) {
+        const key = keys[idx++];
+        try { cost += await this.generate(key, cfg) || 0; }
+        catch (e) { failed++; errors.push(`${key}: ${e.message}`); if (/CORS|401|403/.test(e.message)) { idx = keys.length; } }
+        done++;
+        onProgress(done, keys.length, key);
+      }
+    };
+    try { await Promise.all([worker(), worker()]); }
+    finally { this.busy = false; }
+    return { done, failed, cost, errors };
+  },
+  missingKeys() { return this.catalog.assets.map((a) => a.key).filter((k) => !this.hasArt(k)); },
+  allKeys() { return this.catalog.assets.map((a) => a.key); },
+};
+
+/* =====================================================================
+   7. UI MODULE (DOM building, per-tick updates, events)
+   ===================================================================== */
+const UI = {
+  refs: { res: {}, buildings: {}, jobs: {}, units: {}, missions: {} },
+  renderedLogId: 0,
+  expSig: "",
+  queueSig: "",
+  lastRes: {},
+
+  costHtml(cost, s) {
+    return Object.entries(cost).map(([r, v]) =>
+      `<span class="cost ${s && s.resources[r] < v ? "lack" : ""}"><img data-asset="${RESOURCES[r].asset}" alt="">${fmt(v)}</span>`).join("");
+  },
+
+  build() {
+    const s = GameState.current;
+    // ---- header resources
+    const strip = $("#resStrip");
+    strip.innerHTML = Object.entries(RESOURCES).map(([id, r]) => `
+      <div class="res-chip" id="res-${id}" style="--c:${r.color}" title="${r.name}">
+        <img data-asset="${r.asset}" alt="${r.name}">
+        <div class="rv"><span class="v">0</span> <span class="cap"></span></div>
+        <div class="rr dim">${id === "relics" ? "" : "+0/s"}</div>
+        <div class="fill"></div>
+      </div>`).join("") + `
+      <div class="res-chip pop-chip" id="res-pop" style="--c:var(--teal)" title="Population">
+        <img data-asset="pop" alt="Population">
+        <div class="rv"><span class="v">0</span> <span class="cap"></span></div>
+        <div class="pop-grid">
+          <span>Wkr <b data-p="workers">0</b></span><span>Idle <b data-p="idle">0</b></span>
+          <span>Rec <b data-p="recruits">0</b></span><span>Sol <b data-p="soldiers">0</b></span>
+        </div>
+        <div class="fill"></div>
+      </div>`;
+    for (const id of [...Object.keys(RESOURCES), "pop"]) {
+      const el = $(`#res-${id}`);
+      this.refs.res[id] = { el, v: $(".v", el), cap: $(".cap", el), rr: $(".rr", el), fill: $(".fill", el) };
+    }
+
+    // ---- buildings
+    $("#buildingList").innerHTML = Object.entries(BUILDINGS).map(([id, b]) => `
+      <div class="card" id="bld-${id}">
+        <img class="thumb" data-asset="${b.asset}" alt="${b.name}">
+        <div>
+          <div class="title"><h3>${b.name}</h3><span class="badge" data-r="lvl">Lv 0</span></div>
+          <div class="desc">${b.desc}</div>
+          <div class="effect" data-r="effect"></div>
+        </div>
+        <div class="foot"><div class="costs" data-r="cost"></div>
+          <button class="btn primary sm" data-action="build" data-id="${id}" data-r="btn">Build</button></div>
+        <div class="req" data-r="req"></div>
+      </div>`).join("");
+    for (const id of Object.keys(BUILDINGS)) {
+      const el = $(`#bld-${id}`);
+      this.refs.buildings[id] = Object.fromEntries($$("[data-r]", el).map((n) => [n.dataset.r, n]));
+    }
+
+    // ---- jobs
+    $("#jobList").innerHTML = Object.entries(JOBS).map(([id, j]) => `
+      <div class="job-row" id="job-${id}">
+        <img data-asset="${j.asset}" alt="${j.name}">
+        <div><div class="jn">${j.name}</div><div class="jd">${j.desc}</div>
+          <div class="slotbar"><i data-r="bar"></i></div></div>
+        <div class="ctrl">
+          <button class="btn sm" data-action="assign" data-id="${id}" data-d="-max" title="Unassign all">«</button>
+          <button class="btn sm" data-action="assign" data-id="${id}" data-d="-1" title="−1 (Shift: −10)">−</button>
+          <span class="job-count" data-r="count">0/0</span>
+          <button class="btn sm" data-action="assign" data-id="${id}" data-d="1" title="+1 (Shift: +10)">+</button>
+          <button class="btn sm" data-action="assign" data-id="${id}" data-d="max" title="Fill all slots">»</button>
+        </div>
+      </div>`).join("");
+    for (const id of Object.keys(JOBS)) {
+      const el = $(`#job-${id}`);
+      this.refs.jobs[id] = Object.fromEntries($$("[data-r]", el).map((n) => [n.dataset.r, n]));
+    }
+
+    // ---- units
+    $("#unitList").innerHTML = Object.entries(UNITS).map(([id, u]) => `
+      <div class="card" id="unit-${id}">
+        <img class="thumb" data-asset="${u.asset}" alt="${u.name}">
+        <div>
+          <div class="title"><h3>${u.name}</h3><span class="badge war" data-r="count">0</span></div>
+          <div class="desc">${u.desc}</div>
+          <div class="effect">⚔ ${u.power} power · ${u.time}s${u.siege ? " · siege" : ""}<br><span class="dim">Upkeep ${u.upkeep.food} food, ${u.upkeep.gold} gold /s</span></div>
+        </div>
+        <div class="foot"><div class="costs" data-r="cost"></div>
+          <div class="btn-row"><button class="btn sm" data-action="train" data-id="${id}" data-n="1" data-r="b1">Train</button>
+          <button class="btn sm" data-action="train" data-id="${id}" data-n="5" data-r="b5">×5</button></div></div>
+        <div class="req" data-r="req"></div>
+      </div>`).join("");
+    for (const id of Object.keys(UNITS)) {
+      const el = $(`#unit-${id}`);
+      this.refs.units[id] = Object.fromEntries($$("[data-r]", el).map((n) => [n.dataset.r, n]));
+    }
+
+    // ---- missions
+    $("#missionList").innerHTML = Object.entries(MISSIONS).map(([id, m]) => `
+      <div class="mission" id="mis-${id}">
+        <img class="art" data-asset="${m.asset}" alt="">
+        <div class="shade"></div>
+        <div class="inner">
+          <div class="mh"><h3>${m.name} ${m.fortified ? '<span class="tag">Fortified</span>' : ""}</h3>
+            <button class="btn teal sm" data-action="openDeploy" data-id="${id}" data-r="btn">Deploy</button></div>
+          <div class="meta"><span>Threat <b>${fmt(m.diff)}</b></span><span>Duration <b>${fmtTime(m.duration)}</b></span>
+            <span>XP <b>${m.xp}</b></span><span>Requires <b>Cmdr Lv ${m.level}</b></span></div>
+          <div class="meta">Loot: ${Object.entries(m.loot).map(([r, [lo, hi]]) => `<span class="cost"><img data-asset="${RESOURCES[r].asset}" alt="">${fmt(lo)}–${fmt(hi)}</span>`).join("")}
+            ${m.relic ? `<span class="cost"><img data-asset="res_relics" alt="">${Math.round(m.relic.chance * 100)}% for ${m.relic.n[0]}${m.relic.n[1] > m.relic.n[0] ? "–" + m.relic.n[1] : ""}</span>` : ""}</div>
+          <div class="req" data-r="req"></div>
+        </div>
+      </div>`).join("");
+    for (const id of Object.keys(MISSIONS)) {
+      const el = $(`#mis-${id}`);
+      this.refs.missions[id] = { el, ...Object.fromEntries($$("[data-r]", el).map((n) => [n.dataset.r, n])) };
+    }
+
+    // ---- forge config fields
+    const cfg = AssetPipeline.config();
+    $("#apiKey").value = cfg.key;
+    $("#apiModel").value = cfg.model;
+    $("#apiBase").value = cfg.base;
+    for (const id of ["apiKey", "apiModel", "apiBase"]) $("#" + id).addEventListener("change", () => this.saveForgeConfig());
+
+    $("#log").innerHTML = "";
+    this.renderedLogId = 0;
+    this.expSig = this.queueSig = "";
+    AssetPipeline.applyAll();
+    this.update();
+  },
+
+  saveForgeConfig() {
+    AssetPipeline.saveConfig({ key: $("#apiKey").value.trim(), model: $("#apiModel").value, base: $("#apiBase").value.trim() || AssetPipeline.DEFAULT_BASE });
+  },
+
+  update() {
+    const s = GameState.current;
+    const rates = Economy.rates(s);
+    const caps = Economy.caps(s);
+
+    // ---- header
+    for (const id of Object.keys(RESOURCES)) {
+      const r = this.refs.res[id], v = s.resources[id];
+      r.v.textContent = id === "relics" ? fmtInt(v) : fmt(v);
+      if (id === "relics") {
+        r.cap.textContent = "";
+        r.rr.textContent = `+${Math.round((Economy.relicMultiplier(s) - 1) * 100)}% output`;
+        r.rr.className = "rr muted";
+        r.fill.style.width = "0";
+      } else {
+        r.cap.textContent = "/ " + fmt(caps[id]);
+        const net = rates.net[id];
+        r.rr.textContent = `${fmtRate(net)} ${RESOURCES[id].name}/sec`;
+        r.rr.className = "rr " + (net > 0.004 ? "good" : net < -0.004 ? "bad" : "dim");
+        r.fill.style.width = clamp((v / caps[id]) * 100, 0, 100) + "%";
+        r.el.classList.toggle("full", v >= caps[id] - 0.01);
+        r.el.title = `${RESOURCES[id].name}: +${rates.prod[id].toFixed(2)}/s produced, −${rates.cons[id].toFixed(2)}/s consumed`;
+      }
+      if (this.lastRes[id] !== undefined && Math.floor(v) > Math.floor(this.lastRes[id]) + 50) { r.el.classList.remove("bump"); void r.el.offsetWidth; r.el.classList.add("bump"); }
+      this.lastRes[id] = v;
+    }
+    const pop = this.refs.res.pop, total = Economy.totalPop(s), housing = Economy.housing(s);
+    pop.v.textContent = fmtInt(total);
+    pop.cap.textContent = "/ " + fmtInt(housing) + " housed";
+    pop.fill.style.width = clamp((total / Math.max(1, housing)) * 100, 0, 100) + "%";
+    const pg = (k) => $(`[data-p="${k}"]`, pop.el);
+    pg("workers").textContent = Economy.employed(s);
+    pg("idle").textContent = Economy.unemployed(s);
+    pg("recruits").textContent = s.jobs.recruit;
+    pg("soldiers").textContent = Military.soldierCount(s);
+
+    // ---- buildings
+    for (const [id, b] of Object.entries(BUILDINGS)) {
+      const r = this.refs.buildings[id], lvl = s.buildings[id];
+      r.lvl.textContent = `Lv ${lvl}`;
+      r.effect.textContent = this.buildingEffect(s, id);
+      const cost = Economy.buildingCost(id, lvl);
+      const maxed = lvl >= Economy.buildingMax(s, id);
+      r.cost.innerHTML = maxed ? '<span class="dim">—</span>' : this.costHtml(cost, s);
+      const blk = Economy.buildBlocker(s, id);
+      r.btn.disabled = !!blk;
+      r.btn.textContent = maxed ? "Maxed" : lvl === 0 ? "Build" : "Upgrade";
+      r.req.textContent = blk && blk !== "Not enough resources" ? blk : "";
+    }
+
+    // ---- workforce
+    const growth = Economy.growthPerSecond(s);
+    $("#popSummary").innerHTML = `
+      <span>Citizens</span><b>${fmtInt(s.population.citizens)}</b>
+      <span>Unemployed</span><b class="${Economy.unemployed(s) ? "warn" : ""}">${fmtInt(Economy.unemployed(s))}</b>
+      <span>Housing</span><b>${fmtInt(total)} / ${fmtInt(housing)}</b>
+      <span>Growth</span><b class="${growth > 0 ? "good" : "dim"}">${growth > 0 ? "1 citizen / " + fmtTime(1 / growth) : total >= housing ? "Housing full" : s.population.starve > 0 ? "Starving!" : "Stalled"}</b>
+      <span>Food upkeep</span><b>${(s.population.citizens * BALANCE.foodPerCitizen).toFixed(1)}/s</b>
+      <span>Production bonus</span><b class="good">+${Math.round((Economy.multiplier(s) - 1) * 100)}%</b>`;
+    for (const [id] of Object.entries(JOBS)) {
+      const r = this.refs.jobs[id], slots = Economy.jobSlots(s, id), n = s.jobs[id];
+      r.count.textContent = `${n}/${slots}`;
+      r.bar.style.width = slots ? (n / slots) * 100 + "%" : "0";
+    }
+    if (rates.smeltEff < 0.999 && s.jobs.blacksmith > 0) this.refs.jobs.blacksmith.count.title = `Smelting at ${Math.round(rates.smeltEff * 100)}% (short on stone)`;
+
+    // ---- military
+    const soldiers = Military.soldierCount(s);
+    $("#armyBadge").textContent = `${soldiers} soldier${soldiers === 1 ? "" : "s"}`;
+    const c = s.commander, need = Military.xpForLevel(c.level);
+    $("#cmdLevel").textContent = `Lv ${c.level}`;
+    $("#cmdXp").textContent = `${fmtInt(c.xp)} / ${fmtInt(need)}`;
+    $("#cmdXpBar").style.width = (c.xp / need) * 100 + "%";
+    $("#moraleTxt").textContent = `${Math.round(s.morale)}%`;
+    $("#moraleTxt").className = s.morale < 50 ? "bad" : s.morale < 85 ? "warn" : "";
+    const mb = $("#moraleBar"); mb.style.width = s.morale + "%"; mb.parentElement.className = "bar fast " + (s.morale < 50 ? "bad" : "good");
+
+    for (const [id, u] of Object.entries(UNITS)) {
+      const r = this.refs.units[id];
+      r.count.textContent = `${s.army[id]} home`;
+      r.cost.innerHTML = this.costHtml(u.cost, s);
+      const blk = Military.trainBlocker(s, id);
+      r.b1.disabled = !!blk; r.b5.disabled = !!blk;
+      r.req.textContent = blk && blk !== "Not enough resources" ? blk : "";
+    }
+
+    const qSig = s.queue.length + ":" + s.queue.map((q) => q.unit[0]).join("");
+    if (qSig !== this.queueSig) {
+      this.queueSig = qSig;
+      const box = $("#queueBox");
+      if (!s.queue.length) box.innerHTML = `<span class="dim">Training queue is empty.${s.buildings.barracks ? " Assign Recruits, then train units." : " Build a Barracks to train soldiers."}</span>`;
+      else {
+        const counts = {};
+        for (const q of s.queue) counts[q.unit] = (counts[q.unit] || 0) + 1;
+        box.innerHTML = `<div class="stat-row"><span>Training <b style="color:var(--text)">${UNITS[s.queue[0].unit].name}</b></span><b data-q="t"></b></div>
+          <div class="bar war"><i data-q="bar"></i></div>
+          <div class="queue-items">${Object.entries(counts).map(([u, n]) => `<span class="qitem"><img data-asset="${UNITS[u].asset}" alt="">${UNITS[u].name} ×${n}</span>`).join("")}
+          <span class="qitem" style="padding-left:6px">${s.queue.length}/${BALANCE.maxQueue}</span></div>`;
+        AssetPipeline.applyAll(box);
+      }
+    }
+    if (s.queue.length) {
+      const q = s.queue[0];
+      $('[data-q="t"]').textContent = fmtTime(q.remaining / Military.trainSpeed(s));
+      $('[data-q="bar"]').style.width = (1 - q.remaining / q.total) * 100 + "%";
+    }
+
+    const allU = Military.allUnits(s);
+    const homePower = Military.power(s, s.army);
+    $("#armySummary").innerHTML = Object.entries(UNITS).map(([id, u]) => `<span>${u.name}</span><b>${s.army[id]} <span class="dim">/ ${allU[id] || 0}</span></b>`).join("") +
+      `<span>Home power</span><b class="good">⚔ ${fmt(homePower)}</b><span>Upkeep</span><b class="${rates.upkeep.food + rates.upkeep.gold > 0 ? "warn" : "dim"}">${rates.upkeep.food.toFixed(1)} food · ${rates.upkeep.gold.toFixed(1)} gold /s</b>`;
+
+    const slots = Military.expeditionSlots(s);
+    $("#expSlots").textContent = `(${s.expeditions.length}/${slots})`;
+    const eSig = s.expeditions.map((e) => e.id).join(",");
+    if (eSig !== this.expSig) {
+      this.expSig = eSig;
+      $("#activeExp").innerHTML = s.expeditions.length ? s.expeditions.map((e) => {
+        const m = MISSIONS[e.mission];
+        const units = Object.entries(e.units).map(([u, n]) => `${n} ${UNITS[u].name}`).join(", ");
+        const pw = Military.power(s, e.units, e.mission);
+        return `<div class="exp-active" id="exp-${e.id}">
+          <div class="eh"><b>${m.name}</b><span><span class="muted" data-e="t"></span> <button class="btn sm" data-action="recall" data-id="${e.id}" title="Recall (no loot)">Recall</button></span></div>
+          <div class="bar war"><i data-e="bar"></i></div>
+          <div class="eu">${units} · ⚔ ${fmt(pw)} vs ${fmt(m.diff)} · ${Math.round(Military.successChance(pw, m.diff) * 100)}% chance</div></div>`;
+      }).join("") : `<div class="empty">No armies in the field.</div>`;
+    }
+    for (const e of s.expeditions) {
+      const el = $(`#exp-${e.id}`);
+      if (!el) continue;
+      $('[data-e="t"]', el).textContent = fmtTime(e.endAt - s.time) + " left";
+      $('[data-e="bar"]', el).style.width = clamp(((s.time - e.startAt) / (e.endAt - e.startAt)) * 100, 0, 100) + "%";
+    }
+
+    for (const [id, m] of Object.entries(MISSIONS)) {
+      const r = this.refs.missions[id];
+      const locked = c.level < m.level;
+      r.el.classList.toggle("locked", locked);
+      const blk = Military.deployBlocker(s, id, null);
+      r.btn.disabled = !!blk;
+      r.req.textContent = blk || "";
+    }
+
+    // ---- log (append only new entries)
+    const logEl = $("#log");
+    const fresh = s.log.filter((l) => l.id > this.renderedLogId);
+    for (const l of fresh) {
+      const d = new Date(l.t);
+      const div = document.createElement("div");
+      div.className = "log-entry " + l.type;
+      div.innerHTML = `<time>${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}</time>${esc(l.msg)}`;
+      logEl.prepend(div);
+      this.renderedLogId = l.id;
+    }
+    while (logEl.children.length > 120) logEl.lastChild.remove();
+
+    // ---- stats
+    const st = s.stats;
+    $("#statsBox").innerHTML = `
+      <span class="muted">Time played</span><b>${fmtTime(st.playSeconds)}</b>
+      <span class="muted">Gold earned</span><b>${fmt(st.goldEarned)}</b>
+      <span class="muted">Buildings raised</span><b>${fmtInt(st.built)}</b>
+      <span class="muted">Soldiers trained</span><b>${fmtInt(st.trained)}</b>
+      <span class="muted">Expeditions won / lost</span><b>${st.won} / ${st.lost}</b>
+      <span class="muted">Fallen · deserted · starved</span><b>${st.fallen} · ${st.deserted} · ${st.starved}</b>
+      <span class="muted">Peak population</span><b>${fmtInt(st.peakPop)}</b>`;
+
+    AssetPipeline.applyAll($("#buildingList"));
+    AssetPipeline.applyAll($("#unitList"));
+  },
+
+  buildingEffect(s, id) {
+    const b = s.buildings;
+    switch (id) {
+      case "townhall": return `+${b.townhall} Gold/s · +${Math.round((b.townhall - 1) * 5)}% production · limits ${b.townhall * 5}/${b.townhall * 8}`;
+      case "farm": return `${b.farm * 4} Farmer slots`;
+      case "quarry": return `${b.quarry * 3} Miner slots`;
+      case "steelworks": return `${b.steelworks * 2} Blacksmith slots`;
+      case "house": return `${b.house * 5} housing from houses (total ${Economy.housing(s)})`;
+      case "warehouse": return `+${fmt(b.warehouse * 500)} Gold/Stone, +${fmt(b.warehouse * 250)} Steel storage`;
+      case "granary": return `+${fmt(b.granary * 600)} Food storage`;
+      case "barracks": return `${b.barracks * 5} Recruit slots · ${Military.expeditionSlots(s)} expedition slot(s) · ${Math.round((Military.trainSpeed(s) - 1) * 100)}% faster training`;
+    }
+    return "";
+  },
+
+  updateArtCount() {
+    const total = AssetPipeline.catalog.assets.length;
+    const have = AssetPipeline.allKeys().filter((k) => AssetPipeline.hasArt(k)).length;
+    const el = $("#artCount"); if (el) el.textContent = `${have} / ${total} AI art`;
+  },
+
+  markSaved(ok, auto) {
+    const el = $("#saveStatus");
+    const d = new Date();
+    el.textContent = ok ? `${auto ? "Autosaved" : "Saved"} ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : "Save failed!";
+    el.className = "save-status " + (ok ? "" : "bad");
+  },
+
+  toast(msg, ms = 3200) {
+    const t = document.createElement("div");
+    t.className = "toast"; t.textContent = msg;
+    $("#toasts").appendChild(t);
+    setTimeout(() => t.remove(), ms);
+  },
+
+  modal(title, bodyHtml, footHtml) {
+    $("#modalRoot").innerHTML = `<div class="modal-back" data-action="closeModalBg"><div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-head"><h2>${title}</h2><button class="btn sm" data-action="closeModal" aria-label="Close">✕</button></div>
+      <div class="modal-body">${bodyHtml}</div>${footHtml ? `<div class="modal-foot">${footHtml}</div>` : ""}</div></div>`;
+    AssetPipeline.applyAll($("#modalRoot"));
+  },
+  closeModal() { $("#modalRoot").innerHTML = ""; },
+
+  // ---------- deploy modal ----------
+  openDeploy(missionId) {
+    const s = GameState.current, m = MISSIONS[missionId];
+    const rows = Object.entries(UNITS).filter(([id]) => s.army[id] > 0).map(([id, u]) => `
+      <div class="deploy-row">
+        <img data-asset="${u.asset}" alt=""><div><b>${u.name}</b><div class="dim" style="font-size:12px">${s.army[id]} at home · ⚔ ${u.power}${u.siege ? " · siege" : ""}</div></div>
+        <div class="dc"><button class="btn sm" data-action="dep" data-id="${id}" data-d="0">0</button>
+          <input type="number" min="0" max="${s.army[id]}" value="${s.army[id]}" data-unit="${id}">
+          <button class="btn sm" data-action="dep" data-id="${id}" data-d="max">All</button></div>
+      </div>`).join("");
+    this.modal(`Deploy: ${esc(m.name)}`, `
+      <img data-asset="${m.asset}" alt="" style="width:100%;height:130px;object-fit:cover;border-radius:10px;margin-bottom:10px;border:1px solid var(--border)">
+      <div class="meta muted" style="display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;margin-bottom:8px">
+        <span>Threat <b style="color:var(--text)">${fmt(m.diff)}</b></span><span>Duration <b style="color:var(--text)">${fmtTime(m.duration)}</b></span>
+        ${m.fortified ? '<span class="tag">Fortified: bring siege engineers</span>' : ""}</div>
+      ${rows || '<div class="empty">No troops at home.</div>'}
+      <div style="display:flex;justify-content:space-between;align-items:end;margin-top:12px;gap:10px">
+        <div><div class="muted" style="font-size:12px">Army power</div><div class="chance" id="depPower">0</div></div>
+        <div style="text-align:right"><div class="muted" style="font-size:12px">Success chance</div><div class="chance" id="depChance">0%</div></div>
+      </div>
+      <div class="bar good fast" style="margin-top:6px"><i id="depBar"></i></div>
+      <p class="note">Your armies still eat while they're away. Each unit costs its upkeep for the whole trip. If you recall them early you get no loot.</p>`,
+      `<button class="btn" data-action="closeModal">Cancel</button><button class="btn teal" data-action="confirmDeploy" data-id="${missionId}" id="depGo">March!</button>`);
+    $$("#modalRoot input[data-unit]").forEach((inp) => inp.addEventListener("input", () => this.refreshDeploy(missionId)));
+    this.refreshDeploy(missionId);
+  },
+  readDeploy() {
+    const s = GameState.current, units = {};
+    for (const inp of $$("#modalRoot input[data-unit]")) {
+      const id = inp.dataset.unit;
+      units[id] = clamp(Math.floor(Number(inp.value) || 0), 0, s.army[id]);
+    }
+    return units;
+  },
+  refreshDeploy(missionId) {
+    const s = GameState.current, units = this.readDeploy(), m = MISSIONS[missionId];
+    const pw = Military.power(s, units, missionId), ch = Military.successChance(pw, m.diff);
+    $("#depPower").textContent = "⚔ " + fmt(pw);
+    $("#depChance").textContent = Math.round(ch * 100) + "%";
+    $("#depChance").className = "chance " + (ch >= 0.75 ? "good" : ch >= 0.45 ? "warn" : "bad");
+    $("#depBar").style.width = ch * 100 + "%";
+    $("#depGo").disabled = !!Military.deployBlocker(s, missionId, units);
+  },
+
+  // ---------- offline summary ----------
+  showOffline(rep) {
+    if (!rep) return;
+    const lines = Object.entries(rep.delta).filter(([, v]) => Math.abs(v) >= 1).map(([r, v]) =>
+      `<span class="cost"><img data-asset="${RESOURCES[r].asset}" alt=""><b class="${v >= 0 ? "good" : "bad"}">${v >= 0 ? "+" : ""}${fmt(v)}</b> ${RESOURCES[r].name}</span>`).join("");
+    this.modal("While you were away…", `
+      <p>You were gone for <b>${fmtTime(rep.elapsed)}</b>${rep.capped ? ` (progress is capped at ${BALANCE.offlineCapSeconds / 3600}h)` : ""}. Your stewards kept the city running.</p>
+      <div class="costs" style="gap:10px 18px;font-size:14px;margin:10px 0">${lines || '<span class="dim">Nothing changed.</span>'}</div>
+      <div class="kv">
+        <span class="muted">Population change</span><b class="${rep.pop >= 0 ? "good" : "bad"}">${rep.pop >= 0 ? "+" : ""}${rep.pop}</b>
+        <span class="muted">Expeditions won / lost</span><b>${rep.won} / ${rep.lost}</b>
+        <span class="muted">Commander levels</span><b>+${rep.lvl}</b>
+        <span class="muted">Chronicle entries</span><b>${rep.events}</b>
+      </div>`, `<button class="btn primary" data-action="closeModal">Rule on</button>`);
+  },
+
+  setTab(tab) {
+    $$(".tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === tab));
+    $("#tab-buildings").classList.toggle("hidden", tab !== "buildings");
+    $("#tab-workforce").classList.toggle("hidden", tab !== "workforce");
+  },
+
+  async runForge(keys) {
+    if (AssetPipeline.busy) return;
+    this.saveForgeConfig();
+    if (!keys.length) { this.toast("All artwork is already generated."); return; }
+    const box = $("#artProgress");
+    box.classList.remove("hidden");
+    $("#btnGenMissing").disabled = $("#btnGenAll").disabled = true;
+    const progress = (done, total, key) => {
+      $("#artStatus").textContent = `Generated ${done}/${total} (last: ${key})`;
+      $("#artPct").textContent = Math.round((done / total) * 100) + "%";
+      $("#artBar").style.width = (done / total) * 100 + "%";
+    };
+    progress(0, keys.length, "…");
+    $("#artStatus").textContent = `Generating ${keys.length} images (10–80 s each)…`;
+    try {
+      const r = await AssetPipeline.generateBatch(keys, progress);
+      const msg = `Artwork Forge: ${r.done - r.failed} images made${r.failed ? `, ${r.failed} failed` : ""}${r.cost ? ` (cost $${r.cost.toFixed(3)})` : ""}.`;
+      addLog(GameState.current, msg, r.failed ? "bad" : "good");
+      if (r.errors.length) { console.warn(r.errors); this.toast(r.errors[0], 8000); }
+      $("#artStatus").textContent = msg;
+    } catch (e) {
+      this.toast(e.message, 6000);
+      $("#artStatus").textContent = e.message;
+    } finally {
+      $("#btnGenMissing").disabled = $("#btnGenAll").disabled = false;
+      this.update();
+    }
+  },
+};
+
+/* ---------- event delegation ---------- */
+const Actions = {
+  tab: (d) => UI.setTab(d.tab),
+  build: (d) => { if (Economy.build(GameState.current, d.id)) UI.update(); },
+  assign: (d, e) => {
+    const s = GameState.current;
+    let delta = d.d === "max" ? 1e9 : d.d === "-max" ? -1e9 : Number(d.d) * (e.shiftKey ? 10 : 1);
+    Economy.assign(s, d.id, delta);
+    UI.update();
+  },
+  train: (d) => {
+    const s = GameState.current;
+    const n = Military.train(s, d.id, Number(d.n));
+    if (n) addLog(s, `Began training ${n} ${UNITS[d.id].name}${n > 1 ? "s" : ""}.`, "war");
+    UI.update();
+  },
+  openDeploy: (d) => UI.openDeploy(d.id),
+  dep: (d) => {
+    const inp = $(`#modalRoot input[data-unit="${d.id}"]`);
+    inp.value = d.d === "max" ? GameState.current.army[d.id] : 0;
+    UI.refreshDeploy($("#depGo").dataset.id);
+  },
+  confirmDeploy: (d) => {
+    if (Military.deploy(GameState.current, d.id, UI.readDeploy())) { UI.closeModal(); UI.update(); }
+  },
+  recall: (d) => { Military.recall(GameState.current, Number(d.id)); UI.update(); },
+  closeModal: () => UI.closeModal(),
+  closeModalBg: (d, e) => { if (e.target.classList.contains("modal-back")) UI.closeModal(); },
+  clearLog: () => { GameState.current.log = []; $("#log").innerHTML = ""; },
+  save: () => { UI.markSaved(GameState.save(), false); UI.toast("Game saved."); },
+  export: () => {
+    const str = GameState.exportString();
+    UI.modal("Export Save", `<p class="muted" style="margin-top:0">Copy this text somewhere safe, or download it as a file. Your API key is never part of the save.</p>
+      <textarea readonly id="exportBox">${str}</textarea>`,
+      `<button class="btn" data-action="copyExport">Copy</button><button class="btn primary" data-action="downloadExport">Download .txt</button>`);
+    $("#exportBox").select();
+  },
+  copyExport: async () => {
+    const box = $("#exportBox");
+    try { await navigator.clipboard.writeText(box.value); UI.toast("Save copied to clipboard."); }
+    catch { box.select(); document.execCommand("copy"); UI.toast("Save copied."); }
+  },
+  downloadExport: () => {
+    const blob = new Blob([$("#exportBox").value], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `ironhold-save-${new Date().toISOString().slice(0, 10)}.txt`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  },
+  import: () => {
+    UI.modal("Import Save", `<p class="muted" style="margin-top:0">Paste an exported save string below, or choose a save file.</p>
+      <textarea id="importBox" placeholder="Paste save here…"></textarea>
+      <input type="file" id="importFile" accept=".txt,.json" style="margin-top:8px;font-size:12px;color:var(--muted)">`,
+      `<button class="btn" data-action="closeModal">Cancel</button><button class="btn primary" data-action="confirmImport">Import</button>`);
+    $("#importFile").addEventListener("change", async (e) => { const f = e.target.files[0]; if (f) $("#importBox").value = await f.text(); });
+  },
+  confirmImport: () => {
+    try {
+      const s = GameState.importString($("#importBox").value);
+      s.lastTick = Date.now();
+      GameState.current = s;
+      addLog(s, "Save imported. Long live the realm!", "info");
+      GameState.save();
+      UI.closeModal();
+      UI.build();
+      UI.toast("Save imported.");
+    } catch (e) { UI.toast("Import failed: " + e.message, 5000); }
+  },
+  reset: () => UI.modal("Reset Realm?", `<p>This deletes your progress for good. Export your save first if you want to keep it.</p>`,
+    `<button class="btn" data-action="closeModal">Cancel</button><button class="btn danger" data-action="confirmReset">Reset everything</button>`),
+  confirmReset: () => {
+    GameState.current = GameState.fresh();
+    addLog(GameState.current, "A new dominion begins. Assign workers and build up your city!", "info");
+    GameState.save();
+    UI.closeModal();
+    UI.build();
+  },
+  genMissing: () => UI.runForge(AssetPipeline.missingKeys()),
+  genAll: () => UI.runForge(AssetPipeline.allKeys()),
+  clearArt: async () => { await AssetPipeline.clearCache(); UI.toast("Browser art cache cleared."); },
+};
+document.addEventListener("click", (e) => {
+  const el = e.target.closest("[data-action]");
+  if (!el || el.disabled) return;
+  const fn = Actions[el.dataset.action];
+  if (fn) fn(el.dataset, e);
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") UI.closeModal(); });
+window.addEventListener("beforeunload", () => GameState.save());
+document.addEventListener("visibilitychange", () => { if (document.hidden) GameState.save(); });
+
+/* =====================================================================
+   8. BOOT
+   ===================================================================== */
+(async function boot() {
+  let s = GameState.load();
+  let offline = null;
+  if (!s) {
+    s = GameState.fresh();
+    addLog(s, "Welcome, my liege. Put idle citizens to work, build Houses to grow, and raise a Barracks to march on the world.", "info");
+  } else {
+    offline = Engine.offlineProgress(s);
+  }
+  GameState.current = s;
+  AssetPipeline.indexCatalog();
+  UI.build();
+  Engine.start();
+  GameState.save();
+  if (offline && offline.elapsed >= 60) UI.showOffline(offline);
+  await AssetPipeline.init();
+  window.Ironhold = { GameState, Engine, Economy, Military, AssetPipeline, UI }; // handy for debugging in the console
+})();
+</script>
+</body>
+</html>
