@@ -320,6 +320,19 @@ input:focus, select:focus, textarea:focus { outline: 2px solid rgba(227,176,75,0
 .doctrine b { display: block; font-size: 12.5px; }
 .doctrine small { display: block; color: var(--muted); font-size: 11px; line-height: 1.3; }
 
+.tech { grid-template-columns: 48px 1fr; }
+.tech-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 26px; background: radial-gradient(circle at 40% 35%, #33415f, #1a2131); border: 1px solid var(--border-hi); }
+.alert.good-box { background: rgba(91,209,127,0.08); border-color: rgba(91,209,127,0.4); }
+.quest { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 9px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--border); margin-bottom: 6px; font-size: 12.5px; }
+.quest.done { border-color: rgba(91,209,127,0.55); background: rgba(91,209,127,0.08); }
+.abilities { display: inline-flex; gap: 4px; margin-right: 6px; padding-right: 8px; border-right: 1px solid var(--border-hi); }
+.btn.ability { position: relative; font-size: 16px; padding: 4px 9px; }
+.btn.ability small { position: absolute; right: 2px; bottom: 0; font-size: 10px; color: var(--warn); }
+.btn.ability.armed { border-color: var(--bad); box-shadow: 0 0 0 2px rgba(239,100,97,0.5); }
+.aim { position: absolute; border: 2px dashed #ffcf4d; background: rgba(255,200,60,0.15); border-radius: 6px; pointer-events: none; z-index: 4; }
+.fx.heal { color: #6ee07c; }
+.fx.arrow { color: #ffe08a; font-size: calc(var(--cell) * 0.45); }
+
 /* =====================================================================
    BATTLEFIELD
    ===================================================================== */
@@ -420,10 +433,15 @@ body.in-battle { overflow: hidden; }
         <div class="tabs" role="tablist">
           <button class="tab active" data-action="tab" data-tab="buildings">Buildings</button>
           <button class="tab" data-action="tab" data-tab="workforce">Workforce</button>
+          <button class="tab" data-action="tab" data-tab="research">Research</button>
         </div>
       </div>
       <div class="panel-body col-scroll">
         <div id="tab-buildings"><div class="grid-cards" id="buildingList"></div></div>
+        <div id="tab-research" class="hidden">
+          <div id="researchNow"></div>
+          <div class="grid-cards" id="techList"></div>
+        </div>
         <div id="tab-workforce" class="hidden">
           <div class="summary-box" id="popSummary"></div>
           <div id="jobList"></div>
@@ -473,6 +491,15 @@ body.in-battle { overflow: hidden; }
 
   <!-- RIGHT: log, controls, artwork -->
   <section class="col-right">
+    <div class="panel">
+      <div class="panel-head"><h2>Realm Affairs</h2><span class="badge" id="questBadge">Quests</span></div>
+      <div class="panel-body">
+        <div id="eventBox"></div>
+        <div class="section-title">Quests</div>
+        <div id="questList"></div>
+      </div>
+    </div>
+
     <div class="panel">
       <div class="panel-head"><h2>Chronicle</h2><button class="btn sm" data-action="clearLog">Clear</button></div>
       <div class="panel-body"><div class="log" id="log"></div></div>
@@ -1037,6 +1064,13 @@ body.in-battle { overflow: hidden; }
    "emoji": "🗺️",
    "hue": 40,
    "prompt": "A war map table with banners, miniature armies and a sword, candlelight"
+  },
+  {
+   "key": "b_academy",
+   "kind": "icon",
+   "emoji": "🎓",
+   "hue": 220,
+   "prompt": "Isometric medieval academy with a library tower, observatory dome and scholars"
   }
  ]
 }
@@ -1068,6 +1102,13 @@ function fmt(n) {
   return (neg ? "-" : "") + out;
 }
 const fmtInt = (n) => Math.floor(n).toLocaleString("en-US");
+/** "1 Relic", "3 Relics", "2 Footmen", "1 Footman" */
+function plural(name, n) {
+  if (Math.round(n) === 1) return name.replace(/s$/, "");
+  if (/man$/.test(name)) return name.replace(/man$/, "men");
+  return /s$/.test(name) ? name : name + "s";
+}
+const amount = (r, v) => `${fmt(v)} ${r === "relics" && Math.round(v) === 1 ? "Relic" : RESOURCES[r].name}`;
 function fmtRate(r) {
   const a = Math.abs(r);
   const s = a < 10 ? a.toFixed(2) : a < 1000 ? a.toFixed(1) : fmt(a);
@@ -1113,6 +1154,7 @@ const BUILDINGS = {
   stables:    { name: "Stables",        asset: "b_stables",    base: { gold: 250, food: 200, stone: 150 }, mult: 1.3, maxPerTH: 1, desc: "Unlocks Light Cavalry (Lv 1) and Knights (Lv 3).", popReq: () => 30 },
   workshop:   { name: "Siege Workshop", asset: "b_workshop",   base: { gold: 300, stone: 300, steel: 60 }, mult: 1.3, maxPerTH: 1, desc: "Unlocks Siege Engineers (Lv 1) and Catapults (Lv 3). Siege units smash walls.", popReq: () => 40 },
   temple:     { name: "Temple",         asset: "b_temple",     base: { gold: 400, stone: 350 }, mult: 1.3, maxPerTH: 1, desc: "Unlocks Battle Priests (Lv 1) and Paladins (Lv 3). +0.2 morale/s per level.", popReq: () => 50 },
+  academy:    { name: "Academy",        asset: "b_academy",    base: { gold: 300, stone: 250 }, mult: 1.3, maxPerTH: 1, desc: "Unlocks Research. Higher levels unlock advanced techs and research 15% faster per level.", popReq: () => 25 },
   walls:      { name: "City Walls",     asset: "b_walls",      base: { gold: 100, stone: 200 }, mult: 1.25, maxPerTH: 1, desc: "Stone walls on the battlefield when raiders attack. Higher levels mean stronger walls with fewer gaps.", popReq: () => 15 },
 };
 
@@ -1197,6 +1239,74 @@ const BALANCE = {
   manualLootBonus: 1.25,
 };
 
+/*
+ * Research (needs an Academy). One project at a time. Cost = base × 1.6^level, time = base × 1.45^level ÷ Academy speed.
+ * tier = Academy level needed.
+ */
+const TECHS = {
+  agriculture:  { name: "Crop Rotation",    icon: "🌾", tier: 1, max: 10, base: { gold: 300, food: 200 },   time: 60,  desc: "+10% Food production per level." },
+  masonry:      { name: "Masonry",          icon: "🪨", tier: 1, max: 10, base: { gold: 300, stone: 150 },  time: 60,  desc: "+10% Stone production per level." },
+  taxation:     { name: "Taxation",         icon: "🪙", tier: 1, max: 10, base: { gold: 400, stone: 100 },  time: 75,  desc: "+10% Gold income per level." },
+  drill:        { name: "Military Drill",   icon: "⚔️", tier: 1, max: 10, base: { gold: 500, steel: 50 },   time: 90,  desc: "+5% attack for all your soldiers per level." },
+  training:     { name: "Drill Sergeants",  icon: "📣", tier: 1, max: 10, base: { gold: 400, food: 200 },   time: 75,  desc: "+15% training speed per level." },
+  metallurgy:   { name: "Metallurgy",       icon: "⚙️", tier: 2, max: 10, base: { gold: 600, steel: 100 },  time: 120, desc: "+10% Steel production per level." },
+  logistics:    { name: "Logistics",        icon: "📦", tier: 2, max: 10, base: { gold: 500, stone: 400 },  time: 120, desc: "+15% storage for every resource per level." },
+  medicine:     { name: "Medicine",         icon: "⚕️", tier: 2, max: 5,  base: { gold: 500, food: 500 },   time: 150, desc: "+20% population growth and −5% food eaten per citizen, per level. Softens plagues." },
+  plate:        { name: "Plate Armor",      icon: "🛡️", tier: 2, max: 10, base: { gold: 700, steel: 150 },  time: 150, desc: "+5% defense for all your soldiers per level." },
+  fortification:{ name: "Fortification",    icon: "🏰", tier: 3, max: 5,  base: { gold: 800, stone: 800 },  time: 180, desc: "+25% City Wall HP per level." },
+  cartography:  { name: "Cartography",      icon: "🗺️", tier: 3, max: 8,  base: { gold: 900, food: 400 },   time: 180, desc: "Expeditions take 6% less time per level." },
+  relicLore:    { name: "Relic Lore",       icon: "🔮", tier: 5, max: 5,  base: { gold: 2000, relics: 3 },  time: 300, desc: "Each Relic gives +0.5% more production per level, and the relic bonus cap rises by +20%." },
+};
+
+/* Quests: completed in order. The first few unclaimed ones are shown, and you claim each reward by hand. */
+const QUESTS = [
+  { id: "farm3",      text: "Build Farms up to level 3",              check: (s) => s.buildings.farm >= 3,               reward: { gold: 150 } },
+  { id: "house3",     text: "Build Houses up to level 3",             check: (s) => s.buildings.house >= 3,              reward: { gold: 150, stone: 100 } },
+  { id: "pop25",      text: "Reach 25 population",                    check: (s) => Economy.totalPop(s) >= 25,           reward: { food: 300 } },
+  { id: "storage",    text: "Build a Warehouse and a Granary",        check: (s) => s.buildings.warehouse >= 1 && s.buildings.granary >= 1, reward: { gold: 300 } },
+  { id: "steel",      text: "Build Steelworks",                       check: (s) => s.buildings.steelworks >= 1,         reward: { steel: 50 } },
+  { id: "barracks",   text: "Build a Barracks",                       check: (s) => s.buildings.barracks >= 1,           reward: { gold: 400, steel: 40 } },
+  { id: "th2",        text: "Upgrade the Town Hall to level 2",       check: (s) => s.buildings.townhall >= 2,           reward: { gold: 500, stone: 300 } },
+  { id: "army10",     text: "Command 10 soldiers",                    check: (s) => Military.soldierCount(s) >= 10,      reward: { gold: 400 } },
+  { id: "exp1",       text: "Win an expedition",                      check: (s) => s.stats.won >= 1,                    reward: { steel: 100 } },
+  { id: "walls",      text: "Build City Walls",                       check: (s) => s.buildings.walls >= 1,              reward: { stone: 500 } },
+  { id: "academy",    text: "Build an Academy",                       check: (s) => s.buildings.academy >= 1,            reward: { gold: 600 } },
+  { id: "raid1",      text: "Repel a raid",                           check: (s) => s.stats.raidsWon >= 1,               reward: { gold: 800 } },
+  { id: "lead1",      text: "Win a battle you lead in person",        check: (s) => s.stats.battlesLedWon >= 1,          reward: { relics: 1 } },
+  { id: "research3",  text: "Complete 3 research levels",             check: (s) => Research.total(s) >= 3,              reward: { gold: 1000, food: 500 } },
+  { id: "th4",        text: "Upgrade the Town Hall to level 4",       check: (s) => s.buildings.townhall >= 4,           reward: { relics: 1 } },
+  { id: "pop100",     text: "Reach 100 population",                   check: (s) => Economy.totalPop(s) >= 100,          reward: { gold: 1500 } },
+  { id: "cmd5",       text: "Raise your Commander to level 5",        check: (s) => s.commander.level >= 5,              reward: { steel: 500 } },
+  { id: "stables",    text: "Build Stables",                          check: (s) => s.buildings.stables >= 1,            reward: { food: 1000 } },
+  { id: "army50",     text: "Command 50 soldiers",                    check: (s) => Military.soldierCount(s) >= 50,      reward: { gold: 2500 } },
+  { id: "orcs",       text: "Conquer the Orc Stronghold",             check: (s) => (s.stats.missionWins.orcs || 0) >= 1, reward: { relics: 2 } },
+  { id: "raid5",      text: "Repel 5 raids",                          check: (s) => s.stats.raidsWon >= 5,               reward: { gold: 5000, steel: 800 } },
+  { id: "lead10",     text: "Win 10 battles you lead in person",      check: (s) => s.stats.battlesLedWon >= 10,         reward: { relics: 3 } },
+  { id: "conq5",      text: "Reach Endless Conquest stage 5",         check: (s) => s.conquest >= 5,                     reward: { relics: 3 } },
+  { id: "th8",        text: "Upgrade the Town Hall to level 8",       check: (s) => s.buildings.townhall >= 8,           reward: { relics: 3 } },
+  { id: "research25", text: "Complete 25 research levels",            check: (s) => Research.total(s) >= 25,             reward: { relics: 3 } },
+  { id: "dragon",     text: "Slay the Elder Dragon",                  check: (s) => (s.stats.missionWins.dragon || 0) >= 1, reward: { relics: 5 } },
+  { id: "pop500",     text: "Reach 500 population",                   check: (s) => Economy.totalPop(s) >= 500,          reward: { relics: 5 } },
+  { id: "citadel",    text: "Conquer the Shadow Citadel",             check: (s) => (s.stats.missionWins.citadel || 0) >= 1, reward: { relics: 8 } },
+  { id: "th12",       text: "Upgrade the Town Hall to level 12",      check: (s) => s.buildings.townhall >= 12,          reward: { relics: 8 } },
+  { id: "conq20",     text: "Reach Endless Conquest stage 20",        check: (s) => s.conquest >= 20,                    reward: { relics: 15 } },
+  { id: "titan",      text: "Topple the Storm Titan",                 check: (s) => (s.stats.missionWins.titan || 0) >= 1, reward: { relics: 25 } },
+  { id: "th15",       text: "Raise the Town Hall to level 15",        check: (s) => s.buildings.townhall >= 15,          reward: { relics: 25 } },
+];
+
+/* Random realm events. buff = timed bonus, instant = happens at once, offer = you choose (it expires). */
+const EVENTS = {
+  harvest:     { name: "Bountiful Harvest",   icon: "🌽", kind: "buff",    dur: 300, weight: 3, desc: "+50% Food production for 5 minutes." },
+  fair:        { name: "Trade Fair",          icon: "🎪", kind: "buff",    dur: 300, weight: 3, desc: "+30% Gold income for 5 minutes." },
+  inspiration: { name: "Age of Inspiration",  icon: "💡", kind: "buff",    dur: 300, weight: 2, desc: "Research runs twice as fast for 5 minutes." },
+  goldvein:    { name: "Gold Vein Discovered",icon: "⛏️", kind: "instant", weight: 2, desc: "Miners strike gold: +15% of your Gold storage." },
+  refugees:    { name: "Refugees Arrive",     icon: "🧳", kind: "instant", weight: 2, desc: "Families flee a burned village and settle in your free housing." },
+  plague:      { name: "Plague",              icon: "🦠", kind: "instant", weight: 1, desc: "Sickness sweeps the streets. Temples and Medicine reduce the toll." },
+  mercenaries: { name: "Mercenary Company",   icon: "🗡️", kind: "offer",   weight: 2, desc: "Sellswords offer their service. No Recruits needed." },
+  caravan:     { name: "Merchant Caravan",    icon: "🐫", kind: "offer",   weight: 2, desc: "Traders offer to swap your Stone for Steel." },
+  relicseller: { name: "Mysterious Peddler",  icon: "🧙", kind: "offer",   weight: 1, desc: "A hooded stranger sells an ancient Relic." },
+};
+
 /* =====================================================================
    2. GAME STATE SCHEMA
    ===================================================================== */
@@ -1210,7 +1320,7 @@ const GameState = {
       lastTick: Date.now(),          // real-time timestamp used for offline progress
       time: 0,                       // game clock (seconds), advances in both online & offline ticks
       resources: { gold: 200, food: 150, stone: 100, steel: 0, relics: 0 },
-      buildings: { townhall: 1, farm: 1, quarry: 1, steelworks: 0, house: 1, warehouse: 0, granary: 0, market: 0, barracks: 0, stables: 0, workshop: 0, temple: 0, walls: 0 },
+      buildings: { townhall: 1, farm: 1, quarry: 1, steelworks: 0, house: 1, warehouse: 0, granary: 0, market: 0, barracks: 0, stables: 0, workshop: 0, temple: 0, academy: 0, walls: 0 },
       population: { citizens: 6, growth: 0, starve: 0 },
       jobs: { farmer: 3, miner: 1, blacksmith: 0, recruit: 0 },
       army: Object.fromEntries(Object.keys(UNITS).map((k) => [k, 0])),
@@ -1226,9 +1336,14 @@ const GameState = {
       conquest: 1,
       conquestArmy: null,            // {stage, faction, army, map}
       battle: null,                  // a battle you are leading in person (saved so you can resume it)
+      research: { levels: {}, current: null },   // current: {id, remaining, total}
+      quests: [],                    // ids of claimed quests
+      buffs: [],                     // [{id, until}] timed event bonuses
+      offer: null,                   // a pending event offer {id, cost, get|unit,n, expires}
+      nextEventAt: 600,
       nextId: 1,
       log: [],                       // [{id, t, msg, type}]
-      stats: { goldEarned: 0, built: 0, trained: 0, won: 0, lost: 0, fallen: 0, deserted: 0, starved: 0, relicsFound: 0, playSeconds: 0, peakPop: 6, raidsWon: 0, raidsLost: 0, enemiesSlain: 0, battlesLed: 0 },
+      stats: { goldEarned: 0, built: 0, trained: 0, won: 0, lost: 0, fallen: 0, deserted: 0, starved: 0, relicsFound: 0, playSeconds: 0, peakPop: 6, raidsWon: 0, raidsLost: 0, enemiesSlain: 0, battlesLed: 0, battlesLedWon: 0, missionWins: {} },
     };
   },
   /** Merge a loaded save onto a fresh template so older saves gain new fields. */
@@ -1241,6 +1356,11 @@ const GameState = {
     out.expeditions = Array.isArray(raw.expeditions) ? raw.expeditions.filter((e) => MISSIONS[e.mission]) : [];
     out.log = Array.isArray(raw.log) ? raw.log.slice(-120) : [];
     if (!TACTICS[out.doctrine]) out.doctrine = "balanced";
+    out.research = { levels: { ...((raw.research && raw.research.levels) || {}) }, current: (raw.research && raw.research.current && TECHS[raw.research.current.id]) ? raw.research.current : null };
+    out.quests = Array.isArray(raw.quests) ? raw.quests.slice() : [];
+    out.buffs = Array.isArray(raw.buffs) ? raw.buffs.filter((b) => EVENTS[b.id]) : [];
+    if (out.offer && !EVENTS[out.offer.id]) out.offer = null;
+    out.stats.missionWins = { ...((raw.stats && raw.stats.missionWins) || {}) };
     if (out.battle && (!out.battle.squads || !out.battle.tiles)) out.battle = null;
     for (const k of Object.keys(out.resources)) if (!isFinite(out.resources[k])) out.resources[k] = 0;
     out.version = 2;
@@ -1289,7 +1409,7 @@ const Economy = {
   totalPop(s) { return s.population.citizens + Military.soldierCount(s); },
   jobSlots(s, job) { return s.buildings[JOBS[job].building] * JOBS[job].slots; },
 
-  storageMultiplier(s) { return Math.pow(BALANCE.storageGrowth, s.buildings.townhall - 1); },
+  storageMultiplier(s) { return Math.pow(BALANCE.storageGrowth, s.buildings.townhall - 1) * (1 + 0.15 * Research.lvl(s, "logistics")); },
   caps(s) {
     const b = s.buildings, m = this.storageMultiplier(s);
     return {
@@ -1300,7 +1420,10 @@ const Economy = {
       relics: Infinity,
     };
   },
-  relicMultiplier(s) { return 1 + Math.min(BALANCE.relicBonusCap, s.resources.relics * BALANCE.relicBonus); },
+  relicMultiplier(s) {
+    const lore = Research.lvl(s, "relicLore");
+    return 1 + Math.min(BALANCE.relicBonusCap + 0.2 * lore, s.resources.relics * (BALANCE.relicBonus + 0.005 * lore));
+  },
   multiplier(s) { return Math.pow(BALANCE.prodGrowth, s.buildings.townhall - 1) * this.relicMultiplier(s); },
 
   /**
@@ -1311,13 +1434,13 @@ const Economy = {
     const j = s.jobs, m = this.multiplier(s), cit = s.population.citizens, b = s.buildings;
     const up = Military.upkeep(s);
     const prod = {
-      gold: (b.townhall * 1.0 + b.market * 3 + cit * BALANCE.goldPerCitizen + this.employed(s) * BALANCE.goldPerWorker) * m * (1 + 0.05 * b.market),
-      food: j.farmer * 1.1 * m,
-      stone: j.miner * 0.75 * m,
-      steel: j.blacksmith * 0.35 * m,
+      gold: (b.townhall * 1.0 + b.market * 3 + cit * BALANCE.goldPerCitizen + this.employed(s) * BALANCE.goldPerWorker) * m * (1 + 0.05 * b.market) * (1 + 0.1 * Research.lvl(s, "taxation")) * (Events.active(s, "fair") ? 1.3 : 1),
+      food: j.farmer * 1.1 * m * (1 + 0.1 * Research.lvl(s, "agriculture")) * (Events.active(s, "harvest") ? 1.5 : 1),
+      stone: j.miner * 0.75 * m * (1 + 0.1 * Research.lvl(s, "masonry")),
+      steel: j.blacksmith * 0.35 * m * (1 + 0.1 * Research.lvl(s, "metallurgy")),
       relics: 0,
     };
-    const cons = { gold: up.gold, food: cit * BALANCE.foodPerCitizen + up.food, stone: j.blacksmith * 0.5, steel: 0, relics: 0 };
+    const cons = { gold: up.gold, food: cit * BALANCE.foodPerCitizen * (1 - 0.05 * Research.lvl(s, "medicine")) + up.food, stone: j.blacksmith * 0.5, steel: 0, relics: 0 };
     // Blacksmiths can only smelt the stone that exists.
     let smeltEff = 1;
     if (cons.stone > 0) {
@@ -1412,7 +1535,7 @@ const Economy = {
     const r = this.rates(s);
     const fill = clamp(s.resources.food / caps.food, 0, 1);
     const surplus = r.net.food >= 0 ? 1 : 0.25;
-    return 0.06 * (0.5 + fill * 1.5) * surplus * (1 + 0.15 * (s.buildings.townhall - 1));
+    return 0.06 * (0.5 + fill * 1.5) * surplus * (1 + 0.15 * (s.buildings.townhall - 1)) * (1 + 0.2 * Research.lvl(s, "medicine"));
   },
 
   step(s, dt) {
@@ -1501,11 +1624,12 @@ const Military = {
     }
     return out;
   },
-  trainSpeed(s) { return 1 + 0.1 * Math.max(0, s.buildings.barracks - 1); },
+  trainSpeed(s) { return (1 + 0.1 * Math.max(0, s.buildings.barracks - 1)) * (1 + 0.15 * Research.lvl(s, "training")); },
   expeditionSlots(s) { return s.buildings.barracks > 0 ? 1 + Math.floor(s.buildings.barracks / 3) : 0; },
   xpForLevel(lvl) { return Math.floor(40 * Math.pow(lvl, 1.6)); },
   /** Attack bonus for your side in battle: commander level and morale. */
-  battleBonus(s) { return (1 + 0.03 * (s.commander.level - 1)) * (0.7 + 0.3 * s.morale / 100); },
+  battleBonus(s) { return (1 + 0.03 * (s.commander.level - 1)) * (0.7 + 0.3 * s.morale / 100) * (1 + 0.05 * Research.lvl(s, "drill")); },
+  defenseBonus(s) { return 1 + 0.05 * Research.lvl(s, "plate"); },
   power(s, units) { return armyPower(units) * this.battleBonus(s); },
 
   reqText(u) {
@@ -1561,8 +1685,8 @@ const Military = {
       title: m.name, mapType: m.map, playerUnits: { ...units }, enemyUnits: { ...m.army },
       attacker: "player", tactic: tactic || s.doctrine, enemyTactic: m.enemyTactic,
       walls: m.fortified ? { side: "enemy", level: m.fortified } : null,
-      context: { kind, mission: id, stage: m.endless ? s.conquest : undefined, cmdLevel: s.commander.level },
-      bonus: { player: this.battleBonus(s) },
+      context: { kind, mission: id, stage: m.endless ? s.conquest : undefined, cmdLevel: s.commander.level, led: kind === "assault" },
+      bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) },
     };
   },
   estimate(s, id, units, tactic, n = 8) {
@@ -1588,7 +1712,8 @@ const Military = {
     if (this.deployBlocker(s, id, units, false)) return false;
     const clean = this.take(s, units);
     const m = this.mission(s, id);
-    s.expeditions.push({ id: s.nextId++, mission: id, units: clean, startAt: s.time, endAt: s.time + m.duration, tactic: tactic || s.doctrine });
+    const dur = m.duration * (1 - 0.06 * Research.lvl(s, "cartography"));
+    s.expeditions.push({ id: s.nextId++, mission: id, units: clean, startAt: s.time, endAt: s.time + dur, tactic: tactic || s.doctrine });
     addLog(s, `An army of ${this.sum(clean)} marches on ${m.name}.`, "war");
     return true;
   },
@@ -1636,9 +1761,9 @@ const Military = {
       title: `Defense of Ironhold vs the ${f.name}`, mapType: r.mapType,
       playerUnits: { ...s.army }, guards: s.buildings.townhall * 4, enemyUnits: { ...r.army },
       attacker: "enemy", tactic: s.doctrine, enemyTactic: f.tactic,
-      walls: s.buildings.walls > 0 ? { side: "player", level: s.buildings.walls } : null,
+      walls: s.buildings.walls > 0 ? { side: "player", level: s.buildings.walls, hpMult: 1 + 0.25 * Research.lvl(s, "fortification") } : null,
       context: { kind: "raid", raid: r.id, cmdLevel: s.commander.level },
-      bonus: { player: this.battleBonus(s) },
+      bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) },
     };
   },
   raidEstimate(s) { return s.raid ? Battle.estimate({ ...this.raidOpts(s), context: { kind: "estimate" } }, 6) : null; },
@@ -1646,6 +1771,7 @@ const Military = {
   leadDefense(s) {
     if (!s.raid || s.raid.phase === "fighting" || s.battle) return null;
     const opts = this.raidOpts(s);
+    opts.context.led = true;
     this.take(s, s.army);
     s.raid.phase = "fighting";
     s.battle = Battle.create(opts);
@@ -1673,6 +1799,7 @@ const Military = {
     s.stats.fallen += lost;
     s.stats.enemiesSlain += slain;
     const rep = { win, lost, slain, parts: [], kind: ctx.kind, title: b.title };
+    if (win && ctx.led) s.stats.battlesLedWon++;
 
     if (ctx.kind === "raid") {
       const r = s.raid;
@@ -1708,6 +1835,7 @@ const Military = {
     const m = this.mission(s, ctx.mission);
     if (win) {
       s.stats.won++;
+      s.stats.missionWins[ctx.mission] = (s.stats.missionWins[ctx.mission] || 0) + 1;
       const lm = (1 + 0.05 * (s.commander.level - 1)) * (ctx.kind === "assault" ? BALANCE.manualLootBonus : 1);
       const bundle = {};
       for (const [r, [lo, hi]] of Object.entries(m.loot)) bundle[r] = randInt(lo, hi);
@@ -1802,6 +1930,163 @@ const Military = {
 };
 
 /* =====================================================================
+   4b. RESEARCH, QUESTS & REALM EVENTS
+   ===================================================================== */
+const Research = {
+  lvl(s, id) { return s.research.levels[id] || 0; },
+  total(s) { return Object.values(s.research.levels).reduce((a, b) => a + b, 0); },
+  cost(id, level) {
+    const out = {};
+    for (const [r, v] of Object.entries(TECHS[id].base)) out[r] = Math.ceil(v * Math.pow(r === "relics" ? 1.5 : 1.6, level));
+    return out;
+  },
+  time(s, id, level) { return TECHS[id].time * Math.pow(1.45, level) / (1 + 0.15 * Math.max(0, s.buildings.academy - 1)); },
+  blocker(s, id) {
+    const t = TECHS[id], lvl = this.lvl(s, id);
+    if (s.buildings.academy < 1) return "Build an Academy first";
+    if (lvl >= t.max) return "Fully researched";
+    if (s.buildings.academy < t.tier) return `Requires Academy level ${t.tier}`;
+    if (s.research.current) return "Another project is in progress";
+    const cost = this.cost(id, lvl);
+    const over = Economy.overCap(s, cost);
+    if (over) return `${RESOURCES[over].name} storage too small`;
+    if (!Economy.canAfford(s, cost)) return "Not enough resources";
+    return null;
+  },
+  start(s, id) {
+    if (this.blocker(s, id)) return false;
+    const lvl = this.lvl(s, id);
+    Economy.pay(s, this.cost(id, lvl));
+    const total = this.time(s, id, lvl);
+    s.research.current = { id, remaining: total, total };
+    addLog(s, `Scholars begin researching ${TECHS[id].name} (level ${lvl + 1}).`, "info");
+    return true;
+  },
+  cancel(s) {
+    const c = s.research.current;
+    if (!c) return;
+    // refund half
+    const cost = this.cost(c.id, this.lvl(s, c.id));
+    Economy.grant(s, Object.fromEntries(Object.entries(cost).filter(([r]) => r !== "relics").map(([r, v]) => [r, v / 2])));
+    if (cost.relics) s.resources.relics += Math.floor(cost.relics / 2);
+    s.research.current = null;
+    addLog(s, `Research on ${TECHS[c.id].name} was cancelled (half the cost refunded).`, "info");
+  },
+  step(s, dt) {
+    const c = s.research.current;
+    if (!c) return;
+    c.remaining -= dt * (Events.active(s, "inspiration") ? 2 : 1);
+    if (c.remaining <= 0) {
+      s.research.levels[c.id] = this.lvl(s, c.id) + 1;
+      s.research.current = null;
+      addLog(s, `🎓 Research complete: ${TECHS[c.id].name} level ${s.research.levels[c.id]}.`, "good");
+    }
+  },
+};
+
+const Quests = {
+  /** The next unclaimed quests, in order. */
+  open(s, n = 4) { return QUESTS.filter((q) => !s.quests.includes(q.id)).slice(0, n); },
+  claim(s, id) {
+    const q = QUESTS.find((x) => x.id === id);
+    if (!q || s.quests.includes(id) || !q.check(s)) return false;
+    s.quests.push(id);
+    const { relics, ...rest } = q.reward;
+    Economy.grant(s, rest);
+    if (relics) { s.resources.relics += relics; s.stats.relicsFound += relics; }
+    addLog(s, `📜 Quest complete: ${q.text}. Reward: ${Quests.rewardText(q.reward)}.`, "good");
+    return true;
+  },
+  rewardText(r) { return Object.entries(r).map(([k, v]) => amount(k, v)).join(", "); },
+  ready(s) { return this.open(s, 4).filter((q) => q.check(s)).length; },
+};
+
+const Events = {
+  active(s, id) { return s.buffs.some((b) => b.id === id && b.until > s.time); },
+  pick() {
+    const list = Object.entries(EVENTS), total = list.reduce((a, [, e]) => a + e.weight, 0);
+    let r = Math.random() * total;
+    for (const [id, e] of list) { r -= e.weight; if (r <= 0) return id; }
+    return list[0][0];
+  },
+  fire(s, id = this.pick()) {
+    const e = EVENTS[id];
+    if (e.kind === "buff") {
+      s.buffs = s.buffs.filter((b) => b.until > s.time && b.id !== id);
+      s.buffs.push({ id, until: s.time + e.dur });
+      addLog(s, `${e.icon} ${e.name}! ${e.desc}`, "good");
+    } else if (e.kind === "instant") {
+      if (id === "goldvein") {
+        const got = Economy.grant(s, { gold: Economy.caps(s).gold * 0.15 });
+        addLog(s, `${e.icon} ${e.name}! +${fmt(got.gold)} Gold.`, "good");
+      } else if (id === "refugees") {
+        const room = Math.max(0, Economy.housing(s) - Economy.totalPop(s));
+        const n = Math.min(room, randInt(5, 10 + 2 * s.buildings.townhall));
+        s.population.citizens += n;
+        addLog(s, n ? `${e.icon} ${e.name}: ${n} new citizens settle in Ironhold.` : `${e.icon} Refugees passed through, but there was no free housing for them.`, n ? "good" : "info");
+      } else if (id === "plague") {
+        const f = 0.06 * Math.max(0.2, 1 - 0.15 * s.buildings.temple - 0.12 * Research.lvl(s, "medicine"));
+        const n = Math.ceil(s.population.citizens * f);
+        for (let i = 0; i < n; i++) Economy.removeCitizen(s);
+        addLog(s, `${e.icon} Plague! ${n} citizens died. (Temples and Medicine reduce plague deaths.)`, "bad");
+      }
+    } else {
+      const offer = { id, expires: s.time + 150 };
+      if (id === "mercenaries") {
+        const unit = s.buildings.stables >= 3 ? "knight" : s.buildings.barracks >= 2 ? "footman" : "militia";
+        const n = 5 + s.buildings.townhall * 2;
+        offer.unit = unit; offer.n = n;
+        offer.cost = { gold: Math.round(UNITS[unit].cost.gold * n * 1.5) };
+      } else if (id === "caravan") {
+        const give = Math.max(200, Math.round(s.resources.stone * 0.3));
+        offer.cost = { stone: give }; offer.get = { steel: Math.round(give / 3) };
+      } else if (id === "relicseller") {
+        offer.cost = { gold: Math.round(Economy.caps(s).gold * 0.6) }; offer.get = { relics: 1 };
+      }
+      s.offer = offer;
+      addLog(s, `${e.icon} ${e.name}: ${e.desc} The offer stands for ${fmtTime(150)}.`, "info");
+    }
+  },
+  offerText(s) {
+    const o = s.offer;
+    if (!o) return "";
+    const cost = Object.entries(o.cost).map(([r, v]) => amount(r, v)).join(", ");
+    if (o.id === "mercenaries") return `Hire ${o.n} ${plural(UNITS[o.unit].name, o.n)} for ${cost}.`;
+    const get = Object.entries(o.get).map(([r, v]) => amount(r, v)).join(", ");
+    return `Trade ${cost} for ${get}.`;
+  },
+  accept(s) {
+    const o = s.offer;
+    if (!o || !Economy.canAfford(s, o.cost)) return false;
+    Economy.pay(s, o.cost);
+    if (o.id === "mercenaries") {
+      const room = Math.max(0, Economy.housing(s) - Economy.totalPop(s));
+      const n = Math.min(o.n, room);
+      s.army[o.unit] = (s.army[o.unit] || 0) + n;
+      addLog(s, `🗡️ ${n} mercenary ${plural(UNITS[o.unit].name, n)} join your army${n < o.n ? " (the rest found no housing and left)" : ""}.`, "war");
+    } else {
+      const { relics, ...rest } = o.get;
+      Economy.grant(s, rest);
+      if (relics) { s.resources.relics += relics; s.stats.relicsFound += relics; }
+      addLog(s, `${EVENTS[o.id].icon} Deal struck: ${this.offerText(s)}`, "good");
+    }
+    s.offer = null;
+    return true;
+  },
+  decline(s) { if (s.offer) { addLog(s, `${EVENTS[s.offer.id].icon} You turned down the ${EVENTS[s.offer.id].name}.`, "info"); s.offer = null; } },
+  step(s) {
+    s.buffs = s.buffs.filter((b) => b.until > s.time);
+    if (s.offer && s.time >= s.offer.expires) { addLog(s, `The ${EVENTS[s.offer.id].name} moved on.`, "info"); s.offer = null; }
+    if (s.time >= s.nextEventAt) {
+      s.nextEventAt = s.time + randInt(900, 1500);
+      let id = this.pick();
+      if (EVENTS[id].kind === "offer" && s.offer) id = "harvest";
+      this.fire(s, id);
+    }
+  },
+};
+
+/* =====================================================================
    5. ENGINE MODULE (game loop, offline progress, autosave)
    ===================================================================== */
 const Engine = {
@@ -1815,6 +2100,8 @@ const Engine = {
     s.stats.playSeconds += dt;
     const shortage = Economy.step(s, dt);
     Military.step(s, dt, shortage);
+    Research.step(s, dt);
+    Events.step(s);
   },
 
   /** Simulate a long gap in chunks so expeditions and starvation resolve in the right order. */
@@ -2235,6 +2522,26 @@ const UI = {
       this.refs.units[id] = { el, ...Object.fromEntries($$("[data-r]", el).map((n) => [n.dataset.r, n])) };
     }
 
+    // ---- research
+    $("#techList").innerHTML = Object.entries(TECHS).map(([id, t]) => `
+      <div class="card tech" id="tech-${id}">
+        <div class="tech-icon">${t.icon}</div>
+        <div>
+          <div class="title"><h3>${t.name}</h3><span class="badge" data-r="lvl">0/${t.max}</span></div>
+          <div class="desc">${t.desc}</div>
+          <div class="dim" style="font-size:11.5px" data-r="time"></div>
+        </div>
+        <div class="foot"><div class="costs" data-r="cost"></div>
+          <button class="btn primary sm" data-action="research" data-id="${id}" data-r="btn">Research</button></div>
+        <div class="req" data-r="req"></div>
+      </div>`).join("");
+    this.refs.techs = {};
+    for (const id of Object.keys(TECHS)) {
+      const el = $(`#tech-${id}`);
+      this.refs.techs[id] = { el, ...Object.fromEntries($$("[data-r]", el).map((n) => [n.dataset.r, n])) };
+    }
+    this.questSig = this.eventSig = this.researchSig = "";
+
     // ---- missions
     this.buildMissions();
 
@@ -2342,7 +2649,7 @@ const UI = {
       <span>Unemployed</span><b class="${Economy.unemployed(s) ? "warn" : ""}">${fmtInt(Economy.unemployed(s))}</b>
       <span>Housing</span><b>${fmtInt(total)} / ${fmtInt(housing)}</b>
       <span>Growth</span><b class="${growth > 0 ? "good" : "dim"}">${growth > 0 ? "1 citizen / " + fmtTime(1 / growth) : total >= housing ? "Housing full" : s.population.starve > 0 ? "Starving!" : "Stalled"}</b>
-      <span>Food upkeep</span><b>${(s.population.citizens * BALANCE.foodPerCitizen).toFixed(1)}/s</b>
+      <span>Food upkeep</span><b>${(s.population.citizens * BALANCE.foodPerCitizen * (1 - 0.05 * Research.lvl(s, "medicine"))).toFixed(1)}/s</b>
       <span>Production bonus</span><b class="good">+${Math.round((Economy.multiplier(s) - 1) * 100)}%</b>`;
     for (const [id] of Object.entries(JOBS)) {
       const r = this.refs.jobs[id], slots = Economy.jobSlots(s, id), n = s.jobs[id];
@@ -2363,6 +2670,8 @@ const UI = {
 
     this.updateRaid(s);
     this.updateDoctrine(s);
+    this.updateResearch(s);
+    this.updateAffairs(s);
 
     // ---- units
     for (const [id, u] of Object.entries(UNITS)) {
@@ -2458,10 +2767,13 @@ const UI = {
       <span class="muted">Enemies slain</span><b>${fmtInt(st.enemiesSlain)}</b>
       <span class="muted">Fallen · deserted · starved</span><b>${st.fallen} · ${st.deserted} · ${st.starved}</b>
       <span class="muted">Conquest stage</span><b>${s.conquest}</b>
+      <span class="muted">Battles led & won</span><b>${st.battlesLedWon}</b>
+      <span class="muted">Research levels</span><b>${Research.total(s)}</b>
       <span class="muted">Peak population</span><b>${fmtInt(st.peakPop)}</b>`;
 
     AssetPipeline.applyAll($("#buildingList"));
     AssetPipeline.applyAll($("#unitList"));
+    AssetPipeline.applyAll($("#techList"));
   },
 
   updateRaid(s) {
@@ -2502,6 +2814,76 @@ const UI = {
     }
   },
 
+  updateResearch(s) {
+    const c = s.research.current;
+    const sig = (c ? c.id : "none") + ":" + (s.buildings.academy > 0);
+    if (sig !== this.researchSig) {
+      this.researchSig = sig;
+      $("#researchNow").innerHTML = s.buildings.academy < 1
+        ? `<div class="summary-box" style="display:block">📚 Build an <b>Academy</b> (needs 25 population) to unlock Research: permanent upgrades to your economy and army.</div>`
+        : c ? `<div class="queue"><div class="stat-row"><span>Researching <b style="color:var(--text)">${TECHS[c.id].icon} ${TECHS[c.id].name} → level ${Research.lvl(s, c.id) + 1}</b></span><b data-rs="t"></b></div>
+            <div class="bar teal"><i data-rs="bar"></i></div><div style="margin-top:6px"><button class="btn sm danger" data-action="cancelResearch">Cancel (50% refund)</button></div></div>`
+          : `<div class="summary-box" style="display:block">🎓 Your scholars are idle. Pick a project below. ${Research.total(s)} research levels done so far.</div>`;
+    }
+    if (c) {
+      const fast = Events.active(s, "inspiration");
+      const t = $('[data-rs="t"]');
+      if (t) t.textContent = fmtTime(c.remaining / (fast ? 2 : 1)) + (fast ? " 💡×2" : "");
+      const bar = $('[data-rs="bar"]');
+      if (bar) bar.style.width = (1 - c.remaining / c.total) * 100 + "%";
+    }
+    for (const [id, t] of Object.entries(TECHS)) {
+      const r = this.refs.techs[id], lvl = Research.lvl(s, id);
+      r.lvl.textContent = `${lvl}/${t.max}`;
+      const maxed = lvl >= t.max;
+      r.cost.innerHTML = maxed ? '<span class="dim">—</span>' : this.costHtml(Research.cost(id, lvl), s);
+      r.time.textContent = maxed ? "Fully researched" : `Takes ${fmtTime(Research.time(s, id, lvl))} · Academy tier ${t.tier}`;
+      const blk = Research.blocker(s, id);
+      r.btn.disabled = !!blk;
+      r.btn.textContent = maxed ? "Done" : c && c.id === id ? "In progress" : "Research";
+      r.req.textContent = blk && !["Not enough resources", "Another project is in progress", "Fully researched"].includes(blk) ? blk : "";
+      r.el.classList.toggle("locked-card", s.buildings.academy < t.tier);
+    }
+  },
+
+  updateAffairs(s) {
+    const o = s.offer;
+    const evSig = s.buffs.map((b) => b.id + b.until).join() + "|" + (o ? o.id + o.expires : "");
+    if (evSig !== this.eventSig) {
+      this.eventSig = evSig;
+      let h = "";
+      for (const b of s.buffs) {
+        const e = EVENTS[b.id];
+        h += `<div class="alert good-box"><div><b>${e.icon} ${e.name}</b> <span class="dim">${e.desc}</span></div><span class="badge teal" data-buff="${b.id}"></span></div>`;
+      }
+      if (o) {
+        const e = EVENTS[o.id];
+        h += `<div class="alert warnbox"><div style="flex:1;min-width:180px"><b>${e.icon} ${e.name}</b><div style="font-size:12.5px">${esc(Events.offerText(s))}</div><div class="dim" style="font-size:11.5px" data-offer="t"></div></div>
+          <div class="btn-row"><button class="btn sm primary" data-action="acceptOffer" data-r="offerBtn">Accept</button><button class="btn sm" data-action="declineOffer">Decline</button></div></div>`;
+      }
+      $("#eventBox").innerHTML = h || `<div class="empty">The realm is quiet. Events happen every 15–25 minutes.</div>`;
+    }
+    for (const b of s.buffs) { const el = $(`[data-buff="${b.id}"]`); if (el) el.textContent = fmtTime(b.until - s.time); }
+    if (o) {
+      const t = $('[data-offer="t"]'); if (t) t.textContent = `Leaves in ${fmtTime(o.expires - s.time)}`;
+      const btn = $('[data-r="offerBtn"]'); if (btn) btn.disabled = !Economy.canAfford(s, o.cost);
+    }
+
+    const open = Quests.open(s, 4);
+    const qSig = open.map((q) => q.id + (q.check(s) ? "!" : "")).join();
+    if (qSig !== this.questSig) {
+      this.questSig = qSig;
+      $("#questList").innerHTML = open.length ? open.map((q) => {
+        const done = q.check(s);
+        return `<div class="quest ${done ? "done" : ""}"><div><div>${done ? "✅" : "▫️"} ${esc(q.text)}</div><div class="dim" style="font-size:11.5px">Reward: ${Quests.rewardText(q.reward)}</div></div>
+          ${done ? `<button class="btn sm primary" data-action="claimQuest" data-id="${q.id}">Claim</button>` : ""}</div>`;
+      }).join("") : `<div class="empty">Every quest is complete. You are a legend!</div>`;
+      const ready = Quests.ready(s);
+      $("#questBadge").textContent = `${s.quests.length}/${QUESTS.length}${ready ? ` · ${ready} ready!` : ""}`;
+      $("#questBadge").className = "badge" + (ready ? " teal" : "");
+    }
+  },
+
   updateDoctrine(s) {
     const sig = s.doctrine + ":" + s.commander.level;
     if (sig === this.doctrineSig) return;
@@ -2528,7 +2910,8 @@ const UI = {
       case "stables": return b.stables >= 3 ? "Light Cavalry & Knights unlocked" : b.stables >= 1 ? "Light Cavalry unlocked (Knights at Lv 3)" : "Unlocks cavalry";
       case "workshop": return b.workshop >= 3 ? "Siege Engineers & Catapults unlocked" : b.workshop >= 1 ? "Siege Engineers unlocked (Catapults at Lv 3)" : "Unlocks siege units";
       case "temple": return `${b.temple >= 3 ? "Priests & Paladins" : b.temple >= 1 ? "Priests (Paladins at Lv 3)" : "Unlocks holy units"} · +${(b.temple * 0.2).toFixed(1)} morale/s`;
-      case "walls": return b.walls ? `Wall HP ${Math.round(120 * (1 + 0.5 * b.walls))} · ${Math.max(1, 4 - Math.floor(b.walls / 2))} gap(s) · plunder −${Math.round(Math.min(0.5, b.walls * 0.04) * 100)}%` : "No walls: raiders walk straight in";
+      case "academy": return b.academy ? `Research ${Math.round(15 * (b.academy - 1))}% faster · techs up to tier ${b.academy}` : "Unlocks Research";
+      case "walls": return b.walls ? `Wall HP ${Math.round(120 * (1 + 0.5 * b.walls) * (1 + 0.25 * Research.lvl(s, "fortification")))} · ${Math.max(1, 4 - Math.floor(b.walls / 2))} gap(s) · plunder −${Math.round(Math.min(0.5, b.walls * 0.04) * 100)}%` : "No walls: raiders walk straight in";
     }
     return "";
   },
@@ -2670,6 +3053,7 @@ const UI = {
     $$(".tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === tab));
     $("#tab-buildings").classList.toggle("hidden", tab !== "buildings");
     $("#tab-workforce").classList.toggle("hidden", tab !== "workforce");
+    $("#tab-research").classList.toggle("hidden", tab !== "research");
   },
 
   async runForge(keys) {
@@ -2715,9 +3099,14 @@ const Actions = {
   train: (d) => {
     const s = GameState.current;
     const n = Military.train(s, d.id, d.n === "max" ? 1e6 : Number(d.n));
-    if (n) addLog(s, `Began training ${n} ${UNITS[d.id].name}${n > 1 ? "s" : ""}.`, "war");
+    if (n) addLog(s, `Began training ${n} ${plural(UNITS[d.id].name, n)}.`, "war");
     UI.update();
   },
+  research: (d) => { if (Research.start(GameState.current, d.id)) UI.update(); },
+  cancelResearch: () => { Research.cancel(GameState.current); UI.update(); },
+  claimQuest: (d) => { if (Quests.claim(GameState.current, d.id)) { UI.toast("Quest reward claimed!"); UI.update(); } },
+  acceptOffer: () => { if (Events.accept(GameState.current)) UI.update(); },
+  declineOffer: () => { Events.decline(GameState.current); UI.update(); },
   doctrine: (d) => { GameState.current.doctrine = d.id; UI.update(); UI.toast(`Doctrine: ${TACTICS[d.id].name}`); },
   openDeploy: (d) => UI.openDeploy(d.id),
   dep: (d) => {

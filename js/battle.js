@@ -74,6 +74,14 @@ const TACTICS = {
   bloodlust: { name: "Bloodlust",         lvl: 8, icon: "🩸", desc: "All units +20% attack but −15% defense.", atkAll: 1.2, defAll: 0.85 },
 };
 
+/* ---------- Lord Commander abilities (player side only, used in battles you lead and by your captains) ---------- */
+const ABILITIES = {
+  rally:   { name: "Rally",         icon: "📯", lvl: 1, cd: 4, desc: "Heal every squad by 15% of its full strength (fallen soldiers get back up)." },
+  barrage: { name: "Arrow Barrage", icon: "🎯", lvl: 3, cd: 4, target: true, desc: "Pick a spot anywhere: arrows rain on every enemy squad in a 3×3 area." },
+  warcry:  { name: "War Cry",       icon: "🔥", lvl: 5, cd: 5, desc: "All your squads deal +30% damage for the rest of this turn." },
+  march:   { name: "Forced March",  icon: "🥾", lvl: 7, cd: 5, desc: "Squads that haven't moved yet get +2 movement this turn." },
+};
+
 /* ---------- enemy factions (for raids and the endless conquest) ---------- */
 const FACTIONS = {
   bandits: { name: "Bandit Raiders",   minPower: 0,     tactic: "balanced",  roster: { bandit: 3, bandit_archer: 1 } },
@@ -237,7 +245,7 @@ const Battle = {
         side: opts.walls.side,
         x: opts.walls.side === "player" ? 4 : W - 5,
         gaps: Math.max(1, 4 - Math.floor(lvl / 2)),
-        hp: Math.round(120 * (1 + 0.5 * lvl)),
+        hp: Math.round(120 * (1 + 0.5 * lvl) * (opts.walls.hpMult || 1)),
       };
     }
     const map = this.generateMap(opts.mapType || "plains", seed, walls);
@@ -257,6 +265,8 @@ const Battle = {
       enemyTactic: opts.enemyTactic || "balanced",
       context: opts.context || {},
       bonus: { player: 1, enemy: 1, ...(opts.bonus || {}) },
+      defBonus: { player: 1, enemy: 1, ...(opts.defBonus || {}) },
+      cmd: { level: (opts.context && opts.context.cmdLevel) || 1, power: armyPower(opts.playerUnits), cd: { rally: 0, barrage: 0, warcry: 0, march: 0 }, warcry: 0, march: 0 },
       initial: { player: { ...opts.playerUnits }, enemy: { ...opts.enemyUnits } },
       log: [], result: null,
     };
@@ -352,7 +362,10 @@ const Battle = {
     return c;
   },
   canStand(b, s, x, y) { return isFinite(this.moveCost(b, s, x, y)); },
-  moveRange(b, s) { return Math.max(1, udef(s.type).mv + (this.tac(b, s.side).move || 0)); },
+  moveRange(b, s) {
+    const march = s.side === "player" && b.cmd && b.cmd.march === b.turn && b.active === "player" ? 2 : 0;
+    return Math.max(1, udef(s.type).mv + (this.tac(b, s.side).move || 0) + march);
+  },
 
   /** Tiles a squad can reach this turn: Map(index -> path cost). Enemies block; zone of control stops movement. */
   reachable(b, s) {
@@ -473,6 +486,7 @@ const Battle = {
     m *= (ta.atk && ta.atk[A.cls]) || 1;
     m *= ta.atkAll || 1;
     m *= (b.bonus && b.bonus[att.side]) || 1;
+    if (att.side === "player" && b.cmd && b.cmd.warcry === b.turn && b.active === "player") m *= 1.3;
     if (ta.ambush && (at === "forest" || at === "hill")) m *= ta.ambush;
     const ea = TERRAIN[at].elev, ed = TERRAIN[dt].elev;
     if (ea > ed) m *= 1.2; else if (ea < ed) m *= 0.85;
@@ -486,6 +500,7 @@ const Battle = {
     if (def.braced) defense *= 1.5;
     defense *= (td.def && td.def[D.cls]) || 1;
     defense *= td.defAll || 1;
+    defense *= (b.defBonus && b.defBonus[def.side]) || 1;
     if (td.hold && !def.moved) defense *= td.hold;
     if (A.armorPierce) defense *= 0.6;
     return this.count(att) * A.atk * m * 8 / (8 + defense);
@@ -547,6 +562,7 @@ const Battle = {
 
   startTurn(b, side) {
     b.active = side;
+    if (side === "player" && b.cmd && b.phase === "battle") for (const k of Object.keys(b.cmd.cd)) b.cmd.cd[k] = Math.max(0, b.cmd.cd[k] - 1);
     for (const s of this.alive(b, side)) {
       s.moved = false; s.acted = false; s.braced = false; s.movedDist = 0;
       const d = udef(s.type);
@@ -690,8 +706,76 @@ const Battle = {
     s.acted = true; s.moved = true;
     return events;
   },
+  /* ===================== commander abilities ===================== */
+  abilityBlocker(b, id) {
+    const a = ABILITIES[id];
+    if (!b.cmd || b.phase !== "battle" || b.active !== "player") return "Only during your turn";
+    if (b.cmd.level < a.lvl) return `Commander level ${a.lvl}`;
+    if (b.cmd.cd[id] > 0) return `Ready in ${b.cmd.cd[id]} turn${b.cmd.cd[id] > 1 ? "s" : ""}`;
+    return null;
+  },
+  barrageDamage(b) { return (30 + 0.08 * b.cmd.power) * (1 + 0.05 * (b.cmd.level - 1)); },
+  useAbility(b, id, cx, cy, events = []) {
+    if (this.abilityBlocker(b, id)) return false;
+    b.cmd.cd[id] = ABILITIES[id].cd + 1; // +1 because it ticks down at the start of your next turn
+    if (id === "rally") {
+      let healed = 0;
+      for (const s of this.alive(b, "player")) {
+        const before = this.count(s);
+        s.hp = Math.min(s.maxHp, s.hp + s.maxHp * 0.15);
+        healed += this.count(s) - before;
+        events.push({ x: s.x, y: s.y, text: "+", cls: "heal", id: s.id });
+      }
+      this.addLog(b, `📯 Your Lord Commander rallies the troops: ${healed} soldiers return to the line.`);
+    } else if (id === "barrage") {
+      const dmg = this.barrageDamage(b);
+      let killed = 0;
+      for (const s of this.alive(b, "enemy")) {
+        if (Math.abs(s.x - cx) > 1 || Math.abs(s.y - cy) > 1) continue;
+        const D = udef(s.type), t = this.terrainAt(b, s);
+        const before = this.count(s);
+        s.hp = Math.max(0, s.hp - dmg * (t.cover || 1) * 8 / (8 + D.def * t.def));
+        killed += before - this.count(s);
+        events.push({ x: s.x, y: s.y, text: `−${before - this.count(s)}`, cls: "hit", id: s.id });
+      }
+      for (let y = cy - 1; y <= cy + 1; y++) for (let x = cx - 1; x <= cx + 1; x++)
+        if (x >= 0 && y >= 0 && x < b.w && y < b.h) events.push({ x, y, text: "➶", cls: "arrow" });
+      this.addLog(b, `🎯 Arrow Barrage! ${killed} enemies fall.`);
+      this.checkEnd(b);
+    } else if (id === "warcry") {
+      b.cmd.warcry = b.turn;
+      this.addLog(b, "🔥 War Cry! Your army strikes +30% harder this turn.");
+    } else if (id === "march") {
+      b.cmd.march = b.turn;
+      this.addLog(b, "🥾 Forced March! +2 movement for squads that haven't moved.");
+    }
+    return events;
+  },
+  /** Best 3×3 barrage target: [x, y, enemyHpHit]. */
+  barrageTarget(b) {
+    let best = null, bestV = 0;
+    for (let y = 0; y < b.h; y++) for (let x = 0; x < b.w; x++) {
+      let v = 0;
+      for (const s of this.alive(b, "enemy")) if (Math.abs(s.x - x) <= 1 && Math.abs(s.y - y) <= 1) v += Math.min(s.hp, this.barrageDamage(b)) / udef(s.type).hp * unitPower(udef(s.type));
+      if (v > bestV) { bestV = v; best = [x, y]; }
+    }
+    return best;
+  },
+  /** Your captains use the commander's abilities sensibly in auto battles. */
+  aiAbilities(b) {
+    if (!b.cmd || b.active !== "player") return;
+    const mine = this.alive(b, "player"), foes = this.alive(b, "enemy");
+    const hp = mine.reduce((a, s) => a + s.hp, 0), max = mine.reduce((a, s) => a + s.maxHp, 0);
+    if (!this.abilityBlocker(b, "rally") && hp < max * 0.75) this.useAbility(b, "rally");
+    if (!this.abilityBlocker(b, "barrage")) { const t = this.barrageTarget(b); if (t) this.useAbility(b, "barrage", t[0], t[1]); }
+    const close = mine.some((m) => foes.some((o) => this.dist(m, o) <= 3));
+    if (!this.abilityBlocker(b, "warcry") && close) this.useAbility(b, "warcry");
+    if (!this.abilityBlocker(b, "march") && b.attacker === "player" && !close && b.turn <= 3) this.useAbility(b, "march");
+  },
+
   /** Run the AI for every squad on `side` that hasn't acted. */
   runSide(b, side) {
+    if (side === "player") this.aiAbilities(b);
     for (const s of this.aiOrder(b, side)) {
       if (b.phase === "over") return;
       if (s.hp <= 0 || s.acted) continue;
@@ -752,7 +836,7 @@ const BattleUI = {
   onDone: null,
 
   open(b, onDone) {
-    this.b = b; this.onDone = onDone; this.sel = null; this.busy = false;
+    this.b = b; this.onDone = onDone; this.sel = null; this.busy = false; this.targeting = null;
     let root = document.getElementById("battleRoot");
     if (!root) { root = document.createElement("div"); root.id = "battleRoot"; document.body.appendChild(root); }
     root.innerHTML = `
@@ -799,10 +883,10 @@ const BattleUI = {
       const cell = e.target.closest("#bfBoard [data-cell]");
       if (cell) this.hover(+cell.dataset.cell);
     });
-    document.addEventListener("contextmenu", (e) => { if (this.b && e.target.closest("#bfBoard")) { e.preventDefault(); this.sel = null; this.render(); } });
+    document.addEventListener("contextmenu", (e) => { if (this.b && e.target.closest("#bfBoard")) { e.preventDefault(); this.sel = null; this.targeting = null; this.render(); } });
     document.addEventListener("keydown", (e) => {
       if (!this.b || this.busy) return;
-      if (e.key === "Escape") { this.sel = null; this.render(); }
+      if (e.key === "Escape") { this.sel = null; this.targeting = null; this.render(); }
       if (e.key === "Enter" && this.b.phase === "battle" && this.b.active === "player") this.action("end", {});
     });
   },
@@ -841,7 +925,8 @@ const BattleUI = {
     document.getElementById("bfTitle").textContent = b.title;
     const phaseTxt = b.phase === "deploy" ? "Deployment: click one of your squads, then a tile in the blue zone to move it (or another squad to swap)."
       : b.phase === "over" ? (b.result.winner === "player" ? "Victory!" : "Defeat")
-      : b.active === "player" ? "Your turn. Select a squad, move it (blue), attack (red), or Brace." : "The enemy is moving…";
+      : this.targeting ? "Arrow Barrage: click the centre of the 3×3 area to hit (Esc to cancel)."
+      : b.active === "player" ? "Your turn. Select a squad, move it (blue), attack (red), or Brace. Commander abilities are on the left of the buttons." : "The enemy is moving…";
     document.getElementById("bfSub").innerHTML = `${esc(MAP_TYPES[b.mapType] || "")} · Turn <b>${Math.min(b.turn, b.maxTurns)}</b>/${b.maxTurns} · ${TACTICS[b.tactic].icon} ${TACTICS[b.tactic].name} · <span class="dim">${esc(phaseTxt)}</span>`;
 
     // buttons
@@ -852,7 +937,12 @@ const BattleUI = {
         <button class="btn primary" data-bf="begin">⚔ Begin battle</button>`;
     } else if (b.phase === "battle") {
       const my = b.active === "player" && !this.busy;
-      btns = `<button class="btn" data-bf="brace" ${my && this.sel && !this.selSquad()?.acted ? "" : "disabled"} title="Skip this squad's attack: +50% defense until your next turn">🛡 Brace</button>
+      const ab = Object.entries(ABILITIES).map(([k, a]) => {
+        const blk = this.abilityBlocker(k);
+        const cd = b.cmd ? b.cmd.cd[k] : 0;
+        return `<button class="btn ability ${this.targeting === k ? "armed" : ""}" data-bf="ability" data-id="${k}" ${my && !blk ? "" : "disabled"} title="${esc(a.name)}: ${esc(a.desc)}${blk ? " (" + esc(blk) + ")" : ""}">${a.icon}${cd > 0 ? `<small>${cd}</small>` : ""}</button>`;
+      }).join("");
+      btns = `<span class="abilities" title="Lord Commander abilities">${ab}</span><button class="btn" data-bf="brace" ${my && this.sel && !this.selSquad()?.acted ? "" : "disabled"} title="Skip this squad's attack: +50% defense until your next turn">🛡 Brace</button>
         <button class="btn" data-bf="auto" ${my ? "" : "disabled"} title="Let your captains finish the battle">Auto-battle</button>
         <button class="btn danger" data-bf="retreat" ${my ? "" : "disabled"}>Retreat</button>
         <button class="btn primary" data-bf="end" ${my ? "" : "disabled"}>End turn ⏎</button>`;
@@ -930,6 +1020,15 @@ const BattleUI = {
   },
   hover(i) {
     const b = this.b, x = i % b.w, y = (i / b.w) | 0, t = TERRAIN[b.tiles[i]];
+    const prev = document.getElementById("bfAim");
+    if (prev) prev.remove();
+    if (this.targeting === "barrage") {
+      const c = this.cell, aim = document.createElement("div");
+      aim.id = "bfAim"; aim.className = "aim";
+      aim.style.left = (x - 1) * c + "px"; aim.style.top = (y - 1) * c + "px";
+      aim.style.width = aim.style.height = 3 * c + "px";
+      document.getElementById("bfFx").appendChild(aim);
+    }
     const s = Battle.at(b, x, y);
     let h = `<div class="bf-h">${t.name}${b.wallHp[i] ? ` <span class="dim">(${Math.ceil(b.wallHp[i])} HP)</span>` : ""}</div><div style="font-size:12px" class="muted">${t.desc}</div>`;
     const sq = this.selSquad();
@@ -950,6 +1049,12 @@ const BattleUI = {
     } else if (s) h += `<hr>${this.squadCard(s, true)}`;
     document.getElementById("bfHover").innerHTML = h;
   },
+  abilityBlocker(id) {
+    const b = this.b;
+    if (!b || !b.cmd) return "No commander";
+    if (b.cmd.level < ABILITIES[id].lvl) return `Commander level ${ABILITIES[id].lvl}`;
+    return Battle.abilityBlocker(b, id);
+  },
   selSquad() { return this.b && this.sel ? this.b.squads.find((s) => s.id === this.sel && s.hp > 0) : null; },
 
   click(i) {
@@ -967,6 +1072,14 @@ const BattleUI = {
       this.render(); return;
     }
     if (b.active !== "player") return;
+    if (this.targeting) {
+      const id = this.targeting;
+      this.targeting = null;
+      const ev = Battle.useAbility(b, id, x, y);
+      if (ev) this.fx(ev);
+      this.render(); this.save();
+      return;
+    }
     // attack?
     if (sel && !sel.acted) {
       if (s && s.side === "enemy" && Battle.canHit(b, sel, sel.x, sel.y, x, y)) {
@@ -1035,11 +1148,20 @@ const BattleUI = {
   },
   save() { if (typeof GameState !== "undefined" && GameState.current) GameState.save(); },
 
-  async action(a) {
+  async action(a, data) {
     const b = this.b;
     switch (a) {
       case "autodeploy": Battle.autoDeploy(b, "player"); this.sel = null; this.render(); break;
       case "begin": Battle.begin(b); this.sel = null; this.render(); this.save(); break;
+      case "ability": {
+        const id = data && data.id;
+        if (!id || this.busy || this.abilityBlocker(id)) break;
+        if (ABILITIES[id].target) { this.targeting = this.targeting === id ? null : id; this.sel = null; this.render(); break; }
+        const ev = Battle.useAbility(b, id);
+        if (ev) this.fx(ev);
+        this.render(); this.save();
+        break;
+      }
       case "brace": { const s = this.selSquad(); if (s && !s.acted) { Battle.brace(b, s); this.afterPlayerAction(); } break; }
       case "end": if (!this.busy && b.phase === "battle" && b.active === "player") await this.enemyTurn(); break;
       case "auto":

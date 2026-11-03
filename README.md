@@ -9,12 +9,16 @@ A single-player idle RPG city builder for the browser. Grow your population, ass
 | **Resources** | Gold, Food, Stone, Steel (+ rare **Relics**). Live per-second rates in the header, with storage caps that Warehouses, Granaries and the Town Hall raise. |
 | **Population** | Housing cap. Shows total, workers, idle, recruits and soldiers. Growth depends on food stock and free housing. Starvation kills citizens. |
 | **Workforce** | Assign Farmers / Miners / Blacksmiths / Recruits (`+`/`−`, Shift = ×10, `«`/`»` = all). Job slots come from buildings. Blacksmiths turn stone into steel. |
-| **Buildings** | 13 buildings: Town Hall (up to Lv 15), Farm, Quarry, Steelworks, House, Warehouse, Granary, Market, Barracks, Stables, Siege Workshop, Temple, City Walls. `Cost = Base × mult^Level`. Storage grows ×1.4 per Town Hall level, and a self-test on boot makes sure every upgrade's cost fits in fully built storage. Disabled buttons show why, e.g. "Gold storage too small. Build Warehouses". |
+| **Buildings** | 14 buildings: Town Hall (up to Lv 15), Farm, Quarry, Steelworks, House, Warehouse, Granary, Market, Barracks, Stables, Siege Workshop, Temple, Academy, City Walls. `Cost = Base × mult^Level`. Storage grows ×1.4 per Town Hall level, and a self-test on boot makes sure every upgrade's cost fits in fully built storage. Disabled buttons show why, e.g. "Gold storage too small. Build Warehouses". |
 | **Military** | 13 units: Militia, Spearman, Archer, Footman, Crossbowman, Pikeman, Longbowman, Light Cavalry, Knight, Battle Priest, Siege Engineer, Catapult, Paladin. Each has HP/ATK/DEF/range/movement plus traits (anti-cavalry, charge, armor-piercing, healing, wall-breaching). Train ×1/×5/×10/Max, with a queue of 50. If upkeep isn't paid, morale falls and soldiers desert. |
 | **Tactics** | 7 doctrines unlocked by Commander level: Balanced, Shield Wall, Arrow Storm, Cavalry Charge, Hold the Line, Ambush, Bloodlust. The one you pick is used by your captains in auto battles, and you can change it before any battle you lead. |
 | **Battlefield** | An 18×12 turn-based tactical grid. Terrain: **plains, forest** (cover, slows cavalry), **hills** (+defense, +range, downhill bonus), **mountains** (impassable, block arrows), **valleys** (low ground, −defense, uphill penalty), **rivers & bridges** (chokepoints), **swamps**, **castle walls** (only defenders can stand on them; siege units breach them). Movement uses zone of control. Melee targets strike back, braced spears punish cavalry, and missiles need line of sight. Attacks show a damage forecast. Auto-deploy, Brace, Auto-battle and Retreat are all available. |
 | **Raids** | Enemy factions attack the city: Bandits → Goblins → Orcs → Undead → Giant-kin → Black Legion → Dragonflight. They get stronger with each raid and as your city grows. You get a warning when they're spotted, then a choice at the gates: **lead the defense** yourself (Town Guards and your City Walls join you) or let your captains fight. If you lose, they plunder your stores and kill citizens. |
 | **Expeditions** | 11 missions up to the Throne of the Storm Titan, plus an **Endless Conquest** that gets stronger with every stage you win. **March** = timed auto battle with your doctrine. **Lead the assault** = fight it now on the battlefield for +25% loot. The win chance is estimated by simulating the battle. |
+| **Research** | Build an **Academy** to unlock 12 techs: Crop Rotation, Masonry, Taxation, Military Drill, Drill Sergeants, Metallurgy, Logistics, Medicine, Plate Armor, Fortification, Cartography, Relic Lore. One project runs at a time, and higher Academy levels unlock more advanced techs and research faster. |
+| **Commander abilities** | Used in battle: 📯 Rally (heal 15%), 🎯 Arrow Barrage (pick a 3×3 area to hit), 🔥 War Cry (+30% damage this turn), 🥾 Forced March (+2 movement). They unlock with Commander level and have cooldowns. Your captains also use them in auto battles. |
+| **Quests** | 32 goals that walk you from your first farm to toppling the Storm Titan. Claim resources and Relics as rewards. |
+| **Realm events** | Every 15–25 minutes: Bountiful Harvest, Trade Fair, Age of Inspiration, a gold vein, refugees, plague, or an offer you can accept or decline (mercenaries, a merchant caravan, a mysterious relic peddler). |
 | **Idle / offline** | 1 s tick based on real elapsed time. When you return, offline progress (capped at 12 h) is simulated in 10 s steps, and a summary pops up. |
 | **Persistence** | Autosaves every 5 s, plus manual Save, Export (copy/download), Import (paste/file) and Reset. |
 
@@ -23,14 +27,14 @@ A single-player idle RPG city builder for the browser. Grow your population, ass
 1. **`GameState`**: save schema, hydrate/migrate, load/save/export/import
 2. **`Engine`**: tick loop, chunked offline simulation, autosave
 3. **`Economy`**: rates, caps, building costs, workforce, growth/starvation
-4. **`Military`**: training queue, upkeep/desertion, raids, expeditions, battle setup/conclusion, XP
+4. **`Military`**, plus **`Research`**, **`Quests`**, **`Events`**: training queue, upkeep/desertion, raids, expeditions, battle setup/conclusion, XP
    - **`js/battle.js`**: terrain, enemy units, tactics, factions, map generator, the `Battle` engine (movement, combat, AI, simulation) and `BattleUI` (the battlefield screen)
 5. **`AssetPipeline`**: image API integration + caching (below)
 6. **`UI`**: builds the DOM once, updates it every tick, click actions handled in one delegated listener
 
 ## AI artwork pipeline
 
-All image prompts live in one place: the `<script id="asset-catalog">` JSON block in `index.html` (70 assets: resource icons, buildings, workers, your units, enemy units, mission banners, commander portrait, page backdrop).
+All image prompts live in one place: the `<script id="asset-catalog">` JSON block in `index.html` (71 assets: resource icons, buildings, workers, your units, enemy units, mission banners, commander portrait, page backdrop).
 
 For each image, the game uses the first source available:
 
