@@ -295,6 +295,107 @@ input:focus, select:focus, textarea:focus { outline: 2px solid rgba(227,176,75,0
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* =====================================================================
+   WAR COUNCIL EXTRAS
+   ===================================================================== */
+.ustats { display: flex; flex-wrap: wrap; gap: 2px 9px; font-size: 11.5px; color: var(--text); margin: 2px 0 3px; font-variant-numeric: tabular-nums; }
+.deploy-row .ustats, .deploy-row span[title] { margin-right: 6px; }
+.card.locked-card { opacity: 0.6; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 2px 0; }
+.chip { display: inline-flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.35); border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px 1px 2px; font-size: 11.5px; }
+.chip img { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; }
+.tag.gold { background: rgba(227,176,75,0.15); color: var(--accent-2); border-color: rgba(227,176,75,0.4); }
+.alert { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; border: 1px solid; font-size: 13px; }
+.alert.warnbox { background: rgba(240,164,70,0.1); border-color: rgba(240,164,70,0.45); }
+.alert.bad { background: rgba(239,100,97,0.12); border-color: rgba(239,100,97,0.55); animation: pulse 1.6s ease-in-out infinite; }
+.alert.war { background: rgba(192,132,252,0.1); border-color: rgba(192,132,252,0.45); }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(239,100,97,0.0); } 50% { box-shadow: 0 0 0 4px rgba(239,100,97,0.18); } }
+.doctrines { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px; }
+.doctrine { display: flex; gap: 8px; align-items: flex-start; text-align: left; background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 9px; padding: 7px 9px; cursor: pointer; font-family: inherit; }
+.doctrine:hover:not(:disabled) { border-color: var(--border-hi); }
+.doctrine.active { border-color: var(--accent); background: rgba(227,176,75,0.09); box-shadow: inset 0 0 0 1px rgba(227,176,75,0.4); }
+.doctrine:disabled { opacity: 0.45; cursor: not-allowed; }
+.doctrine .di { font-size: 18px; line-height: 1.2; }
+.doctrine b { display: block; font-size: 12.5px; }
+.doctrine small { display: block; color: var(--muted); font-size: 11px; line-height: 1.3; }
+
+/* =====================================================================
+   BATTLEFIELD
+   ===================================================================== */
+body.in-battle { overflow: hidden; }
+#battleRoot:empty { display: none; }
+.bf { position: fixed; inset: 0; z-index: 70; background: radial-gradient(1200px 700px at 50% 0%, #1b2233, #0a0d13); display: flex; flex-direction: column; animation: fade 0.25s ease; }
+.bf-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--border); background: rgba(13,16,22,0.9); flex-wrap: wrap; }
+.bf-top h2 { font-size: 17px; color: var(--accent-2); }
+.bf-sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.bf-select { width: auto; padding: 6px 8px; }
+.bf-main { flex: 1; display: flex; gap: 14px; padding: 12px 16px; min-height: 0; }
+.bf-board-wrap { flex: 1; display: flex; align-items: flex-start; justify-content: center; overflow: auto; min-width: 0; }
+.bf-board { position: relative; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 0 2px #2b3447; flex: none; user-select: none; }
+.bf-side { width: 300px; flex: none; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+.bf-card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; }
+.bf-card hr { border: 0; border-top: 1px solid var(--border); margin: 8px 0; }
+.bf-h { font-family: var(--font-display); color: var(--accent-2); font-size: 13px; margin-bottom: 4px; }
+.bf-stats { display: grid; grid-template-columns: repeat(3, auto); gap: 2px 10px; font-size: 12px; color: var(--muted); }
+.bf-stats b { color: var(--text); }
+.bf-army { display: flex; flex-wrap: wrap; gap: 3px 10px; font-size: 12px; }
+.bf-log { max-height: 240px; overflow-y: auto; font-size: 12px; display: flex; flex-direction: column; gap: 3px; color: var(--muted); }
+.bf-log div:first-child { color: var(--text); }
+.bf-forecast { margin-top: 6px; padding: 6px 8px; border-radius: 7px; background: rgba(239,100,97,0.1); border: 1px solid rgba(239,100,97,0.35); font-size: 12px; }
+
+.tile { position: absolute; width: var(--cell); height: var(--cell); box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.tile span { font-size: calc(var(--cell) * 0.5); opacity: 0.85; filter: saturate(0.85); pointer-events: none; }
+.t-plains { background: linear-gradient(135deg, #5b7a3a, #4f6d32); }
+.t-forest { background: radial-gradient(circle at 40% 40%, #2f5a2a, #1f3e1d); }
+.t-hill { background: radial-gradient(ellipse at 50% 65%, #9a8657 0%, #7a6a43 55%, #5d5233 100%); }
+.t-hill::after { content: ""; position: absolute; left: 18%; right: 18%; bottom: 26%; height: 34%; border-radius: 50% 50% 0 0; background: rgba(255,240,200,0.12); }
+.t-mountain { background: linear-gradient(160deg, #8b8f99, #5a5e68 60%, #3e4149); }
+.t-mountain span { opacity: 1; filter: none; }
+.t-valley { background: linear-gradient(135deg, #3f6b3c, #335b31); box-shadow: inset 0 3px 8px rgba(0,0,0,0.35); }
+.t-river { background: repeating-linear-gradient(170deg, #2f6fa3 0 6px, #2a6596 6px 12px); }
+.t-bridge { background: repeating-linear-gradient(90deg, #8a6338 0 5px, #73512c 5px 7px), #2f6fa3; }
+.t-swamp { background: radial-gradient(circle at 30% 30%, #4d5d3a 0 22%, transparent 23%), radial-gradient(circle at 70% 70%, #3b5a55 0 20%, transparent 21%), #3e4a33; }
+.t-wall { background: repeating-linear-gradient(0deg, #8d8a84 0 8px, #6e6b66 8px 9px), #8d8a84; box-shadow: inset 0 0 0 2px #4a4844; }
+.t-rubble { background: radial-gradient(circle at 30% 40%, #8d8a84 0 15%, transparent 16%), radial-gradient(circle at 70% 60%, #77746f 0 18%, transparent 19%), #5b6a45; }
+
+.mark { position: absolute; width: var(--cell); height: var(--cell); pointer-events: none; }
+.mark.m-deploy { background: rgba(80,150,255,0.18); box-shadow: inset 0 0 0 1px rgba(120,180,255,0.4); }
+.mark.m-move { background: rgba(80,160,255,0.32); box-shadow: inset 0 0 0 1px rgba(150,200,255,0.75); pointer-events: auto; cursor: pointer; }
+.mark.m-attack { box-shadow: inset 0 0 0 3px rgba(255,80,70,0.95); background: rgba(255,60,50,0.18); animation: blink 1s ease-in-out infinite; pointer-events: auto; cursor: crosshair; z-index: 3; }
+@keyframes blink { 50% { background: rgba(255,60,50,0.32); } }
+.wallbar { position: absolute; width: var(--cell); height: 4px; margin-top: calc(var(--cell) - 5px); pointer-events: none; }
+.wallbar i { display: block; height: 100%; background: #e9d79a; }
+
+.unit { position: absolute; width: var(--cell); height: var(--cell); padding: 3px; transition: left 0.25s ease, top 0.25s ease, opacity 0.4s; z-index: 2; cursor: pointer; }
+.unit img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid; box-shadow: 0 2px 6px rgba(0,0,0,0.6); }
+.unit.side-player img { border-color: #5fa8ff; }
+.unit.side-enemy img { border-color: #ff5f56; }
+.unit.boss img { border-color: #ffb020; box-shadow: 0 0 12px rgba(255,160,40,0.8); }
+.unit.sel img { box-shadow: 0 0 0 3px #fff, 0 0 14px rgba(255,255,255,0.7); }
+.unit.done { filter: grayscale(0.7) brightness(0.8); }
+.unit.braced::after { content: "🛡"; position: absolute; top: -2px; left: -2px; font-size: calc(var(--cell) * 0.32); }
+.unit .cnt { position: absolute; right: 0; bottom: 4px; background: rgba(0,0,0,0.8); color: #fff; font-size: calc(var(--cell) * 0.24); line-height: 1; padding: 2px 4px; border-radius: 6px; font-weight: 700; }
+.unit .hpb { position: absolute; left: 5px; right: 5px; bottom: 1px; height: 3px; background: rgba(0,0,0,0.6); border-radius: 2px; overflow: hidden; }
+.unit .hpb i { display: block; height: 100%; background: #6ee07c; transition: width 0.3s ease; }
+.unit.side-enemy .hpb i { background: #ff7a6e; }
+.unit.dead { opacity: 0; transform: scale(0.6); transition: opacity 0.45s, transform 0.45s; }
+.unit.shake { animation: shake 0.35s ease; }
+@keyframes shake { 20% { transform: translateX(-3px); } 40% { transform: translateX(3px); } 60% { transform: translateX(-2px); } 80% { transform: translateX(2px); } }
+.fx { position: absolute; width: var(--cell); text-align: center; font-weight: 800; font-size: calc(var(--cell) * 0.36); color: #ff6b5e; text-shadow: 0 2px 4px #000; pointer-events: none; z-index: 5; animation: floatup 1.1s ease forwards; }
+.fx.wallhit { color: #f2d48a; }
+.fx.breach { color: #ffcf4d; font-size: calc(var(--cell) * 0.3); }
+@keyframes floatup { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-34px); } }
+.bf-end { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 80; background: var(--panel-2); border: 1px solid var(--border-hi); border-radius: 14px; padding: 18px 22px; width: min(440px, calc(100vw - 32px)); box-shadow: 0 20px 60px rgba(0,0,0,0.7); animation: fade 0.3s ease; }
+.bf-end h2 { font-size: 22px; margin-bottom: 6px; }
+.bf-end.win h2 { color: var(--accent-2); }
+.bf-end.lose h2 { color: var(--bad); }
+.bf-end p { font-size: 13px; }
+@media (max-width: 900px) {
+  .bf-main { flex-direction: column; padding: 8px; overflow-y: auto; }
+  .bf-side { width: auto; }
+  .bf-board-wrap { flex: none; max-width: 100%; justify-content: flex-start; }
+}
 </style>
 </head>
 <body>
@@ -348,6 +449,11 @@ input:focus, select:focus, textarea:focus { outline: 2px solid rgba(227,176,75,0
             <div class="bar good fast"><i id="moraleBar"></i></div>
           </div>
         </div>
+
+        <div id="raidBox"></div>
+
+        <div class="section-title">Battle Doctrine <span class="dim" style="text-transform:none;letter-spacing:0">(used by your captains in auto battles)</span></div>
+        <div class="doctrines" id="doctrineList"></div>
 
         <div class="section-title">Barracks Training</div>
         <div class="grid-cards" id="unitList"></div>
@@ -434,55 +540,509 @@ input:focus, select:focus, textarea:focus { outline: 2px solid rgba(227,176,75,0
      ===================================================================== -->
 <script type="application/json" id="asset-catalog">
 {
-  "style": {
-    "base": "Painterly dark-fantasy medieval game art, rich warm lighting, high detail, polished mobile-RPG asset quality. Absolutely no text, letters, numbers, logos or watermarks.",
-    "icon": "Square game UI icon. One clear subject centered, filling most of the frame, on a dark slate-blue vignette background.",
-    "portrait": "Square character portrait, chest-up, facing slightly toward the viewer, dark moody background.",
-    "banner": "Wide cinematic establishing shot, 16:9 composition, atmospheric depth.",
-    "backdrop": "Wide panoramic 16:9 landscape, darker toward the bottom so UI text stays readable."
+ "style": {
+  "base": "Painterly dark-fantasy medieval game art, rich warm lighting, high detail, polished mobile-RPG asset quality. Absolutely no text, letters, numbers, logos or watermarks.",
+  "icon": "Square game UI icon. One clear subject centered, filling most of the frame, on a dark slate-blue vignette background.",
+  "portrait": "Square character portrait, chest-up, facing slightly toward the viewer, dark moody background.",
+  "banner": "Wide cinematic establishing shot, 16:9 composition, atmospheric depth.",
+  "backdrop": "Wide panoramic 16:9 landscape, darker toward the bottom so UI text stays readable."
+ },
+ "assets": [
+  {
+   "key": "crest",
+   "kind": "icon",
+   "emoji": "🏰",
+   "hue": 40,
+   "prompt": "A heraldic shield crest with a golden castle tower and crossed swords, iron rim"
   },
-  "assets": [
-    { "key": "crest",       "kind": "icon",     "emoji": "🏰", "hue": 40,  "prompt": "A heraldic shield crest with a golden castle tower and crossed swords, iron rim" },
-    { "key": "backdrop",    "kind": "backdrop", "emoji": "",   "hue": 230, "prompt": "A walled medieval fortress city at dusk on a hill above a river valley, smoke from chimneys, mountains behind" },
-    { "key": "commander",   "kind": "portrait", "emoji": "🛡️", "hue": 270, "prompt": "A battle-hardened medieval lord commander with a scar, fur-trimmed cloak over steel plate armor" },
-
-    { "key": "res_gold",    "kind": "icon", "emoji": "🪙", "hue": 45,  "prompt": "A heap of shiny gold coins spilling from a leather pouch" },
-    { "key": "res_food",    "kind": "icon", "emoji": "🍞", "hue": 95,  "prompt": "A rustic basket of bread loaves, wheat sheaves, apples and cheese" },
-    { "key": "res_stone",   "kind": "icon", "emoji": "🪨", "hue": 210, "prompt": "A stack of cut grey granite building blocks" },
-    { "key": "res_steel",   "kind": "icon", "emoji": "⚙️", "hue": 200, "prompt": "Gleaming blue-tinted steel ingots stacked in a pyramid" },
-    { "key": "res_relics",  "kind": "icon", "emoji": "🔮", "hue": 280, "prompt": "An ancient glowing purple rune-carved relic orb on a small stone pedestal" },
-    { "key": "pop",         "kind": "icon", "emoji": "👥", "hue": 170, "prompt": "A small group of medieval villagers standing together, a peasant, a smith and a farmer" },
-
-    { "key": "b_townhall",  "kind": "icon", "emoji": "🏛️", "hue": 40,  "prompt": "Isometric grand medieval town hall with a clock tower and banners" },
-    { "key": "b_farm",      "kind": "icon", "emoji": "🌾", "hue": 90,  "prompt": "Isometric medieval farmstead with golden wheat fields and a small barn" },
-    { "key": "b_quarry",    "kind": "icon", "emoji": "⛏️", "hue": 25,  "prompt": "Isometric stone quarry cut into a cliff with a wooden crane and pickaxes" },
-    { "key": "b_steelworks","kind": "icon", "emoji": "🔥", "hue": 15,  "prompt": "Isometric medieval steelworks forge with glowing furnace, anvil and chimney smoke" },
-    { "key": "b_house",     "kind": "icon", "emoji": "🏠", "hue": 30,  "prompt": "Isometric cozy timber-framed medieval cottage with thatched roof and lit windows" },
-    { "key": "b_warehouse", "kind": "icon", "emoji": "📦", "hue": 35,  "prompt": "Isometric large wooden medieval warehouse with crates and barrels outside" },
-    { "key": "b_granary",   "kind": "icon", "emoji": "🧺", "hue": 60,  "prompt": "Isometric round stone medieval granary with conical roof and grain sacks" },
-    { "key": "b_barracks",  "kind": "icon", "emoji": "⚔️", "hue": 0,   "prompt": "Isometric fortified medieval barracks with training yard, weapon racks and red banners" },
-
-    { "key": "job_farmer",     "kind": "portrait", "emoji": "👨‍🌾", "hue": 90,  "prompt": "A cheerful medieval farmer holding a scythe, straw hat" },
-    { "key": "job_miner",      "kind": "portrait", "emoji": "⛏️", "hue": 25,  "prompt": "A dusty medieval stone miner with a pickaxe over the shoulder" },
-    { "key": "job_blacksmith", "kind": "portrait", "emoji": "🔨", "hue": 15,  "prompt": "A muscular medieval blacksmith in a leather apron holding a hammer, forge glow" },
-    { "key": "job_recruit",    "kind": "portrait", "emoji": "🪖", "hue": 0,   "prompt": "A young eager medieval army recruit in a padded gambeson holding a wooden practice sword" },
-
-    { "key": "u_militia",   "kind": "portrait", "emoji": "🗡️", "hue": 30,  "prompt": "A medieval militia soldier with a spear and a round wooden shield, simple leather armor" },
-    { "key": "u_archer",    "kind": "portrait", "emoji": "🏹", "hue": 120, "prompt": "A hooded medieval longbow archer drawing an arrow, green cloak" },
-    { "key": "u_footman",   "kind": "portrait", "emoji": "🛡️", "hue": 210, "prompt": "A medieval footman in chainmail with a kite shield and arming sword" },
-    { "key": "u_siege",     "kind": "portrait", "emoji": "🪓", "hue": 35,  "prompt": "A medieval siege engineer with goggles next to a small trebuchet, holding blueprints" },
-    { "key": "u_knight",    "kind": "portrait", "emoji": "🐎", "hue": 50,  "prompt": "A heavily armored mounted medieval knight with a lance and a plumed great helm" },
-
-    { "key": "m_bandits",   "kind": "banner", "emoji": "🏕️", "hue": 30,  "prompt": "A bandit camp hidden in a dark forest clearing with campfires and stolen loot crates" },
-    { "key": "m_goblins",   "kind": "banner", "emoji": "👺", "hue": 100, "prompt": "Entrance to goblin warrens in a mossy hillside cave lit by green torches" },
-    { "key": "m_abbey",     "kind": "banner", "emoji": "⛪", "hue": 220, "prompt": "A haunted ruined gothic abbey under a pale moon, broken stained glass, mist" },
-    { "key": "m_orcs",      "kind": "banner", "emoji": "🏯", "hue": 10,  "prompt": "A brutal orc stronghold of spiked palisades and iron towers on a volcanic plain" },
-    { "key": "m_dragon",    "kind": "banner", "emoji": "🐉", "hue": 5,   "prompt": "A colossal red dragon sleeping on a mountain of gold inside a vast cavern" },
-    { "key": "m_citadel",   "kind": "banner", "emoji": "🌑", "hue": 270, "prompt": "A towering obsidian shadow citadel wreathed in purple storm clouds and lightning" }
-  ]
+  {
+   "key": "backdrop",
+   "kind": "backdrop",
+   "emoji": "",
+   "hue": 230,
+   "prompt": "A walled medieval fortress city at dusk on a hill above a river valley, smoke from chimneys, mountains behind"
+  },
+  {
+   "key": "commander",
+   "kind": "portrait",
+   "emoji": "🛡️",
+   "hue": 270,
+   "prompt": "A battle-hardened medieval lord commander with a scar, fur-trimmed cloak over steel plate armor"
+  },
+  {
+   "key": "res_gold",
+   "kind": "icon",
+   "emoji": "🪙",
+   "hue": 45,
+   "prompt": "A heap of shiny gold coins spilling from a leather pouch"
+  },
+  {
+   "key": "res_food",
+   "kind": "icon",
+   "emoji": "🍞",
+   "hue": 95,
+   "prompt": "A rustic basket of bread loaves, wheat sheaves, apples and cheese"
+  },
+  {
+   "key": "res_stone",
+   "kind": "icon",
+   "emoji": "🪨",
+   "hue": 210,
+   "prompt": "A stack of cut grey granite building blocks"
+  },
+  {
+   "key": "res_steel",
+   "kind": "icon",
+   "emoji": "⚙️",
+   "hue": 200,
+   "prompt": "Gleaming blue-tinted steel ingots stacked in a pyramid"
+  },
+  {
+   "key": "res_relics",
+   "kind": "icon",
+   "emoji": "🔮",
+   "hue": 280,
+   "prompt": "An ancient glowing purple rune-carved relic orb on a small stone pedestal"
+  },
+  {
+   "key": "pop",
+   "kind": "icon",
+   "emoji": "👥",
+   "hue": 170,
+   "prompt": "A small group of medieval villagers standing together, a peasant, a smith and a farmer"
+  },
+  {
+   "key": "b_townhall",
+   "kind": "icon",
+   "emoji": "🏛️",
+   "hue": 40,
+   "prompt": "Isometric grand medieval town hall with a clock tower and banners"
+  },
+  {
+   "key": "b_farm",
+   "kind": "icon",
+   "emoji": "🌾",
+   "hue": 90,
+   "prompt": "Isometric medieval farmstead with golden wheat fields and a small barn"
+  },
+  {
+   "key": "b_quarry",
+   "kind": "icon",
+   "emoji": "⛏️",
+   "hue": 25,
+   "prompt": "Isometric stone quarry cut into a cliff with a wooden crane and pickaxes"
+  },
+  {
+   "key": "b_steelworks",
+   "kind": "icon",
+   "emoji": "🔥",
+   "hue": 15,
+   "prompt": "Isometric medieval steelworks forge with glowing furnace, anvil and chimney smoke"
+  },
+  {
+   "key": "b_house",
+   "kind": "icon",
+   "emoji": "🏠",
+   "hue": 30,
+   "prompt": "Isometric cozy timber-framed medieval cottage with thatched roof and lit windows"
+  },
+  {
+   "key": "b_warehouse",
+   "kind": "icon",
+   "emoji": "📦",
+   "hue": 35,
+   "prompt": "Isometric large wooden medieval warehouse with crates and barrels outside"
+  },
+  {
+   "key": "b_granary",
+   "kind": "icon",
+   "emoji": "🧺",
+   "hue": 60,
+   "prompt": "Isometric round stone medieval granary with conical roof and grain sacks"
+  },
+  {
+   "key": "b_barracks",
+   "kind": "icon",
+   "emoji": "⚔️",
+   "hue": 0,
+   "prompt": "Isometric fortified medieval barracks with training yard, weapon racks and red banners"
+  },
+  {
+   "key": "job_farmer",
+   "kind": "portrait",
+   "emoji": "👨‍🌾",
+   "hue": 90,
+   "prompt": "A cheerful medieval farmer holding a scythe, straw hat"
+  },
+  {
+   "key": "job_miner",
+   "kind": "portrait",
+   "emoji": "⛏️",
+   "hue": 25,
+   "prompt": "A dusty medieval stone miner with a pickaxe over the shoulder"
+  },
+  {
+   "key": "job_blacksmith",
+   "kind": "portrait",
+   "emoji": "🔨",
+   "hue": 15,
+   "prompt": "A muscular medieval blacksmith in a leather apron holding a hammer, forge glow"
+  },
+  {
+   "key": "job_recruit",
+   "kind": "portrait",
+   "emoji": "🪖",
+   "hue": 0,
+   "prompt": "A young eager medieval army recruit in a padded gambeson holding a wooden practice sword"
+  },
+  {
+   "key": "u_militia",
+   "kind": "portrait",
+   "emoji": "🗡️",
+   "hue": 30,
+   "prompt": "A medieval militia soldier with a spear and a round wooden shield, simple leather armor"
+  },
+  {
+   "key": "u_archer",
+   "kind": "portrait",
+   "emoji": "🏹",
+   "hue": 120,
+   "prompt": "A hooded medieval longbow archer drawing an arrow, green cloak"
+  },
+  {
+   "key": "u_footman",
+   "kind": "portrait",
+   "emoji": "🛡️",
+   "hue": 210,
+   "prompt": "A medieval footman in chainmail with a kite shield and arming sword"
+  },
+  {
+   "key": "u_siege",
+   "kind": "portrait",
+   "emoji": "🪓",
+   "hue": 35,
+   "prompt": "A medieval siege engineer with goggles next to a small trebuchet, holding blueprints"
+  },
+  {
+   "key": "u_knight",
+   "kind": "portrait",
+   "emoji": "🐎",
+   "hue": 50,
+   "prompt": "A heavily armored mounted medieval knight with a lance and a plumed great helm"
+  },
+  {
+   "key": "m_bandits",
+   "kind": "banner",
+   "emoji": "🏕️",
+   "hue": 30,
+   "prompt": "A bandit camp hidden in a dark forest clearing with campfires and stolen loot crates"
+  },
+  {
+   "key": "m_goblins",
+   "kind": "banner",
+   "emoji": "👺",
+   "hue": 100,
+   "prompt": "Entrance to goblin warrens in a mossy hillside cave lit by green torches"
+  },
+  {
+   "key": "m_abbey",
+   "kind": "banner",
+   "emoji": "⛪",
+   "hue": 220,
+   "prompt": "A haunted ruined gothic abbey under a pale moon, broken stained glass, mist"
+  },
+  {
+   "key": "m_orcs",
+   "kind": "banner",
+   "emoji": "🏯",
+   "hue": 10,
+   "prompt": "A brutal orc stronghold of spiked palisades and iron towers on a volcanic plain"
+  },
+  {
+   "key": "m_dragon",
+   "kind": "banner",
+   "emoji": "🐉",
+   "hue": 5,
+   "prompt": "A colossal red dragon sleeping on a mountain of gold inside a vast cavern"
+  },
+  {
+   "key": "m_citadel",
+   "kind": "banner",
+   "emoji": "🌑",
+   "hue": 270,
+   "prompt": "A towering obsidian shadow citadel wreathed in purple storm clouds and lightning"
+  },
+  {
+   "key": "b_market",
+   "kind": "icon",
+   "emoji": "🏪",
+   "hue": 50,
+   "prompt": "Isometric bustling medieval market square with colorful stalls and awnings"
+  },
+  {
+   "key": "b_stables",
+   "kind": "icon",
+   "emoji": "🐴",
+   "hue": 30,
+   "prompt": "Isometric medieval stables with horses, hay bales and a wooden paddock"
+  },
+  {
+   "key": "b_workshop",
+   "kind": "icon",
+   "emoji": "🛠️",
+   "hue": 25,
+   "prompt": "Isometric medieval siege workshop with a half-built trebuchet and timber"
+  },
+  {
+   "key": "b_temple",
+   "kind": "icon",
+   "emoji": "⛪",
+   "hue": 50,
+   "prompt": "Isometric white stone medieval temple with golden dome and glowing windows"
+  },
+  {
+   "key": "b_walls",
+   "kind": "icon",
+   "emoji": "🧱",
+   "hue": 30,
+   "prompt": "Isometric section of thick medieval stone city walls with a gatehouse and towers"
+  },
+  {
+   "key": "u_spearman",
+   "kind": "portrait",
+   "emoji": "🔱",
+   "hue": 35,
+   "prompt": "A medieval spearman with a long spear and round shield, leather cap"
+  },
+  {
+   "key": "u_crossbow",
+   "kind": "portrait",
+   "emoji": "🎯",
+   "hue": 210,
+   "prompt": "A medieval crossbowman aiming a heavy crossbow, pavise shield on his back"
+  },
+  {
+   "key": "u_pikeman",
+   "kind": "portrait",
+   "emoji": "🗡️",
+   "hue": 200,
+   "prompt": "A medieval pikeman in a steel breastplate holding a very long pike upright"
+  },
+  {
+   "key": "u_longbow",
+   "kind": "portrait",
+   "emoji": "🏹",
+   "hue": 100,
+   "prompt": "A tall veteran medieval longbowman with a yew longbow and arrow quiver"
+  },
+  {
+   "key": "u_lightcav",
+   "kind": "portrait",
+   "emoji": "🐎",
+   "hue": 30,
+   "prompt": "A medieval light cavalry rider on a fast horse with a sabre, flowing cloak"
+  },
+  {
+   "key": "u_priest",
+   "kind": "portrait",
+   "emoji": "✨",
+   "hue": 50,
+   "prompt": "A medieval battle priest in white and gold robes raising a glowing holy symbol"
+  },
+  {
+   "key": "u_catapult",
+   "kind": "portrait",
+   "emoji": "🪨",
+   "hue": 30,
+   "prompt": "A large medieval wooden catapult loaded with a boulder on a battlefield"
+  },
+  {
+   "key": "u_paladin",
+   "kind": "portrait",
+   "emoji": "⚜️",
+   "hue": 45,
+   "prompt": "A radiant medieval paladin in ornate gilded plate armor with a glowing warhammer"
+  },
+  {
+   "key": "u_guard",
+   "kind": "portrait",
+   "emoji": "💂",
+   "hue": 210,
+   "prompt": "A medieval town guard with a halberd and city tabard"
+  },
+  {
+   "key": "e_bandit",
+   "kind": "portrait",
+   "emoji": "🗡️",
+   "hue": 20,
+   "prompt": "A scruffy medieval bandit with a dagger and a hood, menacing grin"
+  },
+  {
+   "key": "e_bandit_archer",
+   "kind": "portrait",
+   "emoji": "🏹",
+   "hue": 20,
+   "prompt": "A hooded bandit archer with a shortbow in a dark forest"
+  },
+  {
+   "key": "e_goblin",
+   "kind": "portrait",
+   "emoji": "👺",
+   "hue": 100,
+   "prompt": "A snarling green goblin warrior with a rusty blade"
+  },
+  {
+   "key": "e_wolf_rider",
+   "kind": "portrait",
+   "emoji": "🐺",
+   "hue": 100,
+   "prompt": "A goblin riding a huge grey warg wolf, fangs bared"
+  },
+  {
+   "key": "e_orc",
+   "kind": "portrait",
+   "emoji": "👹",
+   "hue": 10,
+   "prompt": "A muscular green-skinned orc warrior with a crude axe and bone armor"
+  },
+  {
+   "key": "e_orc_archer",
+   "kind": "portrait",
+   "emoji": "🏹",
+   "hue": 10,
+   "prompt": "An orc archer with a heavy black bow and war paint"
+  },
+  {
+   "key": "e_berserker",
+   "kind": "portrait",
+   "emoji": "🪓",
+   "hue": 0,
+   "prompt": "A raging orc berserker with twin axes, blood-red war paint"
+  },
+  {
+   "key": "e_troll",
+   "kind": "portrait",
+   "emoji": "🧌",
+   "hue": 110,
+   "prompt": "A huge mossy cave troll with a tree-trunk club"
+  },
+  {
+   "key": "e_ogre",
+   "kind": "portrait",
+   "emoji": "👹",
+   "hue": 30,
+   "prompt": "A massive fat ogre with a spiked iron club"
+  },
+  {
+   "key": "e_skeleton",
+   "kind": "portrait",
+   "emoji": "💀",
+   "hue": 220,
+   "prompt": "An undead skeleton warrior with a rusted sword and cracked shield, glowing eyes"
+  },
+  {
+   "key": "e_wraith",
+   "kind": "portrait",
+   "emoji": "👻",
+   "hue": 260,
+   "prompt": "A spectral hooded wraith floating with ghostly blue flames"
+  },
+  {
+   "key": "e_necromancer",
+   "kind": "portrait",
+   "emoji": "🧙",
+   "hue": 280,
+   "prompt": "A sinister necromancer in black robes holding a skull staff with green magic"
+  },
+  {
+   "key": "e_frost_giant",
+   "kind": "portrait",
+   "emoji": "🧊",
+   "hue": 200,
+   "prompt": "A towering frost giant with icy beard and a glacier hammer"
+  },
+  {
+   "key": "e_dark_knight",
+   "kind": "portrait",
+   "emoji": "🖤",
+   "hue": 270,
+   "prompt": "A dark knight in black spiked armor on a nightmare horse with red eyes"
+  },
+  {
+   "key": "e_demon",
+   "kind": "portrait",
+   "emoji": "😈",
+   "hue": 0,
+   "prompt": "A horned fire demon with molten skin and burning wings"
+  },
+  {
+   "key": "e_drake",
+   "kind": "portrait",
+   "emoji": "🦎",
+   "hue": 15,
+   "prompt": "A fire drake, a small winged dragon breathing flames"
+  },
+  {
+   "key": "e_dragon",
+   "kind": "portrait",
+   "emoji": "🐉",
+   "hue": 5,
+   "prompt": "A colossal ancient red dragon roaring with fire, scales like armor"
+  },
+  {
+   "key": "e_titan",
+   "kind": "portrait",
+   "emoji": "⚡",
+   "hue": 220,
+   "prompt": "A gigantic storm titan made of stone and lightning, crackling with energy"
+  },
+  {
+   "key": "m_trolls",
+   "kind": "banner",
+   "emoji": "🌉",
+   "hue": 100,
+   "prompt": "An old stone bridge over a misty river guarded by trolls"
+  },
+  {
+   "key": "m_giants",
+   "kind": "banner",
+   "emoji": "🏔️",
+   "hue": 200,
+   "prompt": "A snowy mountain pass with frost giants and wolf riders in a blizzard"
+  },
+  {
+   "key": "m_necropolis",
+   "kind": "banner",
+   "emoji": "🪦",
+   "hue": 140,
+   "prompt": "A vast necropolis city of tombs and walls in a fog-covered swamp, green glow"
+  },
+  {
+   "key": "m_abyss",
+   "kind": "banner",
+   "emoji": "🔥",
+   "hue": 0,
+   "prompt": "A gigantic hellish gate in a volcanic valley with demons pouring out"
+  },
+  {
+   "key": "m_titan",
+   "kind": "banner",
+   "emoji": "⛈️",
+   "hue": 220,
+   "prompt": "A colossal stone throne on a mountain summit with a storm titan amid lightning"
+  },
+  {
+   "key": "m_conquest",
+   "kind": "banner",
+   "emoji": "🗺️",
+   "hue": 40,
+   "prompt": "A war map table with banners, miniature armies and a sword, candlelight"
+  }
+ ]
 }
 </script>
 
+<script src="js/battle.js"></script>
 <script>
 "use strict";
 /* =====================================================================
@@ -533,42 +1093,87 @@ const RESOURCES = {
 };
 const STORABLE = ["gold", "food", "stone", "steel"];
 
-/* Cost formula: Cost = BaseCost * multiplier ^ Level (Level = current level, or level-1 for the Town Hall, which starts at 1). */
+/*
+ * Cost formula: Cost = BaseCost * mult ^ Level (Level = current level; the Town Hall starts at 1, so it uses Level-1).
+ * Each building's level limit is Town Hall level × maxPerTH. Storage grows ×1.4 per Town Hall level,
+ * so the most expensive allowed upgrade always fits in fully built storage (the self-test checks this on boot).
+ */
 const BUILDINGS = {
-  townhall:   { name: "Town Hall",  asset: "b_townhall",   base: { gold: 400, stone: 300, steel: 40 }, mult: 2.0,  max: 10,
-                desc: "Seat of power. +1 Gold/s, +8 housing, +5% production and +250 storage per level. Raises other buildings' level limits.",
+  townhall:   { name: "Town Hall",      asset: "b_townhall",   base: { gold: 400, stone: 300, steel: 40 },   mult: 1.9,  max: 15,
+                desc: "Seat of power. Each level: +1 Gold/s, +8 housing, +10% production, ×1.4 storage, and higher limits for other buildings.",
                 popReq: (lvl) => 15 * lvl },
-  farm:       { name: "Farm",       asset: "b_farm",       base: { gold: 40, stone: 15 },              mult: 1.15, desc: "Adds 4 Farmer jobs. Each Farmer grows food." },
-  quarry:     { name: "Quarry",     asset: "b_quarry",     base: { gold: 50, food: 25 },               mult: 1.15, desc: "Adds 3 Miner jobs. Each Miner cuts stone." },
-  steelworks: { name: "Steelworks", asset: "b_steelworks", base: { gold: 120, stone: 80 },             mult: 1.18, desc: "Adds 2 Blacksmith jobs. Blacksmiths smelt stone into steel.", popReq: () => 10 },
-  house:      { name: "House",      asset: "b_house",      base: { gold: 35, stone: 20 },              mult: 1.15, desc: "Shelter for 5 more people.", maxPerTH: 8 },
-  warehouse:  { name: "Warehouse",  asset: "b_warehouse",  base: { gold: 80, stone: 60 },              mult: 1.17, desc: "+500 Gold, +500 Stone and +250 Steel storage." },
-  granary:    { name: "Granary",    asset: "b_granary",    base: { gold: 60, stone: 40 },              mult: 1.17, desc: "+600 Food storage. Keeps the larders full." },
-  barracks:   { name: "Barracks",   asset: "b_barracks",   base: { gold: 150, stone: 120, steel: 15 }, mult: 1.25, desc: "+5 Recruit jobs, +4 housing, +10% training speed. Unlocks units and more expedition slots.", popReq: () => 12 },
+  farm:       { name: "Farm",           asset: "b_farm",       base: { gold: 40, stone: 15 },   mult: 1.15, maxPerTH: 5, desc: "Adds 4 Farmer jobs. Each Farmer grows food." },
+  quarry:     { name: "Quarry",         asset: "b_quarry",     base: { gold: 50, food: 25 },    mult: 1.15, maxPerTH: 5, desc: "Adds 3 Miner jobs. Each Miner cuts stone." },
+  steelworks: { name: "Steelworks",     asset: "b_steelworks", base: { gold: 120, stone: 80 },  mult: 1.16, maxPerTH: 4, desc: "Adds 2 Blacksmith jobs. Blacksmiths smelt stone into steel.", popReq: () => 10 },
+  house:      { name: "House",          asset: "b_house",      base: { gold: 35, stone: 20 },   mult: 1.08, maxPerTH: 8, desc: "Shelter for 5 more people." },
+  warehouse:  { name: "Warehouse",      asset: "b_warehouse",  base: { gold: 80, stone: 60 },   mult: 1.15, maxPerTH: 5, desc: "+600 Gold, +600 Stone and +300 Steel base storage (×Town Hall storage bonus)." },
+  granary:    { name: "Granary",        asset: "b_granary",    base: { gold: 60, stone: 40 },   mult: 1.15, maxPerTH: 5, desc: "+700 Food base storage (×Town Hall storage bonus)." },
+  market:     { name: "Market",         asset: "b_market",     base: { gold: 150, stone: 100 }, mult: 1.2,  maxPerTH: 2, desc: "+3 Gold/s and +5% Gold income per level.", popReq: () => 20 },
+  barracks:   { name: "Barracks",       asset: "b_barracks",   base: { gold: 150, stone: 120, steel: 15 }, mult: 1.22, maxPerTH: 2, desc: "+10 Recruit jobs, +8 housing, +10% training speed. Unlocks infantry & archers, and more expedition slots.", popReq: () => 12 },
+  stables:    { name: "Stables",        asset: "b_stables",    base: { gold: 250, food: 200, stone: 150 }, mult: 1.3, maxPerTH: 1, desc: "Unlocks Light Cavalry (Lv 1) and Knights (Lv 3).", popReq: () => 30 },
+  workshop:   { name: "Siege Workshop", asset: "b_workshop",   base: { gold: 300, stone: 300, steel: 60 }, mult: 1.3, maxPerTH: 1, desc: "Unlocks Siege Engineers (Lv 1) and Catapults (Lv 3). Siege units smash walls.", popReq: () => 40 },
+  temple:     { name: "Temple",         asset: "b_temple",     base: { gold: 400, stone: 350 }, mult: 1.3, maxPerTH: 1, desc: "Unlocks Battle Priests (Lv 1) and Paladins (Lv 3). +0.2 morale/s per level.", popReq: () => 50 },
+  walls:      { name: "City Walls",     asset: "b_walls",      base: { gold: 100, stone: 200 }, mult: 1.25, maxPerTH: 1, desc: "Stone walls on the battlefield when raiders attack. Higher levels mean stronger walls with fewer gaps.", popReq: () => 15 },
 };
 
 const JOBS = {
-  farmer:     { name: "Farmers",     asset: "job_farmer",     building: "farm",       slots: 4, desc: "+1.1 Food/s each" },
-  miner:      { name: "Miners",      asset: "job_miner",      building: "quarry",     slots: 3, desc: "+0.75 Stone/s each" },
-  blacksmith: { name: "Blacksmiths", asset: "job_blacksmith", building: "steelworks", slots: 2, desc: "−0.5 Stone → +0.35 Steel/s each" },
-  recruit:    { name: "Recruits",    asset: "job_recruit",    building: "barracks",   slots: 5, desc: "Drilled citizens ready to be trained into soldiers" },
+  farmer:     { name: "Farmers",     asset: "job_farmer",     building: "farm",       slots: 4,  desc: "+1.1 Food/s each" },
+  miner:      { name: "Miners",      asset: "job_miner",      building: "quarry",     slots: 3,  desc: "+0.75 Stone/s each" },
+  blacksmith: { name: "Blacksmiths", asset: "job_blacksmith", building: "steelworks", slots: 2,  desc: "−0.5 Stone → +0.35 Steel/s each" },
+  recruit:    { name: "Recruits",    asset: "job_recruit",    building: "barracks",   slots: 10, desc: "Drilled citizens. Each unit you train uses up one Recruit." },
 };
 
+/*
+ * Units. Battle stats: hp/atk/def per soldier, rng (1 = melee), mv (movement points), cls (inf/ranged/cav/siege/support).
+ * Traits: antiCav, charge, armorPierce, breach (wall damage), vsBig, heal, minRng.
+ * req: building levels needed to train the unit.
+ */
 const UNITS = {
-  militia: { name: "Militia",         asset: "u_militia", cost: { gold: 25, food: 10 },              time: 5,  power: 3,  upkeep: { food: 0.10, gold: 0.02 }, barracks: 1, desc: "Cheap, numerous levy troops." },
-  archer:  { name: "Archer",          asset: "u_archer",  cost: { gold: 40, steel: 5 },              time: 8,  power: 6,  upkeep: { food: 0.12, gold: 0.05 }, barracks: 2, desc: "Ranged support with longbows." },
-  footman: { name: "Footman",         asset: "u_footman", cost: { gold: 60, steel: 15 },             time: 10, power: 10, upkeep: { food: 0.15, gold: 0.08 }, barracks: 2, desc: "Disciplined chainmail infantry." },
-  siege:   { name: "Siege Engineer",  asset: "u_siege",   cost: { gold: 100, stone: 80, steel: 30 }, time: 20, power: 6,  upkeep: { food: 0.15, gold: 0.15 }, barracks: 3, siege: true, desc: "Breaks walls. Big bonus against fortified targets." },
-  knight:  { name: "Knight",          asset: "u_knight",  cost: { gold: 200, steel: 60, food: 40 },  time: 25, power: 28, upkeep: { food: 0.30, gold: 0.30 }, barracks: 5, desc: "Elite heavy cavalry." },
+  militia:   { name: "Militia",         asset: "u_militia",  cost: { gold: 25, food: 10 },               time: 5,  upkeep: { food: 0.10, gold: 0.02 }, req: { barracks: 1 },
+               hp: 10, atk: 3,  def: 1, rng: 1, mv: 3, cls: "inf", desc: "Cheap levy troops. Good for soaking up hits." },
+  spearman:  { name: "Spearman",        asset: "u_spearman", cost: { gold: 35, steel: 4 },               time: 7,  upkeep: { food: 0.10, gold: 0.04 }, req: { barracks: 2 },
+               hp: 12, atk: 4,  def: 3, rng: 1, mv: 3, cls: "inf", antiCav: true, desc: "Deals ×2 damage to cavalry. When braced, strikes back at full strength." },
+  archer:    { name: "Archer",          asset: "u_archer",   cost: { gold: 40, steel: 5 },               time: 8,  upkeep: { food: 0.12, gold: 0.05 }, req: { barracks: 2 },
+               hp: 8,  atk: 4,  def: 1, rng: 4, mv: 3, cls: "ranged", desc: "Shoots 4 tiles (5 from hills or walls)." },
+  footman:   { name: "Footman",         asset: "u_footman",  cost: { gold: 60, steel: 15 },              time: 10, upkeep: { food: 0.15, gold: 0.08 }, req: { barracks: 2 },
+               hp: 16, atk: 6,  def: 4, rng: 1, mv: 3, cls: "inf", desc: "Disciplined chainmail infantry. The core of the battle line." },
+  crossbow:  { name: "Crossbowman",     asset: "u_crossbow", cost: { gold: 70, steel: 20 },              time: 12, upkeep: { food: 0.14, gold: 0.10 }, req: { barracks: 4 },
+               hp: 10, atk: 7,  def: 2, rng: 3, mv: 2, cls: "ranged", armorPierce: true, desc: "Bolts ignore 40% of armor. Slow to move." },
+  pikeman:   { name: "Pikeman",         asset: "u_pikeman",  cost: { gold: 80, steel: 25 },              time: 12, upkeep: { food: 0.15, gold: 0.10 }, req: { barracks: 5 },
+               hp: 15, atk: 6,  def: 5, rng: 1, mv: 2, cls: "inf", antiCav: true, desc: "A wall of pikes: ×2 damage to cavalry and very tough." },
+  longbow:   { name: "Longbowman",      asset: "u_longbow",  cost: { gold: 90, steel: 12 },              time: 14, upkeep: { food: 0.14, gold: 0.12 }, req: { barracks: 6 },
+               hp: 10, atk: 6,  def: 1, rng: 5, mv: 3, cls: "ranged", desc: "Range 5 (6 from high ground). Deadly behind a wall." },
+  lightcav:  { name: "Light Cavalry",   asset: "u_lightcav", cost: { gold: 110, steel: 20, food: 30 },   time: 14, upkeep: { food: 0.25, gold: 0.15 }, req: { stables: 1 },
+               hp: 18, atk: 6,  def: 2, rng: 1, mv: 6, cls: "cav", charge: true, desc: "Fast flanker. +50% vs missile units. Charges after moving 3+ tiles." },
+  knight:    { name: "Knight",          asset: "u_knight",   cost: { gold: 200, steel: 60, food: 40 },   time: 25, upkeep: { food: 0.30, gold: 0.30 }, req: { stables: 3 },
+               hp: 32, atk: 11, def: 6, rng: 1, mv: 5, cls: "cav", charge: true, desc: "Elite heavy cavalry with a devastating charge." },
+  priest:    { name: "Battle Priest",   asset: "u_priest",   cost: { gold: 150, food: 50 },              time: 18, upkeep: { food: 0.12, gold: 0.20 }, req: { temple: 1 },
+               hp: 10, atk: 2,  def: 2, rng: 2, mv: 3, cls: "support", heal: 3, desc: "Each turn, heals squads within 2 tiles by 3 HP per priest." },
+  siege:     { name: "Siege Engineer",  asset: "u_siege",    cost: { gold: 100, stone: 80, steel: 30 },  time: 20, upkeep: { food: 0.15, gold: 0.15 }, req: { workshop: 1 },
+               hp: 14, atk: 5,  def: 2, rng: 2, mv: 2, cls: "siege", breach: true, desc: "Deals ×4 damage to walls. Needed against fortresses." },
+  catapult:  { name: "Catapult",        asset: "u_catapult", cost: { gold: 300, stone: 250, steel: 80 }, time: 35, upkeep: { food: 0.20, gold: 0.40 }, req: { workshop: 3 },
+               hp: 40, atk: 18, def: 1, rng: 6, minRng: 2, mv: 1, cls: "siege", breach: true, vsBig: true, desc: "Range 2–6. Smashes walls and deals ×1.6 damage to giants and monsters." },
+  paladin:   { name: "Paladin",         asset: "u_paladin",  cost: { gold: 450, steel: 150, food: 60 },  time: 40, upkeep: { food: 0.35, gold: 0.50 }, req: { temple: 3, barracks: 8 },
+               hp: 34, atk: 12, def: 9, rng: 1, mv: 3, cls: "inf", heal: 1, desc: "Holy champion. Very hard to kill, and heals nearby allies." },
 };
 
+/*
+ * Expeditions. army = the enemy force that defends the location. map = the battlefield terrain.
+ * fortified = enemy walls (bring siege). The "conquest" entry is endless and gets stronger each stage you win.
+ */
 const MISSIONS = {
-  bandits: { name: "Bandit Camp",      asset: "m_bandits", diff: 15,   duration: 60,   level: 1,  xp: 15,   loot: { gold: [150, 260], steel: [8, 20] } },
-  goblins: { name: "Goblin Warrens",   asset: "m_goblins", diff: 45,   duration: 180,  level: 2,  xp: 35,   loot: { gold: [320, 520], steel: [30, 70], food: [80, 160] }, relic: { chance: 0.1, n: [1, 1] } },
-  abbey:   { name: "Ruined Abbey",     asset: "m_abbey",   diff: 90,   duration: 420,  level: 3,  xp: 70,   loot: { gold: [500, 800], stone: [250, 450] },               relic: { chance: 0.3, n: [1, 1] } },
-  orcs:    { name: "Orc Stronghold",   asset: "m_orcs",    diff: 200,  duration: 900,  level: 5,  xp: 150,  fortified: true, loot: { gold: [1100, 1600], steel: [180, 280] }, relic: { chance: 0.5, n: [1, 2] } },
-  dragon:  { name: "Dragon's Lair",    asset: "m_dragon",  diff: 520,  duration: 2400, level: 8,  xp: 400,  loot: { gold: [4500, 6500], steel: [600, 900] },             relic: { chance: 1, n: [3, 5] } },
-  citadel: { name: "Shadow Citadel",   asset: "m_citadel", diff: 1300, duration: 5400, level: 12, xp: 1000, fortified: true, loot: { gold: [11000, 15000], steel: [1800, 2600] }, relic: { chance: 1, n: [6, 10] } },
+  bandits:    { name: "Bandit Camp",          asset: "m_bandits",    map: "forest",   duration: 60,    level: 1,  xp: 15,   army: { bandit: 6, bandit_archer: 3 },                 loot: { gold: [150, 260], steel: [8, 20] } },
+  goblins:    { name: "Goblin Warrens",       asset: "m_goblins",    map: "hills",    duration: 180,   level: 2,  xp: 35,   army: { goblin: 14, wolf_rider: 4 },                   loot: { gold: [320, 520], steel: [30, 70], food: [80, 160] }, relic: { chance: 0.1, n: [1, 1] } },
+  abbey:      { name: "Haunted Abbey",        asset: "m_abbey",      map: "swamp",    duration: 420,   level: 3,  xp: 70,   army: { skeleton: 16, necromancer: 2 },                loot: { gold: [500, 800], stone: [250, 450] }, relic: { chance: 0.3, n: [1, 1] } },
+  orcs:       { name: "Orc Stronghold",       asset: "m_orcs",       map: "plains",   duration: 900,   level: 5,  xp: 150,  army: { orc: 16, orc_archer: 8, berserker: 4 },        fortified: 3, loot: { gold: [1100, 1600], steel: [180, 280] }, relic: { chance: 0.5, n: [1, 2] } },
+  trollbridge:{ name: "Troll Bridge",         asset: "m_trolls",     map: "river",    duration: 1200,  level: 6,  xp: 220,  army: { troll: 6, ogre: 3, goblin: 24 },               loot: { gold: [1800, 2600], stone: [800, 1200], steel: [200, 320] }, relic: { chance: 0.5, n: [1, 2] } },
+  giants:     { name: "Frostfang Pass",       asset: "m_giants",     map: "mountain", duration: 1800,  level: 7,  xp: 300,  army: { frost_giant: 4, wolf_rider: 16, orc: 12 },     loot: { gold: [2800, 4000], steel: [400, 650] }, relic: { chance: 0.7, n: [1, 3] } },
+  necropolis: { name: "The Necropolis",       asset: "m_necropolis", map: "swamp",    duration: 3600,  level: 9,  xp: 600,  army: { skeleton: 60, wraith: 12, necromancer: 8 },    fortified: 5, loot: { gold: [7000, 10000], stone: [3000, 5000], steel: [1000, 1500] }, relic: { chance: 1, n: [3, 6] } },
+  dragon:     { name: "Dragon's Lair",        asset: "m_dragon",     map: "valley",   duration: 2700,  level: 10, xp: 700,  army: { dragon: 1, drake: 4 },                         loot: { gold: [4500, 6500], steel: [600, 900] }, relic: { chance: 1, n: [3, 5] } },
+  citadel:    { name: "Shadow Citadel",       asset: "m_citadel",    map: "mountain", duration: 5400,  level: 12, xp: 1000, army: { dark_knight: 20, demon: 6, necromancer: 10 },   fortified: 7, loot: { gold: [11000, 15000], steel: [1800, 2600] }, relic: { chance: 1, n: [6, 10] } },
+  abyss:      { name: "Abyssal Gate",         asset: "m_abyss",      map: "valley",   duration: 7200,  level: 15, xp: 1800, army: { demon: 24, dark_knight: 20, drake: 8 },        loot: { gold: [22000, 30000], steel: [4000, 6000] }, relic: { chance: 1, n: [10, 15] } },
+  titan:      { name: "Throne of the Storm Titan", asset: "m_titan", map: "mountain", duration: 10800, level: 18, xp: 3500, army: { titan: 1, frost_giant: 10, demon: 12 },       fortified: 9, loot: { gold: [50000, 70000], steel: [9000, 12000] }, relic: { chance: 1, n: [20, 30] } },
+  conquest:   { name: "Endless Conquest",     asset: "m_conquest",   map: "plains",   duration: 900,   level: 6,  xp: 120,  army: null, loot: null, endless: true },
 };
 
 const BALANCE = {
@@ -583,7 +1188,13 @@ const BALANCE = {
   desertInterval: 6,
   relicBonus: 0.02,
   relicBonusCap: 2.0,
-  maxQueue: 20,
+  maxQueue: 50,
+  storageGrowth: 1.4,     // storage multiplier per Town Hall level
+  prodGrowth: 1.1,        // production multiplier per Town Hall level
+  firstRaidAt: 1500,      // game seconds before the first raid can appear
+  raidWarning: 180,       // seconds between "spotted" and "at the gates"
+  raidDecision: 90,       // seconds you have to choose how to defend before your captains fight on their own
+  manualLootBonus: 1.25,
 };
 
 /* =====================================================================
@@ -594,23 +1205,30 @@ const GameState = {
   current: null,
   fresh() {
     return {
-      version: 1,
+      version: 2,
       createdAt: Date.now(),
       lastTick: Date.now(),          // real-time timestamp used for offline progress
       time: 0,                       // game clock (seconds), advances in both online & offline ticks
       resources: { gold: 200, food: 150, stone: 100, steel: 0, relics: 0 },
-      buildings: { townhall: 1, farm: 1, quarry: 1, steelworks: 0, house: 1, warehouse: 0, granary: 0, barracks: 0 },
+      buildings: { townhall: 1, farm: 1, quarry: 1, steelworks: 0, house: 1, warehouse: 0, granary: 0, market: 0, barracks: 0, stables: 0, workshop: 0, temple: 0, walls: 0 },
       population: { citizens: 6, growth: 0, starve: 0 },
       jobs: { farmer: 3, miner: 1, blacksmith: 0, recruit: 0 },
-      army: { militia: 0, archer: 0, footman: 0, siege: 0, knight: 0 },
+      army: Object.fromEntries(Object.keys(UNITS).map((k) => [k, 0])),
       queue: [],                     // [{unit, remaining, total}]
-      expeditions: [],               // [{id, mission, units, startAt, endAt}]
+      expeditions: [],               // [{id, mission, units, startAt, endAt, tactic}]
       commander: { level: 1, xp: 0 },
+      doctrine: "balanced",          // tactic used in automatic battles (and the default in battles you lead)
       morale: 100,
       desert: 0,
+      raid: null,                    // {id, faction, army, power, mapType, arriveAt, deadline, phase}
+      nextRaidAt: BALANCE.firstRaidAt,
+      raidCount: 0,
+      conquest: 1,
+      conquestArmy: null,            // {stage, faction, army, map}
+      battle: null,                  // a battle you are leading in person (saved so you can resume it)
       nextId: 1,
       log: [],                       // [{id, t, msg, type}]
-      stats: { goldEarned: 0, built: 0, trained: 0, won: 0, lost: 0, fallen: 0, deserted: 0, starved: 0, relicsFound: 0, playSeconds: 0, peakPop: 6 },
+      stats: { goldEarned: 0, built: 0, trained: 0, won: 0, lost: 0, fallen: 0, deserted: 0, starved: 0, relicsFound: 0, playSeconds: 0, peakPop: 6, raidsWon: 0, raidsLost: 0, enemiesSlain: 0, battlesLed: 0 },
     };
   },
   /** Merge a loaded save onto a fresh template so older saves gain new fields. */
@@ -618,10 +1236,14 @@ const GameState = {
     const base = this.fresh();
     const out = { ...base, ...raw };
     for (const k of ["resources", "buildings", "population", "jobs", "army", "commander", "stats"]) out[k] = { ...base[k], ...(raw[k] || {}) };
+    for (const k of Object.keys(out.army)) if (!UNITS[k]) delete out.army[k];
     out.queue = Array.isArray(raw.queue) ? raw.queue.filter((q) => UNITS[q.unit]) : [];
     out.expeditions = Array.isArray(raw.expeditions) ? raw.expeditions.filter((e) => MISSIONS[e.mission]) : [];
     out.log = Array.isArray(raw.log) ? raw.log.slice(-120) : [];
+    if (!TACTICS[out.doctrine]) out.doctrine = "balanced";
+    if (out.battle && (!out.battle.squads || !out.battle.tiles)) out.battle = null;
     for (const k of Object.keys(out.resources)) if (!isFinite(out.resources[k])) out.resources[k] = 0;
+    out.version = 2;
     return out;
   },
   load() {
@@ -663,32 +1285,33 @@ const Economy = {
   employed(s) { return s.jobs.farmer + s.jobs.miner + s.jobs.blacksmith; },
   assigned(s) { return this.employed(s) + s.jobs.recruit; },
   unemployed(s) { return Math.max(0, s.population.citizens - this.assigned(s)); },
-  housing(s) { const b = s.buildings; return b.townhall * 8 + b.house * 5 + b.barracks * 4; },
+  housing(s) { const b = s.buildings; return b.townhall * 8 + b.house * 5 + b.barracks * 8; },
   totalPop(s) { return s.population.citizens + Military.soldierCount(s); },
   jobSlots(s, job) { return s.buildings[JOBS[job].building] * JOBS[job].slots; },
 
+  storageMultiplier(s) { return Math.pow(BALANCE.storageGrowth, s.buildings.townhall - 1); },
   caps(s) {
-    const b = s.buildings, th = (b.townhall - 1) * 250;
+    const b = s.buildings, m = this.storageMultiplier(s);
     return {
-      gold: 1000 + th + b.warehouse * 500,
-      food: 600 + th + b.granary * 600,
-      stone: 600 + th + b.warehouse * 500,
-      steel: 300 + th + b.warehouse * 250,
+      gold:  Math.floor((1000 + b.warehouse * 600) * m),
+      food:  Math.floor((800 + b.granary * 700) * m),
+      stone: Math.floor((1000 + b.warehouse * 600) * m),
+      steel: Math.floor((500 + b.warehouse * 300) * m),
       relics: Infinity,
     };
   },
   relicMultiplier(s) { return 1 + Math.min(BALANCE.relicBonusCap, s.resources.relics * BALANCE.relicBonus); },
-  multiplier(s) { return (1 + 0.05 * (s.buildings.townhall - 1)) * this.relicMultiplier(s); },
+  multiplier(s) { return Math.pow(BALANCE.prodGrowth, s.buildings.townhall - 1) * this.relicMultiplier(s); },
 
   /**
    * Per-second production & consumption.
    * dt is only used to work out how efficient Blacksmiths are when stone runs out.
    */
   rates(s, dt = 1) {
-    const j = s.jobs, m = this.multiplier(s), cit = s.population.citizens;
+    const j = s.jobs, m = this.multiplier(s), cit = s.population.citizens, b = s.buildings;
     const up = Military.upkeep(s);
     const prod = {
-      gold: (s.buildings.townhall * 1.0 + cit * BALANCE.goldPerCitizen + this.employed(s) * BALANCE.goldPerWorker) * m,
+      gold: (b.townhall * 1.0 + b.market * 3 + cit * BALANCE.goldPerCitizen + this.employed(s) * BALANCE.goldPerWorker) * m * (1 + 0.05 * b.market),
       food: j.farmer * 1.1 * m,
       stone: j.miner * 0.75 * m,
       steel: j.blacksmith * 0.35 * m,
@@ -712,12 +1335,18 @@ const Economy = {
     const caps = this.caps(s), got = {};
     for (const [r, v] of Object.entries(bundle)) {
       const before = s.resources[r];
-      s.resources[r] = Math.min(caps[r], before + v * mult);
+      s.resources[r] = Math.max(before, Math.min(caps[r], before + v * mult));
       got[r] = Math.max(0, s.resources[r] - before);
     }
     return got;
   },
   canAfford(s, cost) { return Object.entries(cost).every(([r, v]) => s.resources[r] >= v); },
+  /** The first resource whose cost can never fit in current storage (or null). */
+  overCap(s, cost) {
+    const caps = this.caps(s);
+    for (const [r, v] of Object.entries(cost)) if (v > caps[r]) return r;
+    return null;
+  },
   pay(s, cost) { for (const [r, v] of Object.entries(cost)) s.resources[r] -= v; },
 
   buildingCost(id, level) {
@@ -735,12 +1364,15 @@ const Economy = {
   /** Why a building can't be built right now (null if it can). */
   buildBlocker(s, id) {
     const def = BUILDINGS[id], lvl = s.buildings[id];
-    if (lvl >= this.buildingMax(s, id)) return id === "townhall" ? "Max level reached" : `Upgrade Town Hall to raise the limit (${this.buildingMax(s, id)})`;
+    if (lvl >= this.buildingMax(s, id)) return id === "townhall" ? "Max level reached" : `Upgrade the Town Hall to raise the limit (${this.buildingMax(s, id)})`;
     if (def.popReq) {
       const need = def.popReq(lvl);
       if (this.totalPop(s) < need) return `Requires ${need} population`;
     }
-    if (!this.canAfford(s, this.buildingCost(id, lvl))) return "Not enough resources";
+    const cost = this.buildingCost(id, lvl);
+    const over = this.overCap(s, cost);
+    if (over) return `${RESOURCES[over].name} storage too small (${fmt(this.caps(s)[over])}). Build ${over === "food" ? "Granaries" : "Warehouses"}`;
+    if (!this.canAfford(s, cost)) return "Not enough resources";
     return null;
   },
   build(s, id) {
@@ -757,13 +1389,13 @@ const Economy = {
   assign(s, job, delta) {
     const cur = s.jobs[job];
     const slotsFree = this.jobSlots(s, job) - cur;
-    if (delta > 0) delta = Math.min(delta, slotsFree, this.unemployed(s));
+    if (delta > 0) delta = Math.max(0, Math.min(delta, slotsFree, this.unemployed(s)));
     else delta = Math.max(delta, -cur);
     s.jobs[job] = cur + delta;
     return delta;
   },
 
-  /** Remove one citizen (starvation): unemployed first, then the largest workforce. */
+  /** Remove one citizen (starvation, raids): unemployed first, then the largest workforce. */
   removeCitizen(s) {
     if (s.population.citizens <= 0) return false;
     if (this.unemployed(s) <= 0) {
@@ -780,7 +1412,7 @@ const Economy = {
     const r = this.rates(s);
     const fill = clamp(s.resources.food / caps.food, 0, 1);
     const surplus = r.net.food >= 0 ? 1 : 0.25;
-    return 0.06 * (0.5 + fill * 1.5) * surplus * (1 + 0.1 * (s.buildings.townhall - 1));
+    return 0.06 * (0.5 + fill * 1.5) * surplus * (1 + 0.15 * (s.buildings.townhall - 1));
   },
 
   step(s, dt) {
@@ -813,30 +1445,57 @@ const Economy = {
         pop.growth -= 1;
         if (this.totalPop(s) >= this.housing(s)) { pop.growth = 0; break; }
         pop.citizens++;
-        if (pop.citizens % 10 === 0) addLog(s, `Your city has grown to ${pop.citizens} citizens.`, "good");
+        if (pop.citizens % 25 === 0) addLog(s, `Your city has grown to ${pop.citizens} citizens.`, "good");
       }
     }
     s.stats.peakPop = Math.max(s.stats.peakPop, this.totalPop(s));
     return shortage;
   },
+
+  /**
+   * Self-test for the "can't afford the Town Hall because storage is too small" bug: with every building
+   * at its limit for a Town Hall level, every next upgrade must fit in storage. Returns a list of problems.
+   */
+  verifyStorage() {
+    const problems = [];
+    for (let th = 1; th <= BUILDINGS.townhall.max; th++) {
+      const s = GameState.fresh();
+      s.buildings.townhall = th;
+      for (const id of Object.keys(BUILDINGS)) if (id !== "townhall") s.buildings[id] = this.buildingMax(s, id);
+      for (const id of Object.keys(BUILDINGS)) {
+        const lvl = id === "townhall" ? th : this.buildingMax(s, id) - 1;
+        if (id === "townhall" && th >= BUILDINGS.townhall.max) continue;
+        const probe = { ...s, buildings: { ...s.buildings, [id]: lvl } };
+        const over = this.overCap(probe, this.buildingCost(id, lvl));
+        if (over) problems.push(`TH${th} ${id} lvl ${lvl}: ${over}`);
+      }
+    }
+    return problems;
+  },
 };
 
 /* =====================================================================
-   4. MILITARY MODULE (training, upkeep, desertion, expeditions, combat)
+   4. MILITARY MODULE (training, upkeep, desertion, raids, expeditions)
+      Combat itself lives in js/battle.js (Battle + BattleUI).
    ===================================================================== */
 const Military = {
-  homeCount(s) { return Object.values(s.army).reduce((a, b) => a + b, 0); },
-  awayCount(s) { return s.expeditions.reduce((a, e) => a + Object.values(e.units).reduce((x, y) => x + y, 0), 0); },
-  soldierCount(s) { return this.homeCount(s) + this.awayCount(s) + s.queue.length; },
+  sum(units) { return Object.values(units || {}).reduce((a, b) => a + b, 0); },
+  homeCount(s) { return this.sum(s.army); },
+  awayCount(s) { return s.expeditions.reduce((a, e) => a + this.sum(e.units), 0); },
+  battleUnits(s) { return s.battle ? Battle.survivors(s.battle, "player") : {}; },
+  soldierCount(s) { return this.homeCount(s) + this.awayCount(s) + s.queue.length + this.sum(this.battleUnits(s)); },
   allUnits(s) {
     const t = { ...s.army };
-    for (const e of s.expeditions) for (const [u, n] of Object.entries(e.units)) t[u] = (t[u] || 0) + n;
-    for (const q of s.queue) t[q.unit] = (t[q.unit] || 0) + 1;
+    const add = (u, n) => { t[u] = (t[u] || 0) + n; };
+    for (const e of s.expeditions) for (const [u, n] of Object.entries(e.units)) add(u, n);
+    for (const q of s.queue) add(q.unit, 1);
+    for (const [u, n] of Object.entries(this.battleUnits(s))) add(u, n);
     return t;
   },
   upkeep(s) {
     const out = { food: 0, gold: 0 };
     for (const [u, n] of Object.entries(this.allUnits(s))) {
+      if (!UNITS[u]) continue;
       out.food += UNITS[u].upkeep.food * n;
       out.gold += UNITS[u].upkeep.gold * n;
     }
@@ -845,10 +1504,16 @@ const Military = {
   trainSpeed(s) { return 1 + 0.1 * Math.max(0, s.buildings.barracks - 1); },
   expeditionSlots(s) { return s.buildings.barracks > 0 ? 1 + Math.floor(s.buildings.barracks / 3) : 0; },
   xpForLevel(lvl) { return Math.floor(40 * Math.pow(lvl, 1.6)); },
+  /** Attack bonus for your side in battle: commander level and morale. */
+  battleBonus(s) { return (1 + 0.03 * (s.commander.level - 1)) * (0.7 + 0.3 * s.morale / 100); },
+  power(s, units) { return armyPower(units) * this.battleBonus(s); },
 
+  reqText(u) {
+    return Object.entries(UNITS[u].req).map(([b, l]) => `${BUILDINGS[b].name} Lv ${l}`).join(" + ");
+  },
   trainBlocker(s, id) {
     const u = UNITS[id];
-    if (s.buildings.barracks < u.barracks) return `Requires Barracks level ${u.barracks}`;
+    for (const [b, l] of Object.entries(u.req)) if (s.buildings[b] < l) return `Requires ${this.reqText(id)}`;
     if (s.jobs.recruit < 1) return "Needs a Recruit (assign one in Workforce)";
     if (s.queue.length >= BALANCE.maxQueue) return "Training queue is full";
     if (!Economy.canAfford(s, u.cost)) return "Not enough resources";
@@ -867,88 +1532,201 @@ const Military = {
     return made;
   },
 
-  power(s, units, mission) {
-    let base = 0, siege = 0;
-    for (const [u, n] of Object.entries(units)) { base += UNITS[u].power * n; if (UNITS[u].siege) siege += n; }
-    let mult = (0.6 + 0.4 * s.morale / 100) * (1 + 0.04 * (s.commander.level - 1));
-    if (mission && MISSIONS[mission].fortified) mult *= Math.min(1.5, 0.5 + 0.1 * siege);
-    return base * mult;
+  /* ---------------- expeditions ---------------- */
+  conquestArmy(s) {
+    if (!s.conquestArmy || s.conquestArmy.stage !== s.conquest) {
+      const power = Math.round(250 * Math.pow(1.22, s.conquest - 1));
+      const faction = pickFaction(power);
+      const maps = Object.keys(MAP_TYPES);
+      s.conquestArmy = { stage: s.conquest, faction, army: composeArmy(faction, power), map: maps[Math.floor(Math.random() * maps.length)], fortified: s.conquest % 4 === 0 ? Math.min(12, 2 + Math.floor(s.conquest / 4)) : 0 };
+    }
+    return s.conquestArmy;
   },
-  successChance(power, diff) {
-    if (power <= 0) return 0;
-    const ratio = power / diff;
-    return clamp(1 / (1 + Math.exp(-4 * (ratio - 0.9))), 0.03, 0.97);
+  /** The mission with its enemy army filled in (the endless conquest is generated per stage). */
+  mission(s, id) {
+    const m = MISSIONS[id];
+    if (!m.endless) return { ...m, id, enemyTactic: m.fortified ? "holdline" : "balanced" };
+    const c = this.conquestArmy(s), st = s.conquest, g = Math.pow(1.22, st - 1);
+    return {
+      ...m, id, name: `${m.name}: Stage ${st}`, sub: FACTIONS[c.faction].name, army: c.army, map: c.map, fortified: c.fortified,
+      enemyTactic: FACTIONS[c.faction].tactic,
+      xp: Math.round(m.xp * Math.pow(1.15, st - 1)),
+      loot: { gold: [Math.round(800 * g), Math.round(1200 * g)], steel: [Math.round(120 * g), Math.round(200 * g)], stone: [Math.round(300 * g), Math.round(500 * g)] },
+      relic: { chance: Math.min(1, 0.3 + st * 0.05), n: [1, 1 + Math.floor(st / 3)] },
+    };
   },
-  lootMultiplier(s) { return 1 + 0.05 * (s.commander.level - 1); },
-
-  deployBlocker(s, missionId, units) {
-    const m = MISSIONS[missionId];
+  battleOpts(s, id, units, kind, tactic) {
+    const m = this.mission(s, id);
+    return {
+      title: m.name, mapType: m.map, playerUnits: { ...units }, enemyUnits: { ...m.army },
+      attacker: "player", tactic: tactic || s.doctrine, enemyTactic: m.enemyTactic,
+      walls: m.fortified ? { side: "enemy", level: m.fortified } : null,
+      context: { kind, mission: id, stage: m.endless ? s.conquest : undefined, cmdLevel: s.commander.level },
+      bonus: { player: this.battleBonus(s) },
+    };
+  },
+  estimate(s, id, units, tactic, n = 8) {
+    if (this.sum(units) <= 0) return { chance: 0, losses: 1 };
+    return Battle.estimate(this.battleOpts(s, id, units, "estimate", tactic), n);
+  },
+  deployBlocker(s, id, units, manual) {
+    const m = MISSIONS[id];
     if (s.commander.level < m.level) return `Commander level ${m.level} required`;
-    if (s.expeditions.length >= this.expeditionSlots(s)) return s.buildings.barracks ? "No free expedition slots" : "Build a Barracks first";
-    const total = Object.values(units || {}).reduce((a, b) => a + b, 0);
-    if (units && total <= 0) return "Select at least one unit";
+    if (s.battle) return "Finish the battle you are leading first";
+    if (!manual && s.expeditions.length >= this.expeditionSlots(s)) return s.buildings.barracks ? "No free expedition slots" : "Build a Barracks first";
+    if (units && this.sum(units) <= 0) return "Select at least one unit";
     if (units) for (const [u, n] of Object.entries(units)) if (n > s.army[u]) return "Not enough troops at home";
     if (!units && this.homeCount(s) <= 0) return "No troops at home";
     return null;
   },
-  deploy(s, missionId, units) {
-    if (this.deployBlocker(s, missionId, units)) return false;
+  take(s, units) {
     const clean = {};
     for (const [u, n] of Object.entries(units)) if (n > 0) { clean[u] = n; s.army[u] -= n; }
-    const m = MISSIONS[missionId];
-    s.expeditions.push({ id: s.nextId++, mission: missionId, units: clean, startAt: s.time, endAt: s.time + m.duration });
-    addLog(s, `An army of ${Object.values(clean).reduce((a, b) => a + b, 0)} marches on the ${m.name}.`, "war");
+    return clean;
+  },
+  deploy(s, id, units, tactic) {
+    if (this.deployBlocker(s, id, units, false)) return false;
+    const clean = this.take(s, units);
+    const m = this.mission(s, id);
+    s.expeditions.push({ id: s.nextId++, mission: id, units: clean, startAt: s.time, endAt: s.time + m.duration, tactic: tactic || s.doctrine });
+    addLog(s, `An army of ${this.sum(clean)} marches on ${m.name}.`, "war");
     return true;
+  },
+  /** Start a battle you lead in person against a mission's defenders. */
+  assault(s, id, units, tactic) {
+    if (this.deployBlocker(s, id, units, true)) return null;
+    const clean = this.take(s, units);
+    s.battle = Battle.create(this.battleOpts(s, id, clean, "assault", tactic));
+    s.stats.battlesLed++;
+    addLog(s, `You ride out at the head of ${this.sum(clean)} soldiers to assault ${this.mission(s, id).name}.`, "war");
+    return s.battle;
   },
   recall(s, expId) {
     const i = s.expeditions.findIndex((e) => e.id === expId);
     if (i < 0) return;
     const e = s.expeditions[i];
-    for (const [u, n] of Object.entries(e.units)) s.army[u] += n;
+    for (const [u, n] of Object.entries(e.units)) s.army[u] = (s.army[u] || 0) + n;
     s.expeditions.splice(i, 1);
-    addLog(s, `The expedition to the ${MISSIONS[e.mission].name} was called back. No loot was taken.`, "info");
+    addLog(s, `The expedition to ${this.mission(s, e.mission).name} was called back. No loot was taken.`, "info");
+  },
+  resolveExpedition(s, e) {
+    const b = Battle.create(this.battleOpts(s, e.mission, e.units, "expedition", e.tactic));
+    Battle.simulate(b);
+    return this.conclude(s, b);
   },
 
-  /** Work out how an expedition ends: success roll, casualties, loot and XP. */
-  resolve(s, e) {
-    const m = MISSIONS[e.mission];
-    const power = this.power(s, e.units, e.mission);
-    const ratio = power / m.diff;
-    const chance = this.successChance(power, m.diff);
-    const win = Math.random() < chance;
-    const casFrac = win ? clamp(0.3 / ratio - 0.12, 0, 0.4) : clamp(0.65 / ratio - 0.1, 0.2, 0.85);
-    let lost = 0;
-    const survivors = {};
-    for (const [u, n] of Object.entries(e.units)) {
-      let dead = 0;
-      for (let i = 0; i < n; i++) if (Math.random() < casFrac) dead++;
-      if (win && dead === n && n > 0) dead = n - 1; // a victorious army always brings someone home
-      survivors[u] = n - dead; lost += dead;
-      s.army[u] += n - dead;
-    }
-    s.stats.fallen += lost;
+  /* ---------------- raids on the city ---------------- */
+  raidPower(s) {
+    // grows with every raid and your Town Hall, and never falls far behind your own army
+    const base = 12 * Math.pow(1.15, s.raidCount) * (1 + 0.5 * (s.buildings.townhall - 1));
+    return Math.round(Math.max(base, 0.5 * this.power(s, s.army)));
+  },
+  spawnRaid(s) {
+    const power = this.raidPower(s);
+    const faction = pickFaction(power);
+    const army = composeArmy(faction, power);
+    const maps = ["plains", "forest", "hills", "river", "valley", "mountain"];
+    s.raidCount++;
+    s.raid = { id: s.nextId++, faction, army, power: armyPower(army), mapType: maps[Math.floor(Math.random() * maps.length)], arriveAt: s.time + BALANCE.raidWarning, deadline: 0, phase: "approaching" };
+    addLog(s, `⚠ Scouts report: a ${FACTIONS[faction].name} (power ${fmt(s.raid.power)}) is marching on the city! They arrive in ${fmtTime(BALANCE.raidWarning)}.`, "bad");
+  },
+  raidOpts(s) {
+    const r = s.raid, f = FACTIONS[r.faction];
+    return {
+      title: `Defense of Ironhold vs the ${f.name}`, mapType: r.mapType,
+      playerUnits: { ...s.army }, guards: s.buildings.townhall * 4, enemyUnits: { ...r.army },
+      attacker: "enemy", tactic: s.doctrine, enemyTactic: f.tactic,
+      walls: s.buildings.walls > 0 ? { side: "player", level: s.buildings.walls } : null,
+      context: { kind: "raid", raid: r.id, cmdLevel: s.commander.level },
+      bonus: { player: this.battleBonus(s) },
+    };
+  },
+  raidEstimate(s) { return s.raid ? Battle.estimate({ ...this.raidOpts(s), context: { kind: "estimate" } }, 6) : null; },
+  /** Lead the defense yourself. */
+  leadDefense(s) {
+    if (!s.raid || s.raid.phase === "fighting" || s.battle) return null;
+    const opts = this.raidOpts(s);
+    this.take(s, s.army);
+    s.raid.phase = "fighting";
+    s.battle = Battle.create(opts);
+    s.stats.battlesLed++;
+    return s.battle;
+  },
+  /** Your captains fight the raid automatically. */
+  autoDefend(s) {
+    if (!s.raid || s.raid.phase === "fighting") return null;
+    const opts = this.raidOpts(s);
+    this.take(s, s.army);
+    const b = Battle.create(opts);
+    Battle.simulate(b);
+    return this.conclude(s, b);
+  },
 
-    const parts = [];
+  /* ---------------- after any battle ---------------- */
+  conclude(s, b) {
+    const ctx = b.context || {};
+    const win = b.result && b.result.winner === "player";
+    const survivors = Battle.survivors(b, "player");
+    for (const [u, n] of Object.entries(survivors)) s.army[u] = (s.army[u] || 0) + n;
+    const lost = this.sum(Battle.losses(b, "player"));
+    const slain = this.sum(Battle.losses(b, "enemy"));
+    s.stats.fallen += lost;
+    s.stats.enemiesSlain += slain;
+    const rep = { win, lost, slain, parts: [], kind: ctx.kind, title: b.title };
+
+    if (ctx.kind === "raid") {
+      const r = s.raid;
+      const f = r ? FACTIONS[r.faction].name : "raiders";
+      if (win) {
+        s.stats.raidsWon++;
+        const bounty = Math.round((r ? r.power : 50) * 5);
+        const got = Economy.grant(s, { gold: bounty, steel: Math.round(bounty / 10) });
+        for (const [k, v] of Object.entries(got)) if (v >= 1) rep.parts.push(`${fmt(v)} ${RESOURCES[k].name}`);
+        if (r && r.power > 800 && Math.random() < 0.5) { s.resources.relics++; s.stats.relicsFound++; rep.parts.push("1 Relic"); }
+        addLog(s, `The ${f} has been driven off! Bounty: ${rep.parts.join(", ")}. Soldiers lost: ${lost}, enemies slain: ${slain}.`, "good");
+        this.addXp(s, Math.round((r ? r.power : 50) / 4));
+      } else {
+        s.stats.raidsLost++;
+        const frac = 0.25 * (1 - Math.min(0.5, s.buildings.walls * 0.04));
+        for (const res of STORABLE) {
+          const take = Math.floor(s.resources[res] * frac);
+          s.resources[res] -= take;
+          if (take > 0) rep.parts.push(`${fmt(take)} ${RESOURCES[res].name}`);
+        }
+        const dead = Math.ceil(s.population.citizens * 0.08);
+        for (let i = 0; i < dead; i++) Economy.removeCitizen(s);
+        s.morale = Math.max(0, s.morale - 25);
+        rep.parts.push(`${dead} citizens killed`);
+        addLog(s, `The ${f} broke through and plundered the city: ${rep.parts.join(", ")}. Soldiers lost: ${lost}.`, "bad");
+      }
+      s.raid = null;
+      s.nextRaidAt = s.time + randInt(600, 1080);
+      return rep;
+    }
+
+    // expedition or assault
+    const m = this.mission(s, ctx.mission);
     if (win) {
       s.stats.won++;
-      const lm = this.lootMultiplier(s);
+      const lm = (1 + 0.05 * (s.commander.level - 1)) * (ctx.kind === "assault" ? BALANCE.manualLootBonus : 1);
       const bundle = {};
       for (const [r, [lo, hi]] of Object.entries(m.loot)) bundle[r] = randInt(lo, hi);
       const got = Economy.grant(s, bundle, lm);
-      for (const [r, v] of Object.entries(got)) if (v > 0) parts.push(`${fmt(v)} ${RESOURCES[r].name}`);
+      for (const [r, v] of Object.entries(got)) if (v > 0) rep.parts.push(`${fmt(v)} ${RESOURCES[r].name}`);
       const wasted = Object.entries(bundle).some(([r, v]) => got[r] + 0.5 < v * lm);
       if (m.relic && Math.random() < m.relic.chance) {
         const n = randInt(m.relic.n[0], m.relic.n[1]);
         s.resources.relics += n; s.stats.relicsFound += n;
-        parts.push(`${n} Relic${n > 1 ? "s" : ""}`);
+        rep.parts.push(`${n} Relic${n > 1 ? "s" : ""}`);
       }
-      addLog(s, `Victory at the ${m.name}! Loot: ${parts.join(", ") || "nothing"}. Casualties: ${lost}.${wasted ? " Some loot was lost to full storage." : ""}`, "good");
+      if (m.endless && ctx.stage === s.conquest) { s.conquest++; rep.parts.push(`Conquest stage ${s.conquest} unlocked`); }
+      addLog(s, `Victory at ${m.name}! Loot: ${rep.parts.join(", ") || "nothing"}. Soldiers lost: ${lost}, enemies slain: ${slain}.${wasted ? " Some loot was lost to full storage." : ""}`, "good");
     } else {
       s.stats.lost++;
-      addLog(s, `Defeat at the ${m.name}. ${lost} soldiers fell and the survivors retreat.`, "bad");
+      addLog(s, `Defeat at ${m.name}. ${lost} soldiers fell${b.result && b.result.reason === "retreat" ? " before the retreat" : ""}. The survivors return home.`, "bad");
     }
     this.addXp(s, Math.round(m.xp * (win ? 1 : 0.3)));
-    return { win, lost, parts };
+    return rep;
   },
   addXp(s, xp) {
     const c = s.commander;
@@ -956,13 +1734,14 @@ const Military = {
     while (c.xp >= this.xpForLevel(c.level)) {
       c.xp -= this.xpForLevel(c.level);
       c.level++;
-      addLog(s, `Your Lord Commander reached level ${c.level}! Armies now fight harder and bring back more loot.`, "war");
+      const t = Object.values(TACTICS).find((x) => x.lvl === c.level);
+      addLog(s, `Your Lord Commander reached level ${c.level}!${t ? ` New tactic unlocked: ${t.name}.` : ""}`, "war");
     }
   },
 
   desertOne(s) {
-    // the cheapest unit at home deserts first
-    const order = Object.keys(UNITS).sort((a, b) => UNITS[a].power - UNITS[b].power);
+    // the weakest unit at home deserts first
+    const order = Object.keys(UNITS).sort((a, b) => unitPower(UNITS[a]) - unitPower(UNITS[b]));
     for (const u of order) if (s.army[u] > 0) { s.army[u]--; return UNITS[u].name; }
     return null;
   },
@@ -976,7 +1755,7 @@ const Military = {
       if (q.remaining <= 0) {
         t = -q.remaining;
         s.queue.shift();
-        s.army[q.unit]++;
+        s.army[q.unit] = (s.army[q.unit] || 0) + 1;
         s.stats.trained++;
         if (!s.queue.length) addLog(s, `Training complete: the last ${UNITS[q.unit].name} has joined the army.`, "war");
       } else t = 0;
@@ -996,15 +1775,28 @@ const Military = {
       }
     } else {
       s.desert = 0;
-      s.morale = clamp(s.morale + 0.5 * dt, 0, 100);
+      s.morale = clamp(s.morale + (0.5 + 0.2 * s.buildings.temple) * dt, 0, 100);
     }
 
     // ---- expeditions return automatically
     for (const e of s.expeditions.slice()) {
       if (s.time >= e.endAt) {
         s.expeditions.splice(s.expeditions.indexOf(e), 1);
-        this.resolve(s, e);
+        this.resolveExpedition(s, e);
       }
+    }
+
+    // ---- raids on the city
+    const r = s.raid;
+    if (!r) {
+      const eligible = s.buildings.barracks > 0 || s.time > BALANCE.firstRaidAt * 2;
+      if (eligible && s.time >= s.nextRaidAt) this.spawnRaid(s);
+    } else if (r.phase === "approaching" && s.time >= r.arriveAt) {
+      r.phase = "gates";
+      r.deadline = s.time + BALANCE.raidDecision;
+      addLog(s, `⚔ The ${FACTIONS[r.faction].name} is at the gates! Lead the defense yourself, or your captains will fight in ${fmtTime(BALANCE.raidDecision)}.`, "bad");
+    } else if (r.phase === "gates" && s.time >= r.deadline) {
+      this.autoDefend(s);
     }
   },
 };
@@ -1041,7 +1833,7 @@ const Engine = {
     const elapsed = (Date.now() - (s.lastTick || Date.now())) / 1000;
     if (elapsed < 5) return null;
     const secs = Math.min(elapsed, BALANCE.offlineCapSeconds);
-    const before = { ...s.resources, pop: Economy.totalPop(s), won: s.stats.won, lost: s.stats.lost, lvl: s.commander.level };
+    const before = { ...s.resources, pop: Economy.totalPop(s), won: s.stats.won, lost: s.stats.lost, lvl: s.commander.level, rw: s.stats.raidsWon, rl: s.stats.raidsLost };
     const logLen = s.nextId;
     this.simulate(s, secs);
     s.lastTick = Date.now();
@@ -1049,7 +1841,7 @@ const Engine = {
       elapsed, secs, capped: elapsed > BALANCE.offlineCapSeconds,
       delta: Object.fromEntries(Object.keys(RESOURCES).map((r) => [r, s.resources[r] - before[r]])),
       pop: Economy.totalPop(s) - before.pop,
-      won: s.stats.won - before.won, lost: s.stats.lost - before.lost,
+      won: s.stats.won - before.won, lost: s.stats.lost - before.lost, raidsWon: s.stats.raidsWon - before.rw, raidsLost: s.stats.raidsLost - before.rl,
       lvl: s.commander.level - before.lvl,
       events: s.log.filter((l) => l.id >= logLen).length,
     };
@@ -1340,11 +2132,21 @@ const UI = {
   renderedLogId: 0,
   expSig: "",
   queueSig: "",
+  raidSig: "",
+  doctrineSig: "",
   lastRes: {},
+  raidPrompted: 0,
 
   costHtml(cost, s) {
     return Object.entries(cost).map(([r, v]) =>
       `<span class="cost ${s && s.resources[r] < v ? "lack" : ""}"><img data-asset="${RESOURCES[r].asset}" alt="">${fmt(v)}</span>`).join("");
+  },
+  armyChips(units) {
+    return Object.entries(units).filter(([, n]) => n > 0).map(([t, n]) =>
+      `<span class="chip"><img data-asset="${udef(t).asset}" alt="">${n} ${esc(udef(t).name)}</span>`).join("");
+  },
+  statLine(d) {
+    return `<span title="Hit points per soldier">❤${d.hp}</span><span title="Attack">⚔${d.atk}</span><span title="Defense">🛡${d.def}</span><span title="Range">🎯${d.rng}</span><span title="Movement">👣${d.mv}</span>`;
   },
 
   build() {
@@ -1416,50 +2218,67 @@ const UI = {
         <div>
           <div class="title"><h3>${u.name}</h3><span class="badge war" data-r="count">0</span></div>
           <div class="desc">${u.desc}</div>
-          <div class="effect">⚔ ${u.power} power · ${u.time}s${u.siege ? " · siege" : ""}<br><span class="dim">Upkeep ${u.upkeep.food} food, ${u.upkeep.gold} gold /s</span></div>
+          <div class="ustats">${this.statLine(u)}<span title="Power">💪${fmt(unitPower(u))}</span></div>
+          <div class="dim" style="font-size:11.5px">${u.time}s · upkeep ${u.upkeep.food} food, ${u.upkeep.gold} gold /s</div>
         </div>
         <div class="foot"><div class="costs" data-r="cost"></div>
-          <div class="btn-row"><button class="btn sm" data-action="train" data-id="${id}" data-n="1" data-r="b1">Train</button>
-          <button class="btn sm" data-action="train" data-id="${id}" data-n="5" data-r="b5">×5</button></div></div>
+          <div class="btn-row">
+            <button class="btn sm" data-action="train" data-id="${id}" data-n="1" data-r="b1">Train</button>
+            <button class="btn sm" data-action="train" data-id="${id}" data-n="5" data-r="b5">×5</button>
+            <button class="btn sm" data-action="train" data-id="${id}" data-n="10" data-r="b10">×10</button>
+            <button class="btn sm" data-action="train" data-id="${id}" data-n="max" data-r="bmax" title="Train as many as you can">Max</button>
+          </div></div>
         <div class="req" data-r="req"></div>
       </div>`).join("");
     for (const id of Object.keys(UNITS)) {
       const el = $(`#unit-${id}`);
-      this.refs.units[id] = Object.fromEntries($$("[data-r]", el).map((n) => [n.dataset.r, n]));
+      this.refs.units[id] = { el, ...Object.fromEntries($$("[data-r]", el).map((n) => [n.dataset.r, n])) };
     }
 
     // ---- missions
-    $("#missionList").innerHTML = Object.entries(MISSIONS).map(([id, m]) => `
-      <div class="mission" id="mis-${id}">
-        <img class="art" data-asset="${m.asset}" alt="">
-        <div class="shade"></div>
-        <div class="inner">
-          <div class="mh"><h3>${m.name} ${m.fortified ? '<span class="tag">Fortified</span>' : ""}</h3>
-            <button class="btn teal sm" data-action="openDeploy" data-id="${id}" data-r="btn">Deploy</button></div>
-          <div class="meta"><span>Threat <b>${fmt(m.diff)}</b></span><span>Duration <b>${fmtTime(m.duration)}</b></span>
-            <span>XP <b>${m.xp}</b></span><span>Requires <b>Cmdr Lv ${m.level}</b></span></div>
-          <div class="meta">Loot: ${Object.entries(m.loot).map(([r, [lo, hi]]) => `<span class="cost"><img data-asset="${RESOURCES[r].asset}" alt="">${fmt(lo)}–${fmt(hi)}</span>`).join("")}
-            ${m.relic ? `<span class="cost"><img data-asset="res_relics" alt="">${Math.round(m.relic.chance * 100)}% for ${m.relic.n[0]}${m.relic.n[1] > m.relic.n[0] ? "–" + m.relic.n[1] : ""}</span>` : ""}</div>
-          <div class="req" data-r="req"></div>
-        </div>
-      </div>`).join("");
-    for (const id of Object.keys(MISSIONS)) {
-      const el = $(`#mis-${id}`);
-      this.refs.missions[id] = { el, ...Object.fromEntries($$("[data-r]", el).map((n) => [n.dataset.r, n])) };
-    }
+    this.buildMissions();
 
     // ---- forge config fields
     const cfg = AssetPipeline.config();
     $("#apiKey").value = cfg.key;
     $("#apiModel").value = cfg.model;
     $("#apiBase").value = cfg.base;
-    for (const id of ["apiKey", "apiModel", "apiBase"]) $("#" + id).addEventListener("change", () => this.saveForgeConfig());
+    for (const id of ["apiKey", "apiModel", "apiBase"]) $("#" + id).onchange = () => this.saveForgeConfig();
 
     $("#log").innerHTML = "";
     this.renderedLogId = 0;
-    this.expSig = this.queueSig = "";
+    this.expSig = this.queueSig = this.raidSig = this.doctrineSig = "";
     AssetPipeline.applyAll();
     this.update();
+  },
+
+  buildMissions() {
+    const s = GameState.current;
+    this.missionStage = s.conquest;
+    $("#missionList").innerHTML = Object.keys(MISSIONS).map((id) => {
+      const m = Military.mission(s, id);
+      const pw = armyPower(m.army);
+      return `
+      <div class="mission" id="mis-${id}">
+        <img class="art" data-asset="${m.asset}" alt="">
+        <div class="shade"></div>
+        <div class="inner">
+          <div class="mh"><h3>${esc(m.name)} ${m.fortified ? '<span class="tag">Fortified</span>' : ""} ${m.endless ? '<span class="tag gold">Endless</span>' : ""}</h3>
+            <button class="btn teal sm" data-action="openDeploy" data-id="${id}" data-r="btn">Deploy</button></div>
+          <div class="meta"><span>Enemy power <b>⚔ ${fmt(pw)}</b></span><span>Terrain <b>${MAP_TYPES[m.map]}</b></span><span>Duration <b>${fmtTime(m.duration)}</b></span>
+            <span>XP <b>${m.xp}</b></span><span>Requires <b>Cmdr Lv ${m.level}</b></span></div>
+          <div class="chips">${this.armyChips(m.army)}</div>
+          <div class="meta">Loot: ${Object.entries(m.loot).map(([r, [lo, hi]]) => `<span class="cost"><img data-asset="${RESOURCES[r].asset}" alt="">${fmt(lo)}–${fmt(hi)}</span>`).join("")}
+            ${m.relic ? `<span class="cost"><img data-asset="res_relics" alt="">${Math.round(m.relic.chance * 100)}% for ${m.relic.n[0]}${m.relic.n[1] > m.relic.n[0] ? "–" + m.relic.n[1] : ""}</span>` : ""}</div>
+          <div class="req" data-r="req"></div>
+        </div>
+      </div>`;
+    }).join("");
+    for (const id of Object.keys(MISSIONS)) {
+      const el = $(`#mis-${id}`);
+      this.refs.missions[id] = { el, ...Object.fromEntries($$("[data-r]", el).map((n) => [n.dataset.r, n])) };
+    }
+    AssetPipeline.applyAll($("#missionList"));
   },
 
   saveForgeConfig() {
@@ -1503,9 +2322,9 @@ const UI = {
     pg("soldiers").textContent = Military.soldierCount(s);
 
     // ---- buildings
-    for (const [id, b] of Object.entries(BUILDINGS)) {
+    for (const [id] of Object.entries(BUILDINGS)) {
       const r = this.refs.buildings[id], lvl = s.buildings[id];
-      r.lvl.textContent = `Lv ${lvl}`;
+      r.lvl.textContent = `Lv ${lvl} / ${Economy.buildingMax(s, id)}`;
       r.effect.textContent = this.buildingEffect(s, id);
       const cost = Economy.buildingCost(id, lvl);
       const maxed = lvl >= Economy.buildingMax(s, id);
@@ -1530,29 +2349,33 @@ const UI = {
       r.count.textContent = `${n}/${slots}`;
       r.bar.style.width = slots ? (n / slots) * 100 + "%" : "0";
     }
-    if (rates.smeltEff < 0.999 && s.jobs.blacksmith > 0) this.refs.jobs.blacksmith.count.title = `Smelting at ${Math.round(rates.smeltEff * 100)}% (short on stone)`;
 
-    // ---- military
+    // ---- military: commander
     const soldiers = Military.soldierCount(s);
-    $("#armyBadge").textContent = `${soldiers} soldier${soldiers === 1 ? "" : "s"}`;
+    $("#armyBadge").textContent = `${fmtInt(soldiers)} soldier${soldiers === 1 ? "" : "s"}`;
     const c = s.commander, need = Military.xpForLevel(c.level);
     $("#cmdLevel").textContent = `Lv ${c.level}`;
     $("#cmdXp").textContent = `${fmtInt(c.xp)} / ${fmtInt(need)}`;
     $("#cmdXpBar").style.width = (c.xp / need) * 100 + "%";
-    $("#moraleTxt").textContent = `${Math.round(s.morale)}%`;
+    $("#moraleTxt").textContent = `${Math.round(s.morale)}% · battle bonus ×${Military.battleBonus(s).toFixed(2)}`;
     $("#moraleTxt").className = s.morale < 50 ? "bad" : s.morale < 85 ? "warn" : "";
     const mb = $("#moraleBar"); mb.style.width = s.morale + "%"; mb.parentElement.className = "bar fast " + (s.morale < 50 ? "bad" : "good");
 
+    this.updateRaid(s);
+    this.updateDoctrine(s);
+
+    // ---- units
     for (const [id, u] of Object.entries(UNITS)) {
       const r = this.refs.units[id];
-      r.count.textContent = `${s.army[id]} home`;
+      r.count.textContent = `${s.army[id] || 0} home`;
       r.cost.innerHTML = this.costHtml(u.cost, s);
       const blk = Military.trainBlocker(s, id);
-      r.b1.disabled = !!blk; r.b5.disabled = !!blk;
+      r.b1.disabled = r.b5.disabled = r.b10.disabled = r.bmax.disabled = !!blk;
       r.req.textContent = blk && blk !== "Not enough resources" ? blk : "";
+      r.el.classList.toggle("locked-card", Object.entries(u.req).some(([b, l]) => s.buildings[b] < l));
     }
 
-    const qSig = s.queue.length + ":" + s.queue.map((q) => q.unit[0]).join("");
+    const qSig = s.queue.length + ":" + s.queue.map((q) => q.unit).join(",");
     if (qSig !== this.queueSig) {
       this.queueSig = qSig;
       const box = $("#queueBox");
@@ -1575,7 +2398,7 @@ const UI = {
 
     const allU = Military.allUnits(s);
     const homePower = Military.power(s, s.army);
-    $("#armySummary").innerHTML = Object.entries(UNITS).map(([id, u]) => `<span>${u.name}</span><b>${s.army[id]} <span class="dim">/ ${allU[id] || 0}</span></b>`).join("") +
+    $("#armySummary").innerHTML = Object.entries(UNITS).filter(([id]) => (allU[id] || 0) > 0).map(([id, u]) => `<span>${u.name}</span><b>${s.army[id] || 0} <span class="dim">/ ${allU[id] || 0}</span></b>`).join("") +
       `<span>Home power</span><b class="good">⚔ ${fmt(homePower)}</b><span>Upkeep</span><b class="${rates.upkeep.food + rates.upkeep.gold > 0 ? "warn" : "dim"}">${rates.upkeep.food.toFixed(1)} food · ${rates.upkeep.gold.toFixed(1)} gold /s</b>`;
 
     const slots = Military.expeditionSlots(s);
@@ -1584,13 +2407,12 @@ const UI = {
     if (eSig !== this.expSig) {
       this.expSig = eSig;
       $("#activeExp").innerHTML = s.expeditions.length ? s.expeditions.map((e) => {
-        const m = MISSIONS[e.mission];
+        const m = Military.mission(s, e.mission);
         const units = Object.entries(e.units).map(([u, n]) => `${n} ${UNITS[u].name}`).join(", ");
-        const pw = Military.power(s, e.units, e.mission);
         return `<div class="exp-active" id="exp-${e.id}">
-          <div class="eh"><b>${m.name}</b><span><span class="muted" data-e="t"></span> <button class="btn sm" data-action="recall" data-id="${e.id}" title="Recall (no loot)">Recall</button></span></div>
+          <div class="eh"><b>${esc(m.name)}</b><span><span class="muted" data-e="t"></span> <button class="btn sm" data-action="recall" data-id="${e.id}" title="Recall (no loot)">Recall</button></span></div>
           <div class="bar war"><i data-e="bar"></i></div>
-          <div class="eu">${units} · ⚔ ${fmt(pw)} vs ${fmt(m.diff)} · ${Math.round(Military.successChance(pw, m.diff) * 100)}% chance</div></div>`;
+          <div class="eu">${units} · ⚔ ${fmt(Military.power(s, e.units))} vs ${fmt(armyPower(m.army))} · ${TACTICS[e.tactic || "balanced"].icon} ${TACTICS[e.tactic || "balanced"].name}</div></div>`;
       }).join("") : `<div class="empty">No armies in the field.</div>`;
     }
     for (const e of s.expeditions) {
@@ -1600,13 +2422,14 @@ const UI = {
       $('[data-e="bar"]', el).style.width = clamp(((s.time - e.startAt) / (e.endAt - e.startAt)) * 100, 0, 100) + "%";
     }
 
+    if (this.missionStage !== s.conquest) this.buildMissions();
     for (const [id, m] of Object.entries(MISSIONS)) {
       const r = this.refs.missions[id];
-      const locked = c.level < m.level;
-      r.el.classList.toggle("locked", locked);
-      const blk = Military.deployBlocker(s, id, null);
-      r.btn.disabled = !!blk;
-      r.req.textContent = blk || "";
+      r.el.classList.toggle("locked", c.level < m.level);
+      const blkAuto = Military.deployBlocker(s, id, null, false);
+      const blkManual = Military.deployBlocker(s, id, null, true);
+      r.btn.disabled = !!(blkAuto && blkManual);
+      r.req.textContent = blkAuto && blkManual ? blkAuto : blkAuto ? `${blkAuto}, but you can still lead an assault in person` : "";
     }
 
     // ---- log (append only new entries)
@@ -1630,24 +2453,82 @@ const UI = {
       <span class="muted">Buildings raised</span><b>${fmtInt(st.built)}</b>
       <span class="muted">Soldiers trained</span><b>${fmtInt(st.trained)}</b>
       <span class="muted">Expeditions won / lost</span><b>${st.won} / ${st.lost}</b>
+      <span class="muted">Raids repelled / lost</span><b>${st.raidsWon} / ${st.raidsLost}</b>
+      <span class="muted">Battles led in person</span><b>${st.battlesLed}</b>
+      <span class="muted">Enemies slain</span><b>${fmtInt(st.enemiesSlain)}</b>
       <span class="muted">Fallen · deserted · starved</span><b>${st.fallen} · ${st.deserted} · ${st.starved}</b>
+      <span class="muted">Conquest stage</span><b>${s.conquest}</b>
       <span class="muted">Peak population</span><b>${fmtInt(st.peakPop)}</b>`;
 
     AssetPipeline.applyAll($("#buildingList"));
     AssetPipeline.applyAll($("#unitList"));
   },
 
+  updateRaid(s) {
+    const box = $("#raidBox");
+    const r = s.raid;
+    const sig = (r ? `${r.id}:${r.phase}` : "none") + (s.battle ? ":battle" + (BattleUI.b ? "open" : "") : "");
+    if (sig !== this.raidSig) {
+      this.raidSig = sig;
+      let h = "";
+      if (s.battle && !BattleUI.b) {
+        h += `<div class="alert war"><div><b>⚔ Battle in progress:</b> ${esc(s.battle.title)}<div class="dim" style="font-size:12px">Your soldiers are waiting for orders on the battlefield.</div></div>
+          <button class="btn primary" data-action="resumeBattle">Resume battle</button></div>`;
+      }
+      if (r) {
+        const f = FACTIONS[r.faction];
+        h += `<div class="alert ${r.phase === "approaching" ? "warnbox" : "bad"}">
+          <div style="flex:1;min-width:200px"><b>${r.phase === "approaching" ? "⚠ Raid approaching" : r.phase === "gates" ? "🔥 Raiders at the gates!" : "⚔ Defending the city"}:</b> ${esc(f.name)} · power ⚔ ${fmt(r.power)} · ${MAP_TYPES[r.mapType]}
+            <div class="chips">${this.armyChips(r.army)}</div>
+            <div class="dim" style="font-size:12px" data-raid="t"></div></div>
+          ${r.phase !== "fighting" ? `<div class="btn-row"><button class="btn primary" data-action="leadDefense" ${s.battle ? "disabled" : ""}>⚔ Lead the defense</button>
+            ${r.phase === "gates" ? `<button class="btn" data-action="autoDefend">Let captains fight</button>` : ""}
+            <button class="btn sm" data-action="raidOdds">Odds?</button></div>` : ""}</div>`;
+      }
+      box.innerHTML = h;
+      AssetPipeline.applyAll(box);
+    }
+    if (r) {
+      const t = $('[data-raid="t"]', box);
+      const def = `Defenders: your home army + ${s.buildings.townhall * 4} Town Guards${s.buildings.walls ? ` behind level ${s.buildings.walls} walls` : " (no walls yet)"}.`;
+      if (t) t.textContent = r.phase === "approaching" ? `Arrives in ${fmtTime(r.arriveAt - s.time)}. ${def}` : r.phase === "gates" ? `Your captains fight on their own in ${fmtTime(r.deadline - s.time)}. ${def}` : "The battle is under way.";
+      if (r.phase === "gates" && this.raidPrompted !== r.id && !BattleUI.b && !$("#modalRoot .modal")) {
+        this.raidPrompted = r.id;
+        this.modal("🔥 Raiders at the gates!", `<p>The <b>${esc(FACTIONS[r.faction].name)}</b> (power ⚔ ${fmt(r.power)}) has reached Ironhold.</p>
+          <div class="chips" style="margin-bottom:10px">${this.armyChips(r.army)}</div>
+          <p class="muted">Take command on the ${MAP_TYPES[r.mapType]} battlefield and use the terrain to win, or let your captains fight it out with your current doctrine (<b>${TACTICS[s.doctrine].name}</b>). If you lose, the raiders plunder your stores and kill some citizens.</p>`,
+          `<button class="btn" data-action="autoDefend">Let captains fight</button><button class="btn primary" data-action="leadDefense">⚔ Lead the defense</button>`);
+      }
+    }
+  },
+
+  updateDoctrine(s) {
+    const sig = s.doctrine + ":" + s.commander.level;
+    if (sig === this.doctrineSig) return;
+    this.doctrineSig = sig;
+    $("#doctrineList").innerHTML = Object.entries(TACTICS).map(([k, t]) => {
+      const locked = s.commander.level < t.lvl;
+      return `<button class="doctrine ${s.doctrine === k ? "active" : ""}" data-action="doctrine" data-id="${k}" ${locked ? "disabled" : ""} title="${esc(t.desc)}">
+        <span class="di">${t.icon}</span><span><b>${t.name}</b><small>${locked ? `Commander Lv ${t.lvl}` : esc(t.desc)}</small></span></button>`;
+    }).join("");
+  },
+
   buildingEffect(s, id) {
     const b = s.buildings;
     switch (id) {
-      case "townhall": return `+${b.townhall} Gold/s · +${Math.round((b.townhall - 1) * 5)}% production · limits ${b.townhall * 5}/${b.townhall * 8}`;
+      case "townhall": return `+${b.townhall} Gold/s · +${Math.round((Math.pow(BALANCE.prodGrowth, b.townhall - 1) - 1) * 100)}% production · storage ×${Economy.storageMultiplier(s).toFixed(1)}`;
       case "farm": return `${b.farm * 4} Farmer slots`;
       case "quarry": return `${b.quarry * 3} Miner slots`;
       case "steelworks": return `${b.steelworks * 2} Blacksmith slots`;
       case "house": return `${b.house * 5} housing from houses (total ${Economy.housing(s)})`;
-      case "warehouse": return `+${fmt(b.warehouse * 500)} Gold/Stone, +${fmt(b.warehouse * 250)} Steel storage`;
-      case "granary": return `+${fmt(b.granary * 600)} Food storage`;
-      case "barracks": return `${b.barracks * 5} Recruit slots · ${Military.expeditionSlots(s)} expedition slot(s) · ${Math.round((Military.trainSpeed(s) - 1) * 100)}% faster training`;
+      case "warehouse": { const c = Economy.caps(s); return `Storage: ${fmt(c.gold)} Gold · ${fmt(c.stone)} Stone · ${fmt(c.steel)} Steel`; }
+      case "granary": return `Food storage: ${fmt(Economy.caps(s).food)}`;
+      case "market": return `+${b.market * 3} Gold/s base · +${b.market * 5}% Gold`;
+      case "barracks": return `${b.barracks * 10} Recruit slots · ${Military.expeditionSlots(s)} expedition slot(s) · +${Math.round((Military.trainSpeed(s) - 1) * 100)}% training speed`;
+      case "stables": return b.stables >= 3 ? "Light Cavalry & Knights unlocked" : b.stables >= 1 ? "Light Cavalry unlocked (Knights at Lv 3)" : "Unlocks cavalry";
+      case "workshop": return b.workshop >= 3 ? "Siege Engineers & Catapults unlocked" : b.workshop >= 1 ? "Siege Engineers unlocked (Catapults at Lv 3)" : "Unlocks siege units";
+      case "temple": return `${b.temple >= 3 ? "Priests & Paladins" : b.temple >= 1 ? "Priests (Paladins at Lv 3)" : "Unlocks holy units"} · +${(b.temple * 0.2).toFixed(1)} morale/s`;
+      case "walls": return b.walls ? `Wall HP ${Math.round(120 * (1 + 0.5 * b.walls))} · ${Math.max(1, 4 - Math.floor(b.walls / 2))} gap(s) · plunder −${Math.round(Math.min(0.5, b.walls * 0.04) * 100)}%` : "No walls: raiders walk straight in";
     }
     return "";
   },
@@ -1682,28 +2563,37 @@ const UI = {
 
   // ---------- deploy modal ----------
   openDeploy(missionId) {
-    const s = GameState.current, m = MISSIONS[missionId];
-    const rows = Object.entries(UNITS).filter(([id]) => s.army[id] > 0).map(([id, u]) => `
+    const s = GameState.current, m = Military.mission(s, missionId);
+    const rows = Object.entries(UNITS).filter(([id]) => (s.army[id] || 0) > 0).map(([id, u]) => `
       <div class="deploy-row">
-        <img data-asset="${u.asset}" alt=""><div><b>${u.name}</b><div class="dim" style="font-size:12px">${s.army[id]} at home · ⚔ ${u.power}${u.siege ? " · siege" : ""}</div></div>
+        <img data-asset="${u.asset}" alt=""><div><b>${u.name}</b><div class="dim" style="font-size:12px">${s.army[id]} at home · ${this.statLine(u)}</div></div>
         <div class="dc"><button class="btn sm" data-action="dep" data-id="${id}" data-d="0">0</button>
           <input type="number" min="0" max="${s.army[id]}" value="${s.army[id]}" data-unit="${id}">
           <button class="btn sm" data-action="dep" data-id="${id}" data-d="max">All</button></div>
       </div>`).join("");
+    const tactics = Object.entries(TACTICS).filter(([, t]) => t.lvl <= s.commander.level)
+      .map(([k, t]) => `<option value="${k}" ${k === s.doctrine ? "selected" : ""}>${t.icon} ${t.name}</option>`).join("");
     this.modal(`Deploy: ${esc(m.name)}`, `
-      <img data-asset="${m.asset}" alt="" style="width:100%;height:130px;object-fit:cover;border-radius:10px;margin-bottom:10px;border:1px solid var(--border)">
-      <div class="meta muted" style="display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;margin-bottom:8px">
-        <span>Threat <b style="color:var(--text)">${fmt(m.diff)}</b></span><span>Duration <b style="color:var(--text)">${fmtTime(m.duration)}</b></span>
-        ${m.fortified ? '<span class="tag">Fortified: bring siege engineers</span>' : ""}</div>
+      <img data-asset="${m.asset}" alt="" style="width:100%;height:120px;object-fit:cover;border-radius:10px;margin-bottom:10px;border:1px solid var(--border)">
+      <div class="meta muted" style="display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;margin-bottom:6px">
+        <span>Enemy power <b style="color:var(--text)">⚔ ${fmt(armyPower(m.army))}</b></span><span>Terrain <b style="color:var(--text)">${MAP_TYPES[m.map]}</b></span><span>Duration <b style="color:var(--text)">${fmtTime(m.duration)}</b></span>
+        ${m.fortified ? '<span class="tag">Fortified: bring siege units</span>' : ""}</div>
+      <div class="chips" style="margin-bottom:8px">${this.armyChips(m.army)}</div>
       ${rows || '<div class="empty">No troops at home.</div>'}
-      <div style="display:flex;justify-content:space-between;align-items:end;margin-top:12px;gap:10px">
-        <div><div class="muted" style="font-size:12px">Army power</div><div class="chance" id="depPower">0</div></div>
-        <div style="text-align:right"><div class="muted" style="font-size:12px">Success chance</div><div class="chance" id="depChance">0%</div></div>
+      <label class="field" style="margin-top:10px"><span>Tactic</span><select id="depTactic">${tactics}</select></label>
+      <div class="dim" id="depTacticDesc" style="font-size:12px;margin:-4px 0 8px"></div>
+      <div style="display:flex;justify-content:space-between;align-items:end;margin-top:6px;gap:10px">
+        <div><div class="muted" style="font-size:12px">Your power</div><div class="chance" id="depPower">0</div></div>
+        <div style="text-align:right"><div class="muted" style="font-size:12px">Auto-battle win chance <span id="depLoss"></span></div><div class="chance" id="depChance">…</div></div>
       </div>
       <div class="bar good fast" style="margin-top:6px"><i id="depBar"></i></div>
-      <p class="note">Your armies still eat while they're away. Each unit costs its upkeep for the whole trip. If you recall them early you get no loot.</p>`,
-      `<button class="btn" data-action="closeModal">Cancel</button><button class="btn teal" data-action="confirmDeploy" data-id="${missionId}" id="depGo">March!</button>`);
+      <p class="note"><b>March</b> sends the army on a timed expedition. Your captains fight with the chosen tactic, and the army comes back by itself.<br>
+      <b>Lead the assault</b> starts the battle right now on the battlefield and you give the orders. You get +25% loot and no waiting.</p>`,
+      `<button class="btn" data-action="closeModal">Cancel</button>
+       <button class="btn teal" data-action="confirmDeploy" data-id="${missionId}" id="depGo">March (${fmtTime(m.duration)})</button>
+       <button class="btn primary" data-action="confirmAssault" data-id="${missionId}" id="depLead">⚔ Lead the assault</button>`);
     $$("#modalRoot input[data-unit]").forEach((inp) => inp.addEventListener("input", () => this.refreshDeploy(missionId)));
+    $("#depTactic").addEventListener("change", () => this.refreshDeploy(missionId));
     this.refreshDeploy(missionId);
   },
   readDeploy() {
@@ -1715,13 +2605,48 @@ const UI = {
     return units;
   },
   refreshDeploy(missionId) {
-    const s = GameState.current, units = this.readDeploy(), m = MISSIONS[missionId];
-    const pw = Military.power(s, units, missionId), ch = Military.successChance(pw, m.diff);
-    $("#depPower").textContent = "⚔ " + fmt(pw);
-    $("#depChance").textContent = Math.round(ch * 100) + "%";
-    $("#depChance").className = "chance " + (ch >= 0.75 ? "good" : ch >= 0.45 ? "warn" : "bad");
-    $("#depBar").style.width = ch * 100 + "%";
-    $("#depGo").disabled = !!Military.deployBlocker(s, missionId, units);
+    const s = GameState.current, units = this.readDeploy();
+    const tactic = $("#depTactic") ? $("#depTactic").value : s.doctrine;
+    $("#depTacticDesc").textContent = TACTICS[tactic].desc;
+    $("#depPower").textContent = "⚔ " + fmt(Military.power(s, units));
+    $("#depGo").disabled = !!Military.deployBlocker(s, missionId, units, false);
+    $("#depLead").disabled = !!Military.deployBlocker(s, missionId, units, true);
+    $("#depChance").textContent = "…";
+    clearTimeout(this._estT);
+    this._estT = setTimeout(() => {
+      if (!$("#depChance")) return;
+      const est = Military.estimate(s, missionId, units, tactic, 10);
+      $("#depChance").textContent = Math.round(est.chance * 100) + "%";
+      $("#depChance").className = "chance " + (est.chance >= 0.75 ? "good" : est.chance >= 0.45 ? "warn" : "bad");
+      $("#depLoss").textContent = `· ~${Math.round(est.losses * 100)}% losses`;
+      $("#depBar").style.width = est.chance * 100 + "%";
+    }, 200);
+  },
+
+  // ---------- battlefield ----------
+  openBattle() {
+    const s = GameState.current;
+    if (!s.battle) return;
+    this.closeModal();
+    BattleUI.open(s.battle, (b) => this.finishBattle(b));
+    this.raidSig = "";
+  },
+  finishBattle(b) {
+    const s = GameState.current;
+    if (!s.battle || s.battle !== b) return;
+    if (b.phase !== "over") return;
+    const rep = Military.conclude(s, b);
+    s.battle = null;
+    GameState.save();
+    this.raidSig = "";
+    this.update();
+    this.showReport(rep);
+  },
+  showReport(rep) {
+    this.modal(rep.win ? "🏆 Victory!" : "💀 Defeat", `<p><b>${esc(rep.title)}</b></p>
+      <div class="kv"><span class="muted">${rep.kind === "raid" ? (rep.win ? "Bounty" : "Plundered") : "Loot"}</span><b>${esc(rep.parts.join(", ") || "none")}</b>
+      <span class="muted">Your soldiers lost</span><b class="bad">${rep.lost}</b>
+      <span class="muted">Enemies slain</span><b class="good">${rep.slain}</b></div>`, `<button class="btn primary" data-action="closeModal">Onward</button>`);
   },
 
   // ---------- offline summary ----------
@@ -1735,6 +2660,7 @@ const UI = {
       <div class="kv">
         <span class="muted">Population change</span><b class="${rep.pop >= 0 ? "good" : "bad"}">${rep.pop >= 0 ? "+" : ""}${rep.pop}</b>
         <span class="muted">Expeditions won / lost</span><b>${rep.won} / ${rep.lost}</b>
+        <span class="muted">Raids repelled / lost</span><b>${rep.raidsWon} / ${rep.raidsLost}</b>
         <span class="muted">Commander levels</span><b>+${rep.lvl}</b>
         <span class="muted">Chronicle entries</span><b>${rep.events}</b>
       </div>`, `<button class="btn primary" data-action="closeModal">Rule on</button>`);
@@ -1782,16 +2708,17 @@ const Actions = {
   build: (d) => { if (Economy.build(GameState.current, d.id)) UI.update(); },
   assign: (d, e) => {
     const s = GameState.current;
-    let delta = d.d === "max" ? 1e9 : d.d === "-max" ? -1e9 : Number(d.d) * (e.shiftKey ? 10 : 1);
+    const delta = d.d === "max" ? 1e9 : d.d === "-max" ? -1e9 : Number(d.d) * (e.shiftKey ? 10 : 1);
     Economy.assign(s, d.id, delta);
     UI.update();
   },
   train: (d) => {
     const s = GameState.current;
-    const n = Military.train(s, d.id, Number(d.n));
+    const n = Military.train(s, d.id, d.n === "max" ? 1e6 : Number(d.n));
     if (n) addLog(s, `Began training ${n} ${UNITS[d.id].name}${n > 1 ? "s" : ""}.`, "war");
     UI.update();
   },
+  doctrine: (d) => { GameState.current.doctrine = d.id; UI.update(); UI.toast(`Doctrine: ${TACTICS[d.id].name}`); },
   openDeploy: (d) => UI.openDeploy(d.id),
   dep: (d) => {
     const inp = $(`#modalRoot input[data-unit="${d.id}"]`);
@@ -1799,8 +2726,27 @@ const Actions = {
     UI.refreshDeploy($("#depGo").dataset.id);
   },
   confirmDeploy: (d) => {
-    if (Military.deploy(GameState.current, d.id, UI.readDeploy())) { UI.closeModal(); UI.update(); }
+    if (Military.deploy(GameState.current, d.id, UI.readDeploy(), $("#depTactic").value)) { UI.closeModal(); UI.update(); }
   },
+  confirmAssault: (d) => {
+    const s = GameState.current;
+    if (Military.assault(s, d.id, UI.readDeploy(), $("#depTactic").value)) { UI.closeModal(); UI.update(); UI.openBattle(); }
+  },
+  leadDefense: () => {
+    const s = GameState.current;
+    if (Military.leadDefense(s)) { UI.closeModal(); UI.update(); UI.openBattle(); }
+  },
+  autoDefend: () => {
+    const s = GameState.current;
+    const rep = Military.autoDefend(s);
+    UI.closeModal(); UI.raidSig = ""; UI.update();
+    if (rep) UI.showReport(rep);
+  },
+  raidOdds: () => {
+    const est = Military.raidEstimate(GameState.current);
+    if (est) UI.toast(`If your captains fight: about ${Math.round(est.chance * 100)}% chance to win, losing about ${Math.round(est.losses * 100)}% of your army.`, 6000);
+  },
+  resumeBattle: () => UI.openBattle(),
   recall: (d) => { Military.recall(GameState.current, Number(d.id)); UI.update(); },
   closeModal: () => UI.closeModal(),
   closeModalBg: (d, e) => { if (e.target.classList.contains("modal-back")) UI.closeModal(); },
@@ -1837,6 +2783,7 @@ const Actions = {
     try {
       const s = GameState.importString($("#importBox").value);
       s.lastTick = Date.now();
+      if (BattleUI.b) BattleUI.close();
       GameState.current = s;
       addLog(s, "Save imported. Long live the realm!", "info");
       GameState.save();
@@ -1848,6 +2795,7 @@ const Actions = {
   reset: () => UI.modal("Reset Realm?", `<p>This deletes your progress for good. Export your save first if you want to keep it.</p>`,
     `<button class="btn" data-action="closeModal">Cancel</button><button class="btn danger" data-action="confirmReset">Reset everything</button>`),
   confirmReset: () => {
+    if (BattleUI.b) BattleUI.close();
     GameState.current = GameState.fresh();
     addLog(GameState.current, "A new dominion begins. Assign workers and build up your city!", "info");
     GameState.save();
@@ -1864,7 +2812,7 @@ document.addEventListener("click", (e) => {
   const fn = Actions[el.dataset.action];
   if (fn) fn(el.dataset, e);
 });
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") UI.closeModal(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !BattleUI.b) UI.closeModal(); });
 window.addEventListener("beforeunload", () => GameState.save());
 document.addEventListener("visibilitychange", () => { if (document.hidden) GameState.save(); });
 
@@ -1876,7 +2824,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) GameS
   let offline = null;
   if (!s) {
     s = GameState.fresh();
-    addLog(s, "Welcome, my liege. Put idle citizens to work, build Houses to grow, and raise a Barracks to march on the world.", "info");
+    addLog(s, "Welcome, my liege. Put idle citizens to work, build Houses to grow, and raise a Barracks. Raiders will come, so be ready!", "info");
   } else {
     offline = Engine.offlineProgress(s);
   }
@@ -1886,8 +2834,10 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) GameS
   Engine.start();
   GameState.save();
   if (offline && offline.elapsed >= 60) UI.showOffline(offline);
+  const problems = Economy.verifyStorage();
+  if (problems.length) console.error("Storage balance problems:", problems);
   await AssetPipeline.init();
-  window.Ironhold = { GameState, Engine, Economy, Military, AssetPipeline, UI }; // handy for debugging in the console
+  window.Ironhold = { GameState, Engine, Economy, Military, Battle, BattleUI, AssetPipeline, UI }; // handy for debugging in the console
 })();
 </script>
 </body>

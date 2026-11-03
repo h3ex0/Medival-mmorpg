@@ -1,6 +1,6 @@
 # Ironhold: Idle Dominion
 
-A single-player idle RPG city builder for the browser. Grow your population, assign workers, raise buildings, train an army, and send it on expeditions that come back on their own with loot. It's all one `index.html` (Vanilla JS, no build step) and it saves to `localStorage`.
+A single-player idle RPG city builder for the browser. Grow your population, assign workers, raise buildings, train an army, defend against raids, and lead your troops yourself in turn-based battles on mountains, valleys, rivers and forests. It's plain HTML/JS with no build step (`index.html` + `js/battle.js`), and it saves to `localStorage`.
 
 ## Features
 
@@ -9,9 +9,12 @@ A single-player idle RPG city builder for the browser. Grow your population, ass
 | **Resources** | Gold, Food, Stone, Steel (+ rare **Relics**). Live per-second rates in the header, with storage caps that Warehouses, Granaries and the Town Hall raise. |
 | **Population** | Housing cap. Shows total, workers, idle, recruits and soldiers. Growth depends on food stock and free housing. Starvation kills citizens. |
 | **Workforce** | Assign Farmers / Miners / Blacksmiths / Recruits (`+`/`−`, Shift = ×10, `«`/`»` = all). Job slots come from buildings. Blacksmiths turn stone into steel. |
-| **Buildings** | Town Hall, Farm, Quarry, Steelworks, House, Warehouse, Granary, Barracks. `Cost = Base × mult^Level`. A button is disabled (with the reason shown) when you lack resources or population, or hit the Town Hall level limit. |
-| **Military** | Militia, Archer, Footman, Siege Engineer, Knight. Each unit uses a Recruit plus gold/steel/food, and trains in a queue. Upkeep is food + gold per second. If upkeep isn't paid, morale falls and soldiers desert. |
-| **Expeditions** | 6 missions (some fortified: bring siege engineers). They resolve on a timer: success chance comes from power vs. threat, then casualties, loot, relics and Commander XP. |
+| **Buildings** | 13 buildings: Town Hall (up to Lv 15), Farm, Quarry, Steelworks, House, Warehouse, Granary, Market, Barracks, Stables, Siege Workshop, Temple, City Walls. `Cost = Base × mult^Level`. Storage grows ×1.4 per Town Hall level, and a self-test on boot makes sure every upgrade's cost fits in fully built storage. Disabled buttons show why, e.g. "Gold storage too small. Build Warehouses". |
+| **Military** | 13 units: Militia, Spearman, Archer, Footman, Crossbowman, Pikeman, Longbowman, Light Cavalry, Knight, Battle Priest, Siege Engineer, Catapult, Paladin. Each has HP/ATK/DEF/range/movement plus traits (anti-cavalry, charge, armor-piercing, healing, wall-breaching). Train ×1/×5/×10/Max, with a queue of 50. If upkeep isn't paid, morale falls and soldiers desert. |
+| **Tactics** | 7 doctrines unlocked by Commander level: Balanced, Shield Wall, Arrow Storm, Cavalry Charge, Hold the Line, Ambush, Bloodlust. The one you pick is used by your captains in auto battles, and you can change it before any battle you lead. |
+| **Battlefield** | An 18×12 turn-based tactical grid. Terrain: **plains, forest** (cover, slows cavalry), **hills** (+defense, +range, downhill bonus), **mountains** (impassable, block arrows), **valleys** (low ground, −defense, uphill penalty), **rivers & bridges** (chokepoints), **swamps**, **castle walls** (only defenders can stand on them; siege units breach them). Movement uses zone of control. Melee targets strike back, braced spears punish cavalry, and missiles need line of sight. Attacks show a damage forecast. Auto-deploy, Brace, Auto-battle and Retreat are all available. |
+| **Raids** | Enemy factions attack the city: Bandits → Goblins → Orcs → Undead → Giant-kin → Black Legion → Dragonflight. They get stronger with each raid and as your city grows. You get a warning when they're spotted, then a choice at the gates: **lead the defense** yourself (Town Guards and your City Walls join you) or let your captains fight. If you lose, they plunder your stores and kill citizens. |
+| **Expeditions** | 11 missions up to the Throne of the Storm Titan, plus an **Endless Conquest** that gets stronger with every stage you win. **March** = timed auto battle with your doctrine. **Lead the assault** = fight it now on the battlefield for +25% loot. The win chance is estimated by simulating the battle. |
 | **Idle / offline** | 1 s tick based on real elapsed time. When you return, offline progress (capped at 12 h) is simulated in 10 s steps, and a summary pops up. |
 | **Persistence** | Autosaves every 5 s, plus manual Save, Export (copy/download), Import (paste/file) and Reset. |
 
@@ -20,13 +23,14 @@ A single-player idle RPG city builder for the browser. Grow your population, ass
 1. **`GameState`**: save schema, hydrate/migrate, load/save/export/import
 2. **`Engine`**: tick loop, chunked offline simulation, autosave
 3. **`Economy`**: rates, caps, building costs, workforce, growth/starvation
-4. **`Military`**: training queue, upkeep/desertion, power, expedition resolution, XP
+4. **`Military`**: training queue, upkeep/desertion, raids, expeditions, battle setup/conclusion, XP
+   - **`js/battle.js`**: terrain, enemy units, tactics, factions, map generator, the `Battle` engine (movement, combat, AI, simulation) and `BattleUI` (the battlefield screen)
 5. **`AssetPipeline`**: image API integration + caching (below)
 6. **`UI`**: builds the DOM once, updates it every tick, click actions handled in one delegated listener
 
 ## AI artwork pipeline
 
-All image prompts live in one place: the `<script id="asset-catalog">` JSON block in `index.html` (32 assets: resource icons, buildings, workers, units, mission banners, commander portrait, page backdrop).
+All image prompts live in one place: the `<script id="asset-catalog">` JSON block in `index.html` (70 assets: resource icons, buildings, workers, your units, enemy units, mission banners, commander portrait, page backdrop).
 
 For each image, the game uses the first source available:
 
@@ -89,5 +93,7 @@ The game is fully static. Deploy the repository root, with no build command.
 1. Fill the Farmer and Miner slots first (Workforce tab). Idle citizens only pay a little tax.
 2. Build Houses to grow, and Granaries and Warehouses so production doesn't stop at the cap.
 3. Steelworks (needs 10 population), then Barracks (12 population). Assign Recruits, then train units.
-4. Send your first army to the **Bandit Camp**. Commander levels unlock harder expeditions. Relics raise all production by +2% each (up to +200%).
-5. Keep food and gold income positive. Hungry, unpaid soldiers desert.
+4. Raiders start showing up after about 25 minutes. Build **City Walls** and keep an army at home. When they reach the gates, lead the defense: put archers on the walls and hold the gaps with spearmen.
+5. Send your first army to the **Bandit Camp**. Commander levels unlock harder expeditions and new tactics. Relics raise all production by +2% each (up to +200%).
+6. On the battlefield: archers on hills get +1 range, cavalry should charge 3+ tiles into enemy archers, spears should brace against cavalry, mountains block arrows, and enemies in rivers and valleys are easy prey. Fortified enemies need Siege Engineers or Catapults to breach their walls.
+7. Keep food and gold income positive. Hungry, unpaid soldiers desert.
