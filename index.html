@@ -333,6 +333,15 @@ input:focus, select:focus, textarea:focus { outline: 2px solid rgba(227,176,75,0
 .fx.heal { color: #6ee07c; }
 .fx.arrow { color: #ffe08a; font-size: calc(var(--cell) * 0.45); }
 
+.wm-city { position: absolute; display: flex; align-items: center; justify-content: center; font-size: calc(var(--cell) * 1.3); filter: drop-shadow(0 3px 6px rgba(0,0,0,0.7)); z-index: 2; pointer-events: none; }
+.wm-node { position: absolute; width: var(--cell); height: var(--cell); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3; }
+.wm-node span { width: 86%; height: 86%; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: calc(var(--cell) * 0.5); background: rgba(10,12,18,0.82); border: 2px solid #ff5f56; box-shadow: 0 2px 6px rgba(0,0,0,0.6); }
+.wm-node b { position: absolute; right: -2px; bottom: -2px; font-size: calc(var(--cell) * 0.3); background: #111; color: #fff; border-radius: 6px; padding: 0 3px; line-height: 1.2; }
+.wm-node.mine span { border-color: #5fa8ff; background: rgba(30,60,110,0.9); }
+.wm-node.cleared span { border-color: #777; filter: grayscale(1); opacity: 0.7; }
+.wm-node.marching span { border-color: var(--war); animation: blink 1s ease-in-out infinite; }
+.wm-node.sel span { box-shadow: 0 0 0 3px #fff, 0 0 12px rgba(255,255,255,0.6); }
+
 /* =====================================================================
    BATTLEFIELD
    ===================================================================== */
@@ -453,7 +462,7 @@ body.in-battle { overflow: hidden; }
   <!-- MIDDLE: military & expeditions -->
   <section class="col-mid">
     <div class="panel">
-      <div class="panel-head"><h2>War Council</h2><span class="badge war" id="armyBadge">0 soldiers</span></div>
+      <div class="panel-head"><h2>War Council</h2><div class="btn-row" style="align-items:center"><button class="btn teal sm" data-action="worldMap">🗺️ World Map</button><span class="badge war" id="armyBadge">0 soldiers</span></div></div>
       <div class="panel-body col-scroll">
         <div class="commander">
           <img data-asset="commander" alt="" />
@@ -483,7 +492,7 @@ body.in-battle { overflow: hidden; }
         <div class="section-title">Active Expeditions <span class="dim" id="expSlots"></span></div>
         <div id="activeExp"></div>
 
-        <div class="section-title">Expedition Board</div>
+        <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">Expedition Board <button class="btn teal sm" data-action="worldMap">🗺️ Raid the World Map</button></div>
         <div id="missionList"></div>
       </div>
     </div>
@@ -1071,12 +1080,167 @@ body.in-battle { overflow: hidden; }
    "emoji": "🎓",
    "hue": 220,
    "prompt": "Isometric medieval academy with a library tower, observatory dome and scholars"
+  },
+  {
+   "key": "res_wood",
+   "kind": "icon",
+   "emoji": "🪵",
+   "hue": 28,
+   "prompt": "A bundle of freshly cut timber logs tied with rope"
+  },
+  {
+   "key": "res_horses",
+   "kind": "icon",
+   "emoji": "🐴",
+   "hue": 30,
+   "prompt": "A proud brown warhorse head with a braided mane"
+  },
+  {
+   "key": "res_crystals",
+   "kind": "icon",
+   "emoji": "💠",
+   "hue": 190,
+   "prompt": "A cluster of glowing cyan mana crystals"
+  },
+  {
+   "key": "b_lumbercamp",
+   "kind": "icon",
+   "emoji": "🪓",
+   "hue": 28,
+   "prompt": "Isometric medieval lumber camp with a sawmill, log piles and axes"
+  },
+  {
+   "key": "b_ranch",
+   "kind": "icon",
+   "emoji": "🐎",
+   "hue": 35,
+   "prompt": "Isometric medieval horse ranch with fenced paddocks and a barn"
+  },
+  {
+   "key": "b_magetower",
+   "kind": "icon",
+   "emoji": "🔮",
+   "hue": 260,
+   "prompt": "Isometric tall arcane mage tower with floating crystals and blue glow"
+  },
+  {
+   "key": "job_lumberjack",
+   "kind": "portrait",
+   "emoji": "🪓",
+   "hue": 28,
+   "prompt": "A burly medieval lumberjack with an axe and plaid tunic"
+  },
+  {
+   "key": "job_rancher",
+   "kind": "portrait",
+   "emoji": "🤠",
+   "hue": 35,
+   "prompt": "A medieval horse rancher holding reins, leather hat"
+  },
+  {
+   "key": "job_arcanist",
+   "kind": "portrait",
+   "emoji": "🧙",
+   "hue": 220,
+   "prompt": "A young medieval arcanist apprentice holding a glowing crystal"
+  },
+  {
+   "key": "u_horsearcher",
+   "kind": "portrait",
+   "emoji": "🏇",
+   "hue": 40,
+   "prompt": "A medieval horse archer shooting from a galloping horse"
+  },
+  {
+   "key": "u_mage",
+   "kind": "portrait",
+   "emoji": "🔥",
+   "hue": 15,
+   "prompt": "A medieval battle mage hurling a fireball, red and gold robes"
+  },
+  {
+   "key": "u_ballista",
+   "kind": "portrait",
+   "emoji": "🎯",
+   "hue": 30,
+   "prompt": "A heavy medieval ballista siege weapon loaded with a giant bolt"
+  },
+  {
+   "key": "u_griffon",
+   "kind": "portrait",
+   "emoji": "🦅",
+   "hue": 45,
+   "prompt": "A knight riding a majestic griffon in flight, wings spread"
+  },
+  {
+   "key": "n_goldmine",
+   "kind": "banner",
+   "emoji": "💰",
+   "hue": 45,
+   "prompt": "An enemy-held gold mine entrance in a hillside with carts of gold ore"
+  },
+  {
+   "key": "n_forest",
+   "kind": "banner",
+   "emoji": "🌲",
+   "hue": 110,
+   "prompt": "An ancient old-growth forest with giant trees and a logging camp"
+  },
+  {
+   "key": "n_quarry",
+   "kind": "banner",
+   "emoji": "🪨",
+   "hue": 30,
+   "prompt": "A large open stone quarry with cranes and cut blocks"
+  },
+  {
+   "key": "n_ironmine",
+   "kind": "banner",
+   "emoji": "⚒️",
+   "hue": 210,
+   "prompt": "A rugged iron mine with a crude smelter and smoke"
+  },
+  {
+   "key": "n_ranch",
+   "kind": "banner",
+   "emoji": "🐎",
+   "hue": 35,
+   "prompt": "A herd of wild horses running across a grassy plain"
+  },
+  {
+   "key": "n_crystal",
+   "kind": "banner",
+   "emoji": "💎",
+   "hue": 190,
+   "prompt": "A cavern filled with giant glowing blue mana crystals"
+  },
+  {
+   "key": "n_village",
+   "kind": "banner",
+   "emoji": "🏘️",
+   "hue": 40,
+   "prompt": "A fortified rebel village with thatched roofs and palisade"
+  },
+  {
+   "key": "n_fort",
+   "kind": "banner",
+   "emoji": "🏯",
+   "hue": 20,
+   "prompt": "A bandit fortress of wooden walls and towers on a hill"
+  },
+  {
+   "key": "n_roost",
+   "kind": "banner",
+   "emoji": "🦅",
+   "hue": 260,
+   "prompt": "A wyvern roost on a mountain peak with nests on treasure"
   }
  ]
 }
 </script>
 
 <script src="js/battle.js"></script>
+<script src="js/world.js"></script>
 <script>
 "use strict";
 /* =====================================================================
@@ -1130,9 +1294,12 @@ const RESOURCES = {
   food:   { name: "Food",   asset: "res_food",   color: "var(--food)" },
   stone:  { name: "Stone",  asset: "res_stone",  color: "var(--stone)" },
   steel:  { name: "Steel",  asset: "res_steel",  color: "var(--steel)" },
+  wood:   { name: "Wood",   asset: "res_wood",   color: "#c58b4f" },
+  horses: { name: "Horses", asset: "res_horses", color: "#d9a066" },
+  crystals: { name: "Crystals", asset: "res_crystals", color: "#5fd4f0" },
   relics: { name: "Relics", asset: "res_relics", color: "var(--relics)" },
 };
-const STORABLE = ["gold", "food", "stone", "steel"];
+const STORABLE = ["gold", "food", "stone", "steel", "wood", "horses", "crystals"];
 
 /*
  * Cost formula: Cost = BaseCost * mult ^ Level (Level = current level; the Town Hall starts at 1, so it uses Level-1).
@@ -1143,24 +1310,30 @@ const BUILDINGS = {
   townhall:   { name: "Town Hall",      asset: "b_townhall",   base: { gold: 400, stone: 300, steel: 40 },   mult: 1.9,  max: 15,
                 desc: "Seat of power. Each level: +1 Gold/s, +8 housing, +10% production, ×1.4 storage, and higher limits for other buildings.",
                 popReq: (lvl) => 15 * lvl },
-  farm:       { name: "Farm",           asset: "b_farm",       base: { gold: 40, stone: 15 },   mult: 1.15, maxPerTH: 5, desc: "Adds 4 Farmer jobs. Each Farmer grows food." },
+  farm:       { name: "Farm",           asset: "b_farm",       base: { gold: 40, wood: 15 },   mult: 1.15, maxPerTH: 5, desc: "Adds 4 Farmer jobs. Each Farmer grows food." },
   quarry:     { name: "Quarry",         asset: "b_quarry",     base: { gold: 50, food: 25 },    mult: 1.15, maxPerTH: 5, desc: "Adds 3 Miner jobs. Each Miner cuts stone." },
   steelworks: { name: "Steelworks",     asset: "b_steelworks", base: { gold: 120, stone: 80 },  mult: 1.16, maxPerTH: 4, desc: "Adds 2 Blacksmith jobs. Blacksmiths smelt stone into steel.", popReq: () => 10 },
-  house:      { name: "House",          asset: "b_house",      base: { gold: 35, stone: 20 },   mult: 1.08, maxPerTH: 8, desc: "Shelter for 5 more people." },
+  lumbercamp: { name: "Lumber Camp",    asset: "b_lumbercamp", base: { gold: 40, stone: 10 },   mult: 1.15, maxPerTH: 5, desc: "Adds 3 Lumberjack jobs. Each Lumberjack cuts wood." },
+  house:      { name: "House",          asset: "b_house",      base: { gold: 30, wood: 25 },   mult: 1.08, maxPerTH: 8, desc: "Shelter for 5 more people." },
   warehouse:  { name: "Warehouse",      asset: "b_warehouse",  base: { gold: 80, stone: 60 },   mult: 1.15, maxPerTH: 5, desc: "+600 Gold, +600 Stone and +300 Steel base storage (×Town Hall storage bonus)." },
   granary:    { name: "Granary",        asset: "b_granary",    base: { gold: 60, stone: 40 },   mult: 1.15, maxPerTH: 5, desc: "+700 Food base storage (×Town Hall storage bonus)." },
   market:     { name: "Market",         asset: "b_market",     base: { gold: 150, stone: 100 }, mult: 1.2,  maxPerTH: 2, desc: "+3 Gold/s and +5% Gold income per level.", popReq: () => 20 },
-  barracks:   { name: "Barracks",       asset: "b_barracks",   base: { gold: 150, stone: 120, steel: 15 }, mult: 1.22, maxPerTH: 2, desc: "+10 Recruit jobs, +8 housing, +10% training speed. Unlocks infantry & archers, and more expedition slots.", popReq: () => 12 },
-  stables:    { name: "Stables",        asset: "b_stables",    base: { gold: 250, food: 200, stone: 150 }, mult: 1.3, maxPerTH: 1, desc: "Unlocks Light Cavalry (Lv 1) and Knights (Lv 3).", popReq: () => 30 },
-  workshop:   { name: "Siege Workshop", asset: "b_workshop",   base: { gold: 300, stone: 300, steel: 60 }, mult: 1.3, maxPerTH: 1, desc: "Unlocks Siege Engineers (Lv 1) and Catapults (Lv 3). Siege units smash walls.", popReq: () => 40 },
+  barracks:   { name: "Barracks",       asset: "b_barracks",   base: { gold: 150, wood: 100, stone: 60, steel: 15 }, mult: 1.22, maxPerTH: 2, desc: "+10 Recruit jobs, +8 housing, +10% training speed. Unlocks infantry & archers, and more expedition slots.", popReq: () => 12 },
+  stables:    { name: "Stables",        asset: "b_stables",    base: { gold: 250, food: 200, wood: 150 }, mult: 1.3, maxPerTH: 1, desc: "Unlocks Light Cavalry (Lv 1), Horse Archers (Lv 2) and Knights (Lv 3). Cavalry needs Horses.", popReq: () => 30 },
+  ranch:      { name: "Horse Ranch",    asset: "b_ranch",      base: { gold: 200, wood: 150, food: 200 }, mult: 1.25, maxPerTH: 2, desc: "Adds 2 Rancher jobs. Ranchers breed horses for your cavalry (they eat extra food).", popReq: () => 30 },
+  workshop:   { name: "Siege Workshop", asset: "b_workshop",   base: { gold: 300, wood: 300, steel: 60 }, mult: 1.3, maxPerTH: 1, desc: "Unlocks Siege Engineers (Lv 1), Ballistae (Lv 2) and Catapults (Lv 3).", popReq: () => 40 },
+  magetower:  { name: "Mage Tower",     asset: "b_magetower",  base: { gold: 500, stone: 400, wood: 200 }, mult: 1.3, maxPerTH: 1, desc: "Adds 2 Arcanist jobs that distill Mana Crystals (they cost gold). Unlocks Battle Mages (Lv 1) and Griffon Riders (Lv 3).", popReq: () => 60 },
   temple:     { name: "Temple",         asset: "b_temple",     base: { gold: 400, stone: 350 }, mult: 1.3, maxPerTH: 1, desc: "Unlocks Battle Priests (Lv 1) and Paladins (Lv 3). +0.2 morale/s per level.", popReq: () => 50 },
   academy:    { name: "Academy",        asset: "b_academy",    base: { gold: 300, stone: 250 }, mult: 1.3, maxPerTH: 1, desc: "Unlocks Research. Higher levels unlock advanced techs and research 15% faster per level.", popReq: () => 25 },
-  walls:      { name: "City Walls",     asset: "b_walls",      base: { gold: 100, stone: 200 }, mult: 1.25, maxPerTH: 1, desc: "Stone walls on the battlefield when raiders attack. Higher levels mean stronger walls with fewer gaps.", popReq: () => 15 },
+  walls:      { name: "City Walls",     asset: "b_walls",      base: { gold: 100, stone: 200, wood: 50 }, mult: 1.25, maxPerTH: 1, desc: "Stone walls on the battlefield when raiders attack. Higher levels mean stronger walls with fewer gaps.", popReq: () => 15 },
 };
 
 const JOBS = {
   farmer:     { name: "Farmers",     asset: "job_farmer",     building: "farm",       slots: 4,  desc: "+1.1 Food/s each" },
   miner:      { name: "Miners",      asset: "job_miner",      building: "quarry",     slots: 3,  desc: "+0.75 Stone/s each" },
+  lumberjack: { name: "Lumberjacks", asset: "job_lumberjack", building: "lumbercamp", slots: 3, desc: "+0.8 Wood/s each" },
+  rancher:    { name: "Ranchers",    asset: "job_rancher",    building: "ranch",      slots: 2, desc: "+0.08 Horses/s each (eats 0.3 extra Food/s)" },
+  arcanist:   { name: "Arcanists",   asset: "job_arcanist",   building: "magetower",  slots: 2, desc: "+0.03 Crystals/s each (costs 0.5 Gold/s)" },
   blacksmith: { name: "Blacksmiths", asset: "job_blacksmith", building: "steelworks", slots: 2,  desc: "−0.5 Stone → +0.35 Steel/s each" },
   recruit:    { name: "Recruits",    asset: "job_recruit",    building: "barracks",   slots: 10, desc: "Drilled citizens. Each unit you train uses up one Recruit." },
 };
@@ -1175,7 +1348,7 @@ const UNITS = {
                hp: 10, atk: 3,  def: 1, rng: 1, mv: 3, cls: "inf", desc: "Cheap levy troops. Good for soaking up hits." },
   spearman:  { name: "Spearman",        asset: "u_spearman", cost: { gold: 35, steel: 4 },               time: 7,  upkeep: { food: 0.10, gold: 0.04 }, req: { barracks: 2 },
                hp: 12, atk: 4,  def: 3, rng: 1, mv: 3, cls: "inf", antiCav: true, desc: "Deals ×2 damage to cavalry. When braced, strikes back at full strength." },
-  archer:    { name: "Archer",          asset: "u_archer",   cost: { gold: 40, steel: 5 },               time: 8,  upkeep: { food: 0.12, gold: 0.05 }, req: { barracks: 2 },
+  archer:    { name: "Archer",          asset: "u_archer",   cost: { gold: 40, wood: 8, steel: 3 },               time: 8,  upkeep: { food: 0.12, gold: 0.05 }, req: { barracks: 2 },
                hp: 8,  atk: 4,  def: 1, rng: 4, mv: 3, cls: "ranged", desc: "Shoots 4 tiles (5 from hills or walls)." },
   footman:   { name: "Footman",         asset: "u_footman",  cost: { gold: 60, steel: 15 },              time: 10, upkeep: { food: 0.15, gold: 0.08 }, req: { barracks: 2 },
                hp: 16, atk: 6,  def: 4, rng: 1, mv: 3, cls: "inf", desc: "Disciplined chainmail infantry. The core of the battle line." },
@@ -1183,18 +1356,26 @@ const UNITS = {
                hp: 10, atk: 7,  def: 2, rng: 3, mv: 2, cls: "ranged", armorPierce: true, desc: "Bolts ignore 40% of armor. Slow to move." },
   pikeman:   { name: "Pikeman",         asset: "u_pikeman",  cost: { gold: 80, steel: 25 },              time: 12, upkeep: { food: 0.15, gold: 0.10 }, req: { barracks: 5 },
                hp: 15, atk: 6,  def: 5, rng: 1, mv: 2, cls: "inf", antiCav: true, desc: "A wall of pikes: ×2 damage to cavalry and very tough." },
-  longbow:   { name: "Longbowman",      asset: "u_longbow",  cost: { gold: 90, steel: 12 },              time: 14, upkeep: { food: 0.14, gold: 0.12 }, req: { barracks: 6 },
+  longbow:   { name: "Longbowman",      asset: "u_longbow",  cost: { gold: 90, wood: 15, steel: 8 },              time: 14, upkeep: { food: 0.14, gold: 0.12 }, req: { barracks: 6 },
                hp: 10, atk: 6,  def: 1, rng: 5, mv: 3, cls: "ranged", desc: "Range 5 (6 from high ground). Deadly behind a wall." },
-  lightcav:  { name: "Light Cavalry",   asset: "u_lightcav", cost: { gold: 110, steel: 20, food: 30 },   time: 14, upkeep: { food: 0.25, gold: 0.15 }, req: { stables: 1 },
+  lightcav:  { name: "Light Cavalry",   asset: "u_lightcav", cost: { gold: 110, steel: 20, horses: 1 },   time: 14, upkeep: { food: 0.25, gold: 0.15 }, req: { stables: 1 },
                hp: 18, atk: 6,  def: 2, rng: 1, mv: 6, cls: "cav", charge: true, desc: "Fast flanker. +50% vs missile units. Charges after moving 3+ tiles." },
-  knight:    { name: "Knight",          asset: "u_knight",   cost: { gold: 200, steel: 60, food: 40 },   time: 25, upkeep: { food: 0.30, gold: 0.30 }, req: { stables: 3 },
+  horsearcher:{ name: "Horse Archer",   asset: "u_horsearcher", cost: { gold: 130, wood: 10, horses: 1 }, time: 16, upkeep: { food: 0.25, gold: 0.15 }, req: { stables: 2 },
+               hp: 14, atk: 5,  def: 1, rng: 3, mv: 6, cls: "ranged", mounted: true, desc: "Mounted archer: shoots 3 tiles and moves 6. Hit-and-run." },
+  knight:    { name: "Knight",          asset: "u_knight",   cost: { gold: 200, steel: 60, horses: 2 },   time: 25, upkeep: { food: 0.30, gold: 0.30 }, req: { stables: 3 },
                hp: 32, atk: 11, def: 6, rng: 1, mv: 5, cls: "cav", charge: true, desc: "Elite heavy cavalry with a devastating charge." },
   priest:    { name: "Battle Priest",   asset: "u_priest",   cost: { gold: 150, food: 50 },              time: 18, upkeep: { food: 0.12, gold: 0.20 }, req: { temple: 1 },
                hp: 10, atk: 2,  def: 2, rng: 2, mv: 3, cls: "support", heal: 3, desc: "Each turn, heals squads within 2 tiles by 3 HP per priest." },
-  siege:     { name: "Siege Engineer",  asset: "u_siege",    cost: { gold: 100, stone: 80, steel: 30 },  time: 20, upkeep: { food: 0.15, gold: 0.15 }, req: { workshop: 1 },
+  mage:      { name: "Battle Mage",     asset: "u_mage",     cost: { gold: 180, crystals: 2 },        time: 20, upkeep: { food: 0.12, gold: 0.30 }, req: { magetower: 1 },
+               hp: 9,  atk: 9,  def: 1, rng: 4, mv: 3, cls: "ranged", splash: 0.5, desc: "Fireballs: range 4, and enemy squads next to the target take 50% splash damage." },
+  siege:     { name: "Siege Engineer",  asset: "u_siege",    cost: { gold: 100, wood: 60, steel: 30 },  time: 20, upkeep: { food: 0.15, gold: 0.15 }, req: { workshop: 1 },
                hp: 14, atk: 5,  def: 2, rng: 2, mv: 2, cls: "siege", breach: true, desc: "Deals ×4 damage to walls. Needed against fortresses." },
-  catapult:  { name: "Catapult",        asset: "u_catapult", cost: { gold: 300, stone: 250, steel: 80 }, time: 35, upkeep: { food: 0.20, gold: 0.40 }, req: { workshop: 3 },
+  ballista:  { name: "Ballista",        asset: "u_ballista", cost: { gold: 160, wood: 120, steel: 30 }, time: 25, upkeep: { food: 0.15, gold: 0.25 }, req: { workshop: 2 },
+               hp: 20, atk: 12, def: 2, rng: 5, minRng: 2, mv: 1, cls: "siege", vsBig: true, slayer: true, desc: "Giant-slayer: ×2.5 damage to trolls, giants, demons and dragons. Range 2–5." },
+  catapult:  { name: "Catapult",        asset: "u_catapult", cost: { gold: 300, wood: 200, stone: 150, steel: 80 }, time: 35, upkeep: { food: 0.20, gold: 0.40 }, req: { workshop: 3 },
                hp: 40, atk: 18, def: 1, rng: 6, minRng: 2, mv: 1, cls: "siege", breach: true, vsBig: true, desc: "Range 2–6. Smashes walls and deals ×1.6 damage to giants and monsters." },
+  griffon:   { name: "Griffon Rider",   asset: "u_griffon",  cost: { gold: 400, crystals: 6, food: 100 }, time: 40, upkeep: { food: 0.40, gold: 0.50 }, req: { magetower: 3, stables: 5 },
+               hp: 30, atk: 12, def: 5, rng: 1, mv: 7, cls: "cav", flying: true, charge: true, desc: "Flies over mountains, rivers and walls. Charges from the sky." },
   paladin:   { name: "Paladin",         asset: "u_paladin",  cost: { gold: 450, steel: 150, food: 60 },  time: 40, upkeep: { food: 0.35, gold: 0.50 }, req: { temple: 3, barracks: 8 },
                hp: 34, atk: 12, def: 9, rng: 1, mv: 3, cls: "inf", heal: 1, desc: "Holy champion. Very hard to kill, and heals nearby allies." },
 };
@@ -1279,12 +1460,19 @@ const QUESTS = [
   { id: "cmd5",       text: "Raise your Commander to level 5",        check: (s) => s.commander.level >= 5,              reward: { steel: 500 } },
   { id: "stables",    text: "Build Stables",                          check: (s) => s.buildings.stables >= 1,            reward: { food: 1000 } },
   { id: "army50",     text: "Command 50 soldiers",                    check: (s) => Military.soldierCount(s) >= 50,      reward: { gold: 2500 } },
+  { id: "site1",      text: "Capture a territory on the World Map",   check: (s) => s.stats.sitesCaptured >= 1,          reward: { gold: 800, wood: 500 } },
+  { id: "vet1",       text: "Earn a veteran rank for any unit type",  check: (s) => Object.values(s.veterancy).some((x) => Military.vetRank(x) >= 1), reward: { steel: 300 } },
+  { id: "ranch",      text: "Build a Horse Ranch",                    check: (s) => s.buildings.ranch >= 1,              reward: { horses: 10 } },
   { id: "orcs",       text: "Conquer the Orc Stronghold",             check: (s) => (s.stats.missionWins.orcs || 0) >= 1, reward: { relics: 2 } },
   { id: "raid5",      text: "Repel 5 raids",                          check: (s) => s.stats.raidsWon >= 5,               reward: { gold: 5000, steel: 800 } },
+  { id: "sites3",     text: "Hold 3 territories at once",             check: (s) => World.territories(s).length >= 3,    reward: { relics: 2 } },
+  { id: "magetower",  text: "Build a Mage Tower",                     check: (s) => s.buildings.magetower >= 1,          reward: { crystals: 20 } },
   { id: "lead10",     text: "Win 10 battles you lead in person",      check: (s) => s.stats.battlesLedWon >= 10,         reward: { relics: 3 } },
   { id: "conq5",      text: "Reach Endless Conquest stage 5",         check: (s) => s.conquest >= 5,                     reward: { relics: 3 } },
   { id: "th8",        text: "Upgrade the Town Hall to level 8",       check: (s) => s.buildings.townhall >= 8,           reward: { relics: 3 } },
   { id: "research25", text: "Complete 25 research levels",            check: (s) => Research.total(s) >= 25,             reward: { relics: 3 } },
+  { id: "vet5",       text: "Raise any unit type to veteran rank 5",  check: (s) => Object.values(s.veterancy).some((x) => Military.vetRank(x) >= 5), reward: { relics: 5 } },
+  { id: "sites6",     text: "Hold 6 territories at once",             check: (s) => World.territories(s).length >= 6,    reward: { relics: 6 } },
   { id: "dragon",     text: "Slay the Elder Dragon",                  check: (s) => (s.stats.missionWins.dragon || 0) >= 1, reward: { relics: 5 } },
   { id: "pop500",     text: "Reach 500 population",                   check: (s) => Economy.totalPop(s) >= 500,          reward: { relics: 5 } },
   { id: "citadel",    text: "Conquer the Shadow Citadel",             check: (s) => (s.stats.missionWins.citadel || 0) >= 1, reward: { relics: 8 } },
@@ -1319,10 +1507,10 @@ const GameState = {
       createdAt: Date.now(),
       lastTick: Date.now(),          // real-time timestamp used for offline progress
       time: 0,                       // game clock (seconds), advances in both online & offline ticks
-      resources: { gold: 200, food: 150, stone: 100, steel: 0, relics: 0 },
-      buildings: { townhall: 1, farm: 1, quarry: 1, steelworks: 0, house: 1, warehouse: 0, granary: 0, market: 0, barracks: 0, stables: 0, workshop: 0, temple: 0, academy: 0, walls: 0 },
+      resources: { gold: 200, food: 150, stone: 100, steel: 0, wood: 150, horses: 0, crystals: 0, relics: 0 },
+      buildings: { townhall: 1, farm: 1, quarry: 1, lumbercamp: 1, ranch: 0, magetower: 0, steelworks: 0, house: 1, warehouse: 0, granary: 0, market: 0, barracks: 0, stables: 0, workshop: 0, temple: 0, academy: 0, walls: 0 },
       population: { citizens: 6, growth: 0, starve: 0 },
-      jobs: { farmer: 3, miner: 1, blacksmith: 0, recruit: 0 },
+      jobs: { farmer: 3, miner: 1, lumberjack: 1, rancher: 0, arcanist: 0, blacksmith: 0, recruit: 0 },
       army: Object.fromEntries(Object.keys(UNITS).map((k) => [k, 0])),
       queue: [],                     // [{unit, remaining, total}]
       expeditions: [],               // [{id, mission, units, startAt, endAt, tactic}]
@@ -1341,9 +1529,11 @@ const GameState = {
       buffs: [],                     // [{id, until}] timed event bonuses
       offer: null,                   // a pending event offer {id, cost, get|unit,n, expires}
       nextEventAt: 600,
+      world: null,                   // the world map (generated on first visit)
+      veterancy: {},                 // unit type -> battle experience (veteran ranks)
       nextId: 1,
       log: [],                       // [{id, t, msg, type}]
-      stats: { goldEarned: 0, built: 0, trained: 0, won: 0, lost: 0, fallen: 0, deserted: 0, starved: 0, relicsFound: 0, playSeconds: 0, peakPop: 6, raidsWon: 0, raidsLost: 0, enemiesSlain: 0, battlesLed: 0, battlesLedWon: 0, missionWins: {} },
+      stats: { goldEarned: 0, built: 0, trained: 0, won: 0, lost: 0, fallen: 0, deserted: 0, starved: 0, relicsFound: 0, playSeconds: 0, peakPop: 6, raidsWon: 0, raidsLost: 0, enemiesSlain: 0, battlesLed: 0, battlesLedWon: 0, missionWins: {}, sitesRaided: 0, sitesCaptured: 0 },
     };
   },
   /** Merge a loaded save onto a fresh template so older saves gain new fields. */
@@ -1353,7 +1543,10 @@ const GameState = {
     for (const k of ["resources", "buildings", "population", "jobs", "army", "commander", "stats"]) out[k] = { ...base[k], ...(raw[k] || {}) };
     for (const k of Object.keys(out.army)) if (!UNITS[k]) delete out.army[k];
     out.queue = Array.isArray(raw.queue) ? raw.queue.filter((q) => UNITS[q.unit]) : [];
-    out.expeditions = Array.isArray(raw.expeditions) ? raw.expeditions.filter((e) => MISSIONS[e.mission]) : [];
+    out.expeditions = Array.isArray(raw.expeditions) ? raw.expeditions.filter((e) => MISSIONS[e.mission] || String(e.mission).startsWith("node:")) : [];
+    // saves from before wood existed get a lumber camp and some timber to start with
+    if (!raw.buildings || raw.buildings.lumbercamp === undefined) { out.buildings.lumbercamp = Math.max(1, out.buildings.townhall * 2); out.resources.wood = Math.max(out.resources.wood, 500); }
+    out.veterancy = { ...(raw.veterancy || {}) };
     out.log = Array.isArray(raw.log) ? raw.log.slice(-120) : [];
     if (!TACTICS[out.doctrine]) out.doctrine = "balanced";
     out.research = { levels: { ...((raw.research && raw.research.levels) || {}) }, current: (raw.research && raw.research.current && TECHS[raw.research.current.id]) ? raw.research.current : null };
@@ -1402,8 +1595,8 @@ function addLog(s, msg, type = "info") {
    3. ECONOMY MODULE (production, consumption, caps, population)
    ===================================================================== */
 const Economy = {
-  employed(s) { return s.jobs.farmer + s.jobs.miner + s.jobs.blacksmith; },
-  assigned(s) { return this.employed(s) + s.jobs.recruit; },
+  employed(s) { return Object.keys(JOBS).reduce((a, k) => a + (k === "recruit" ? 0 : s.jobs[k] || 0), 0); },
+  assigned(s) { return this.employed(s) + (s.jobs.recruit || 0); },
   unemployed(s) { return Math.max(0, s.population.citizens - this.assigned(s)); },
   housing(s) { const b = s.buildings; return b.townhall * 8 + b.house * 5 + b.barracks * 8; },
   totalPop(s) { return s.population.citizens + Military.soldierCount(s); },
@@ -1417,6 +1610,9 @@ const Economy = {
       food:  Math.floor((800 + b.granary * 700) * m),
       stone: Math.floor((1000 + b.warehouse * 600) * m),
       steel: Math.floor((500 + b.warehouse * 300) * m),
+      wood:  Math.floor((1000 + b.warehouse * 600) * m),
+      horses: Math.floor((40 + b.ranch * 60 + b.stables * 40) * m),
+      crystals: Math.floor((30 + b.magetower * 60) * m),
       relics: Infinity,
     };
   },
@@ -1438,9 +1634,14 @@ const Economy = {
       food: j.farmer * 1.1 * m * (1 + 0.1 * Research.lvl(s, "agriculture")) * (Events.active(s, "harvest") ? 1.5 : 1),
       stone: j.miner * 0.75 * m * (1 + 0.1 * Research.lvl(s, "masonry")),
       steel: j.blacksmith * 0.35 * m * (1 + 0.1 * Research.lvl(s, "metallurgy")),
+      wood: (j.lumberjack || 0) * 0.8 * m,
+      horses: (j.rancher || 0) * 0.08 * m,
+      crystals: (j.arcanist || 0) * 0.03 * m,
       relics: 0,
     };
-    const cons = { gold: up.gold, food: cit * BALANCE.foodPerCitizen * (1 - 0.05 * Research.lvl(s, "medicine")) + up.food, stone: j.blacksmith * 0.5, steel: 0, relics: 0 };
+    // territories on the world map pay out every second
+    for (const [r, v] of Object.entries(World.income(s))) prod[r] = (prod[r] || 0) + v;
+    const cons = { wood: 0, horses: 0, crystals: 0, gold: up.gold + (j.arcanist || 0) * 0.5, food: cit * BALANCE.foodPerCitizen * (1 - 0.05 * Research.lvl(s, "medicine")) + up.food + (j.rancher || 0) * 0.3, stone: j.blacksmith * 0.5, steel: 0, relics: 0 };
     // Blacksmiths can only smelt the stone that exists.
     let smeltEff = 1;
     if (cons.stone > 0) {
@@ -1458,7 +1659,7 @@ const Economy = {
     const caps = this.caps(s), got = {};
     for (const [r, v] of Object.entries(bundle)) {
       const before = s.resources[r];
-      s.resources[r] = Math.max(before, Math.min(caps[r], before + v * mult));
+      s.resources[r] = Math.max(before, Math.min(caps[r], before + Math.floor(v * mult)));
       got[r] = Math.max(0, s.resources[r] - before);
     }
     return got;
@@ -1668,6 +1869,11 @@ const Military = {
   },
   /** The mission with its enemy army filled in (the endless conquest is generated per stage). */
   mission(s, id) {
+    if (typeof id === "string" && id.startsWith("node:")) {
+      World.ensure(s);
+      const n = World.node(s, +id.slice(5));
+      return n ? World.asMission(s, n) : null;
+    }
     const m = MISSIONS[id];
     if (!m.endless) return { ...m, id, enemyTactic: m.fortified ? "holdline" : "balanced" };
     const c = this.conquestArmy(s), st = s.conquest, g = Math.pow(1.22, st - 1);
@@ -1686,15 +1892,21 @@ const Military = {
       attacker: "player", tactic: tactic || s.doctrine, enemyTactic: m.enemyTactic,
       walls: m.fortified ? { side: "enemy", level: m.fortified } : null,
       context: { kind, mission: id, stage: m.endless ? s.conquest : undefined, cmdLevel: s.commander.level, led: kind === "assault" },
-      bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) },
+      bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) }, vet: this.vetRanks(s),
     };
   },
+  /** Veteran ranks: each unit type earns experience from the enemies it kills (+6% attack & defense per rank, max 5). */
+  vetRank(xp) { return Math.min(5, Math.floor(Math.sqrt((xp || 0) / 150))); },
+  vetRanks(s) { return Object.fromEntries(Object.keys(UNITS).map((k) => [k, this.vetRank(s.veterancy[k])])); },
+  vetNext(xp) { const r = this.vetRank(xp); return r >= 5 ? null : 150 * (r + 1) * (r + 1); },
   estimate(s, id, units, tactic, n = 8) {
     if (this.sum(units) <= 0) return { chance: 0, losses: 1 };
     return Battle.estimate(this.battleOpts(s, id, units, "estimate", tactic), n);
   },
   deployBlocker(s, id, units, manual) {
-    const m = MISSIONS[id];
+    const m = this.mission(s, id);
+    if (!m) return "Unknown target";
+    if (m.node) { const nb = World.blocker(s, World.node(s, m.node)); if (nb) return nb; }
     if (s.commander.level < m.level) return `Commander level ${m.level} required`;
     if (s.battle) return "Finish the battle you are leading first";
     if (!manual && s.expeditions.length >= this.expeditionSlots(s)) return s.buildings.barracks ? "No free expedition slots" : "Build a Barracks first";
@@ -1763,7 +1975,7 @@ const Military = {
       attacker: "enemy", tactic: s.doctrine, enemyTactic: f.tactic,
       walls: s.buildings.walls > 0 ? { side: "player", level: s.buildings.walls, hpMult: 1 + 0.25 * Research.lvl(s, "fortification") } : null,
       context: { kind: "raid", raid: r.id, cmdLevel: s.commander.level },
-      bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) },
+      bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) }, vet: this.vetRanks(s),
     };
   },
   raidEstimate(s) { return s.raid ? Battle.estimate({ ...this.raidOpts(s), context: { kind: "estimate" } }, 6) : null; },
@@ -1800,6 +2012,14 @@ const Military = {
     s.stats.enemiesSlain += slain;
     const rep = { win, lost, slain, parts: [], kind: ctx.kind, title: b.title };
     if (win && ctx.led) s.stats.battlesLedWon++;
+    // veteran experience
+    for (const [t, xp] of Object.entries(b.vetXp || {})) {
+      if (!UNITS[t]) continue;
+      const before = this.vetRank(s.veterancy[t]);
+      s.veterancy[t] = (s.veterancy[t] || 0) + xp;
+      const after = this.vetRank(s.veterancy[t]);
+      if (after > before) addLog(s, `★ Your ${plural(UNITS[t].name, 2)} reached veteran rank ${after} (+${after * 6}% attack and defense)!`, "war");
+    }
 
     if (ctx.kind === "raid") {
       const r = s.raid;
@@ -1848,6 +2068,11 @@ const Military = {
         rep.parts.push(`${n} Relic${n > 1 ? "s" : ""}`);
       }
       if (m.endless && ctx.stage === s.conquest) { s.conquest++; rep.parts.push(`Conquest stage ${s.conquest} unlocked`); }
+      if (m.node) {
+        s.stats.sitesRaided++;
+        const res = World.onWin(s, World.node(s, m.node));
+        if (res === "captured") { s.stats.sitesCaptured++; rep.parts.push("Territory captured"); }
+      }
       addLog(s, `Victory at ${m.name}! Loot: ${rep.parts.join(", ") || "nothing"}. Soldiers lost: ${lost}, enemies slain: ${slain}.${wasted ? " Some loot was lost to full storage." : ""}`, "good");
     } else {
       s.stats.lost++;
@@ -2102,6 +2327,7 @@ const Engine = {
     Military.step(s, dt, shortage);
     Research.step(s, dt);
     Events.step(s);
+    World.step(s);
   },
 
   /** Simulate a long gap in chunks so expeditions and starvation resolve in the right order. */
@@ -2575,7 +2801,7 @@ const UI = {
           <div class="meta"><span>Enemy power <b>⚔ ${fmt(pw)}</b></span><span>Terrain <b>${MAP_TYPES[m.map]}</b></span><span>Duration <b>${fmtTime(m.duration)}</b></span>
             <span>XP <b>${m.xp}</b></span><span>Requires <b>Cmdr Lv ${m.level}</b></span></div>
           <div class="chips">${this.armyChips(m.army)}</div>
-          <div class="meta">Loot: ${Object.entries(m.loot).map(([r, [lo, hi]]) => `<span class="cost"><img data-asset="${RESOURCES[r].asset}" alt="">${fmt(lo)}–${fmt(hi)}</span>`).join("")}
+          <div class="meta">Loot: ${Object.entries(m.loot).map(([r, [lo, hi]]) => `<span class="cost"><img data-asset="${RESOURCES[r].asset}" alt="">${lo === hi ? fmt(lo) : fmt(lo) + "–" + fmt(hi)}</span>`).join("")}
             ${m.relic ? `<span class="cost"><img data-asset="res_relics" alt="">${Math.round(m.relic.chance * 100)}% for ${m.relic.n[0]}${m.relic.n[1] > m.relic.n[0] ? "–" + m.relic.n[1] : ""}</span>` : ""}</div>
           <div class="req" data-r="req"></div>
         </div>
@@ -2676,7 +2902,9 @@ const UI = {
     // ---- units
     for (const [id, u] of Object.entries(UNITS)) {
       const r = this.refs.units[id];
-      r.count.textContent = `${s.army[id] || 0} home`;
+      const vr = Military.vetRank(s.veterancy[id]);
+      r.count.textContent = `${vr ? "★".repeat(vr) + " " : ""}${s.army[id] || 0} home`;
+      r.count.title = vr ? `Veteran rank ${vr}: +${vr * 6}% attack and defense` : "Earn veteran ranks by killing enemies in battle";
       r.cost.innerHTML = this.costHtml(u.cost, s);
       const blk = Military.trainBlocker(s, id);
       r.b1.disabled = r.b5.disabled = r.b10.disabled = r.bmax.disabled = !!blk;
@@ -2769,6 +2997,7 @@ const UI = {
       <span class="muted">Conquest stage</span><b>${s.conquest}</b>
       <span class="muted">Battles led & won</span><b>${st.battlesLedWon}</b>
       <span class="muted">Research levels</span><b>${Research.total(s)}</b>
+      <span class="muted">Sites raided · territories</span><b>${st.sitesRaided} · ${World.territories(s).length}</b>
       <span class="muted">Peak population</span><b>${fmtInt(st.peakPop)}</b>`;
 
     AssetPipeline.applyAll($("#buildingList"));
@@ -2903,13 +3132,16 @@ const UI = {
       case "quarry": return `${b.quarry * 3} Miner slots`;
       case "steelworks": return `${b.steelworks * 2} Blacksmith slots`;
       case "house": return `${b.house * 5} housing from houses (total ${Economy.housing(s)})`;
-      case "warehouse": { const c = Economy.caps(s); return `Storage: ${fmt(c.gold)} Gold · ${fmt(c.stone)} Stone · ${fmt(c.steel)} Steel`; }
+      case "warehouse": { const c = Economy.caps(s); return `Storage: ${fmt(c.gold)} Gold · ${fmt(c.stone)} Stone · ${fmt(c.wood)} Wood · ${fmt(c.steel)} Steel`; }
       case "granary": return `Food storage: ${fmt(Economy.caps(s).food)}`;
       case "market": return `+${b.market * 3} Gold/s base · +${b.market * 5}% Gold`;
       case "barracks": return `${b.barracks * 10} Recruit slots · ${Military.expeditionSlots(s)} expedition slot(s) · +${Math.round((Military.trainSpeed(s) - 1) * 100)}% training speed`;
       case "stables": return b.stables >= 3 ? "Light Cavalry & Knights unlocked" : b.stables >= 1 ? "Light Cavalry unlocked (Knights at Lv 3)" : "Unlocks cavalry";
       case "workshop": return b.workshop >= 3 ? "Siege Engineers & Catapults unlocked" : b.workshop >= 1 ? "Siege Engineers unlocked (Catapults at Lv 3)" : "Unlocks siege units";
       case "temple": return `${b.temple >= 3 ? "Priests & Paladins" : b.temple >= 1 ? "Priests (Paladins at Lv 3)" : "Unlocks holy units"} · +${(b.temple * 0.2).toFixed(1)} morale/s`;
+      case "lumbercamp": return `${b.lumbercamp * 3} Lumberjack slots`;
+      case "ranch": return `${b.ranch * 2} Rancher slots · Horse storage ${fmt(Economy.caps(s).horses)}`;
+      case "magetower": return `${b.magetower * 2} Arcanist slots · Crystal storage ${fmt(Economy.caps(s).crystals)}`;
       case "academy": return b.academy ? `Research ${Math.round(15 * (b.academy - 1))}% faster · techs up to tier ${b.academy}` : "Unlocks Research";
       case "walls": return b.walls ? `Wall HP ${Math.round(120 * (1 + 0.5 * b.walls) * (1 + 0.25 * Research.lvl(s, "fortification")))} · ${Math.max(1, 4 - Math.floor(b.walls / 2))} gap(s) · plunder −${Math.round(Math.min(0.5, b.walls * 0.04) * 100)}%` : "No walls: raiders walk straight in";
     }
@@ -2962,6 +3194,7 @@ const UI = {
         <span>Enemy power <b style="color:var(--text)">⚔ ${fmt(armyPower(m.army))}</b></span><span>Terrain <b style="color:var(--text)">${MAP_TYPES[m.map]}</b></span><span>Duration <b style="color:var(--text)">${fmtTime(m.duration)}</b></span>
         ${m.fortified ? '<span class="tag">Fortified: bring siege units</span>' : ""}</div>
       <div class="chips" style="margin-bottom:8px">${this.armyChips(m.army)}</div>
+      ${m.node ? `<div class="costs" style="margin-bottom:8px">Loot: ${Object.entries(m.loot).map(([r, [v]]) => `<span class="cost"><img data-asset="${RESOURCES[r].asset}" alt="">${fmt(v)}</span>`).join("")}${m.relic ? `<span class="cost"><img data-asset="res_relics" alt="">${m.relic.n[0]}</span>` : ""} <span class="dim">· win to capture it as a territory</span></div>` : ""}
       ${rows || '<div class="empty">No troops at home.</div>'}
       <label class="field" style="margin-top:10px"><span>Tactic</span><select id="depTactic">${tactics}</select></label>
       <div class="dim" id="depTacticDesc" style="font-size:12px;margin:-4px 0 8px"></div>
@@ -3136,6 +3369,7 @@ const Actions = {
     if (est) UI.toast(`If your captains fight: about ${Math.round(est.chance * 100)}% chance to win, losing about ${Math.round(est.losses * 100)}% of your army.`, 6000);
   },
   resumeBattle: () => UI.openBattle(),
+  worldMap: () => { UI.closeModal(); WorldUI.show(); },
   recall: (d) => { Military.recall(GameState.current, Number(d.id)); UI.update(); },
   closeModal: () => UI.closeModal(),
   closeModalBg: (d, e) => { if (e.target.classList.contains("modal-back")) UI.closeModal(); },

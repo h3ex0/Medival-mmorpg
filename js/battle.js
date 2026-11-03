@@ -266,6 +266,8 @@ const Battle = {
       context: opts.context || {},
       bonus: { player: 1, enemy: 1, ...(opts.bonus || {}) },
       defBonus: { player: 1, enemy: 1, ...(opts.defBonus || {}) },
+      vet: { ...(opts.vet || {}) },       // player unit type -> veteran rank (each rank: +6% attack and defense)
+      vetXp: {},                          // player unit type -> enemy power destroyed in this battle
       cmd: { level: (opts.context && opts.context.cmdLevel) || 1, power: armyPower(opts.playerUnits), cd: { rally: 0, barrage: 0, warcry: 0, march: 0 }, warcry: 0, march: 0 },
       initial: { player: { ...opts.playerUnits }, enemy: { ...opts.enemyUnits } },
       log: [], result: null,
@@ -357,7 +359,7 @@ const Battle = {
     if (d.flying) return 1;
     if (t === "wall") return b.wallSide === s.side ? 1 : Infinity;
     let c = TERRAIN[t].move;
-    if (d.cls === "cav" && TERRAIN[t].cavExtra) c += 1;
+    if ((d.cls === "cav" || d.mounted) && TERRAIN[t].cavExtra) c += 1;
     if (d.cls === "siege" && t !== "plains" && t !== "bridge") c += 1;
     return c;
   },
@@ -492,7 +494,8 @@ const Battle = {
     if (ea > ed) m *= 1.2; else if (ea < ed) m *= 0.85;
     if (A.antiCav && D.cls === "cav") m *= 2;
     if (A.cls === "cav" && D.cls === "ranged") m *= 1.5;
-    if (A.vsBig && D.big) m *= 1.6;
+    if (A.vsBig && D.big) m *= A.slayer ? 2.5 : 1.6;
+    if (att.side === "player" && b.vet) m *= 1 + 0.06 * (b.vet[att.type] || 0);
     if (dist > 1 && TERRAIN[dt].cover) m *= TERRAIN[dt].cover;
     if (!retal && A.charge && att.movedDist >= 3) m *= ta.charge || 1.5;
     if ((A.cls === "ranged" || A.cls === "siege") && dist === 1 && A.rng > 1) m *= 0.6;
@@ -501,6 +504,7 @@ const Battle = {
     defense *= (td.def && td.def[D.cls]) || 1;
     defense *= td.defAll || 1;
     defense *= (b.defBonus && b.defBonus[def.side]) || 1;
+    if (def.side === "player" && b.vet) defense *= 1 + 0.06 * (b.vet[def.type] || 0);
     if (td.hold && !def.moved) defense *= td.hold;
     if (A.armorPierce) defense *= 0.6;
     return this.count(att) * A.atk * m * 8 / (8 + defense);
@@ -524,6 +528,22 @@ const Battle = {
     const an = udef(att.type).name, dn = udef(def.type).name;
     let msg = `${att.side === "player" ? "Your" : "Enemy"} ${an} hit ${dn}: ${killed} killed`;
     if (def.hp <= 0) msg += ` (squad destroyed)`;
+    if (att.side === "player" && killed > 0) b.vetXp[att.type] = (b.vetXp[att.type] || 0) + killed * unitPower(udef(def.type));
+    // splash damage (battle mages): nearby enemy squads take part of the blast
+    const A0 = udef(att.type);
+    if (A0.splash) {
+      let splashKills = 0;
+      for (const o of this.alive(b, def.side)) {
+        if (o === def || this.dist(o, def) > 1) continue;
+        const b4 = this.count(o);
+        o.hp = Math.max(0, o.hp - this.damage(b, att, o) * A0.splash);
+        const k = b4 - this.count(o);
+        splashKills += k;
+        if (att.side === "player" && k > 0) b.vetXp[att.type] = (b.vetXp[att.type] || 0) + k * unitPower(udef(o.type));
+        events.push({ x: o.x, y: o.y, text: `−${k}`, cls: "hit", id: o.id });
+      }
+      if (splashKills) msg += `, +${splashKills} more caught in the blast`;
+    }
     const rf = this.retaliationFactor(b, att, def);
     if (rf > 0) {
       const b4 = this.count(att);
@@ -1012,10 +1032,11 @@ const BattleUI = {
   },
   squadCard(s, mine) {
     const b = this.b, d = udef(s.type), t = Battle.terrainAt(b, s);
-    const traits = [d.antiCav && "Anti-cavalry ×2", d.charge && "Charge", d.armorPierce && "Armor-piercing", d.heal && `Heals ${d.heal}/soldier`, d.breach && "Breaches walls", d.vsBig && "×1.6 vs giants", d.flying && "Flying", d.regen && "Regenerates", d.minRng && `Min range ${d.minRng}`].filter(Boolean);
+    const traits = [d.antiCav && "Anti-cavalry ×2", d.charge && "Charge", d.armorPierce && "Armor-piercing", d.heal && `Heals ${d.heal}/soldier`, d.breach && "Breaches walls", d.vsBig && (d.slayer ? "×2.5 vs giants" : "×1.6 vs giants"), d.splash && "Splash damage", d.mounted && "Mounted", d.flying && "Flying", d.regen && "Regenerates", d.minRng && `Min range ${d.minRng}`].filter(Boolean);
     return `<div class="bf-h">${s.side === "player" ? "Your" : "Enemy"} ${esc(d.name)} ×${Battle.count(s)}</div>
       <div class="bf-stats"><span>HP <b>${Math.ceil(s.hp)}/${s.maxHp}</b></span><span>ATK <b>${d.atk}</b></span><span>DEF <b>${d.def}</b></span><span>RNG <b>${Battle.range(b, s)}</b></span><span>MOVE <b>${Battle.moveRange(b, s)}</b></span><span>Power <b>${fmt(unitPower(d) * Battle.count(s))}</b></span></div>
       ${traits.length ? `<div class="dim" style="font-size:11.5px;margin-top:4px">${traits.join(" · ")}</div>` : ""}
+      ${s.side === "player" && b.vet && b.vet[s.type] ? `<div style="font-size:11.5px;color:var(--accent-2)">${"★".repeat(b.vet[s.type])} Veteran rank ${b.vet[s.type]} (+${b.vet[s.type] * 6}% attack/defense)</div>` : ""}
       <div style="font-size:11.5px;margin-top:4px">On <b>${t.name}</b>${s.braced ? " · <b class='good'>Braced</b>" : ""}${mine && b.phase === "battle" ? ` · ${s.acted ? "done" : s.moved ? "moved, can still attack" : "ready"}` : ""}</div>`;
   },
   hover(i) {
