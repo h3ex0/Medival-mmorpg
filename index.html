@@ -582,6 +582,55 @@ input[type=text], input[type=password], input[type=number], select, textarea { b
 .mark.m-fire { display: flex; align-items: center; justify-content: center; background: rgba(255,90,0,0.35); box-shadow: inset 0 0 12px rgba(255,140,0,0.9); animation: flicker 0.6s ease-in-out infinite alternate; z-index: 1; }
 .mark.m-fire span { font-size: calc(var(--cell) * 0.45); opacity: 0.9; }
 @keyframes flicker { from { opacity: 0.75; } to { opacity: 1; } }
+/* isometric city map */
+.plots { position: absolute; left: 0; right: 0; top: 96px; bottom: 84px; overflow: hidden; cursor: grab; touch-action: none; }
+.plots.dragging { cursor: grabbing; }
+.citymap { position: absolute; left: 50%; top: 50%; transform-origin: center; }
+.ground { position: absolute; transform: rotateX(60deg) rotateZ(45deg); transform-origin: center; background-color: #4f6d32; background-image: var(--tex-grass); background-size: var(--cell) var(--cell); box-shadow: 0 0 0 6px #3b2a14, 0 0 0 10px #241809, 0 30px 60px rgba(0,0,0,0.8); border-radius: 6px; }
+.gc { position: absolute; width: var(--cell); height: var(--cell); }
+.gc.g-edge { background: rgba(20, 40, 12, 0.25); }
+.gc.g-road, .gc.g-plaza { background-color: #77736a; background-image: var(--tex-road); background-size: cover; box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.25); }
+.gc.g-plaza { filter: brightness(1.12) sepia(0.15); }
+.gc.g-plot { background-color: #6b5434; background-image: var(--tex-plot); background-size: cover; box-shadow: inset 0 0 0 2px rgba(60,40,15,0.6), inset 0 0 10px rgba(0,0,0,0.35); cursor: pointer; transition: filter 0.15s, box-shadow 0.15s; }
+.gc.g-plot:hover { filter: brightness(1.25); box-shadow: inset 0 0 0 3px #f6dc8c, 0 0 12px rgba(246,220,140,0.6); }
+.gc.g-plot.g-locked { background-image: none; background-color: rgba(30, 50, 20, 0.35); box-shadow: inset 0 0 0 2px rgba(120,90,40,0.35); cursor: default; filter: none; }
+.sprites { position: absolute; inset: 0; pointer-events: none; }
+.sprites > * { pointer-events: auto; }
+.deco { position: absolute; width: var(--w); transform: translate(-50%, -82%); pointer-events: none !important; filter: drop-shadow(0 6px 4px rgba(0,0,0,0.45)); }
+.spr { position: absolute; width: var(--w); transform: translate(-50%, -80%); cursor: pointer; text-align: center; }
+.spr .body { width: 100%; display: block; filter: drop-shadow(0 8px 6px rgba(0,0,0,0.55)); transition: filter 0.15s, transform 0.15s; transform-origin: bottom center; }
+.spr:hover .body { filter: drop-shadow(0 8px 6px rgba(0,0,0,0.55)) drop-shadow(0 0 10px rgba(246,220,140,0.75)) brightness(1.08); transform: translateY(-3px); }
+.spr.active .body { filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 14px rgba(246,220,140,0.9)); }
+.spr.new-build .body { opacity: 0.95; }
+.spr .scaf-over { position: absolute; left: 12%; bottom: 8%; width: 76%; opacity: 0.92; pointer-events: none; }
+.spr.badge .pimg { width: calc(var(--w) * 0.7); height: calc(var(--w) * 0.7); margin: 0 auto; }
+.spr .plvl { position: absolute; top: 12%; right: 8%; min-width: 22px; height: 22px; padding: 0 4px; border-radius: 11px; background: radial-gradient(circle at 35% 30%, #f8dd8c, #a0701f); color: #2a1a05; font-weight: 800; font-size: 11px; line-height: 19px; border: 2px solid #2a1a05; box-shadow: 0 2px 6px rgba(0,0,0,0.7); z-index: 2; }
+.spr .pup { position: absolute; font-size: 18px; color: #6dff7a; text-shadow: 0 0 8px rgba(80,255,100,0.9), 0 2px 2px #000; animation: bob 1.2s ease-in-out infinite; z-index: 2; }
+.spr .pname { display: inline-block; padding: 2px 8px; font-family: var(--font-display); font-size: 11px; color: var(--gold-1); background: linear-gradient(180deg, #2b1f10, #160f07); border: 1px solid var(--gold-3); border-radius: 4px; box-shadow: 0 3px 8px rgba(0,0,0,0.7); white-space: nowrap; text-shadow: 0 1px 2px #000; z-index: 3; }
+.spr .pwork { position: absolute; left: 50%; font-size: 10px; font-weight: 700; background: rgba(0,0,0,0.78); color: #e9d7a7; padding: 0 5px; border-radius: 6px; white-space: nowrap; opacity: 0; transition: opacity 0.15s; }
+.spr:hover .pwork, .spr.active .pwork { opacity: 1; }
+.spr.th .plvl { top: 14%; right: 14%; transform: scale(1.1); }
+.spr .pup { top: 4%; left: 14%; }
+.spr .pname { position: absolute; left: 50%; bottom: -14px; transform: translateX(-50%); opacity: 0; transition: opacity 0.15s; pointer-events: none; }
+.spr:hover .pname, .spr.active .pname, .spr.th .pname { opacity: 1; }
+.spr .pwork { bottom: 4px; transform: translateX(-50%) scale(0.9); }
+.spr .cbar { position: absolute; left: 18%; right: 18%; bottom: 2px; height: 9px; background: rgba(0,0,0,0.75); border: 1px solid #000; border-radius: 5px; overflow: hidden; }
+.spr .cbar i { display: block; height: 100%; background: linear-gradient(90deg, #2f8d3c, #8de38a); transition: width 1s linear; }
+.spr .cbar b { position: absolute; left: 50%; top: -17px; transform: translateX(-50%); font-size: 11px; color: #8de38a; background: rgba(0,0,0,0.8); padding: 0 5px; border-radius: 5px; white-space: nowrap; }
+.spr .prodpop { top: 4%; }
+.lotmark { position: absolute; transform: translate(-50%, -60%); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.lotmark.empty { width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #f8dd8c, #a0701f); color: #2a1a05; font-weight: 900; font-size: 22px; border: 2px solid #2a1a05; box-shadow: 0 4px 10px rgba(0,0,0,0.6), 0 0 14px rgba(246,220,140,0.6); cursor: pointer; animation: bob 1.6s ease-in-out infinite; }
+.lotmark.empty:hover { filter: brightness(1.15); }
+.lotmark.locked { font-size: 14px; opacity: 0.55; pointer-events: none !important; filter: grayscale(0.4); }
+.lotmark.locked small { font-size: 9px; color: #e9d7a7; background: rgba(0,0,0,0.6); padding: 0 4px; border-radius: 4px; }
+.map-ctrl { position: absolute; right: 310px; bottom: 10px; display: flex; flex-direction: column; gap: 4px; z-index: 5; }
+.map-ctrl button { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--gold-3); background: linear-gradient(180deg, #3d2d17, #1f160b); color: var(--gold-1); font-size: 18px; cursor: pointer; }
+@media (max-width: 1100px) { .map-ctrl { right: 12px; } }
+@media (max-width: 820px) {
+  .plots { position: fixed !important; left: 0 !important; right: 0 !important; top: 300px !important; bottom: 128px !important; height: auto !important; display: block !important; padding: 0 !important; }
+  .scene { z-index: 0; }
+  .map-ctrl { right: 8px; bottom: 8px; }
+}
 /* city lots */
 .plot.lot .lot-dirt { display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 45% 40%, #6b5434, #3a2c18 70%); border-style: dashed; border-color: #7a5a2a; }
 .plot.empty-lot .lot-dirt span { font-size: 34px; color: #f6dc8c; text-shadow: 0 0 10px rgba(246,220,140,0.8); animation: bob 1.6s ease-in-out infinite; }
@@ -937,7 +986,8 @@ img.inl { width: 16px; height: 16px; vertical-align: -3px; border-radius: 3px; }
   "portrait": "Square character portrait, chest-up, facing slightly toward the viewer, dark moody background.",
   "banner": "Wide cinematic establishing shot, 16:9 composition, atmospheric depth.",
   "backdrop": "Wide panoramic 16:9 landscape, darker toward the bottom so UI text stays readable.",
-  "tile": "Seamless square top-down terrain texture for a tactics game board, viewed from directly above with no perspective and no horizon, evenly lit, edges that tile cleanly."
+  "tile": "Seamless square top-down terrain texture for a tactics game board, viewed from directly above with no perspective and no horizon, evenly lit, edges that tile cleanly.",
+  "sprite": "Single isolated game building sprite in isometric 3/4 view from above (about 30 degrees), centered, the whole object fully visible with some margin, painted on a perfectly flat solid pure magenta (#FF00FF) background. No ground plane, no shadow, no other objects, no text."
  },
  "assets": [
   {
@@ -1772,6 +1822,181 @@ img.inl { width: 16px; height: 16px; vertical-align: -3px; border-radius: 3px; }
    "emoji": "🖤",
    "hue": 280,
    "prompt": "A terrifying dark lord in black spiked plate armor with glowing red eyes"
+  },
+  {
+   "key": "s_townhall",
+   "kind": "sprite",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A medieval grand medieval town hall with a clock tower and banners"
+  },
+  {
+   "key": "s_farm",
+   "kind": "sprite",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A medieval medieval farmstead with golden wheat fields and a small barn"
+  },
+  {
+   "key": "s_quarry",
+   "kind": "sprite",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A medieval stone quarry cut into a cliff with a wooden crane and pickaxes"
+  },
+  {
+   "key": "s_lumbercamp",
+   "kind": "sprite",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A medieval medieval lumber camp with a sawmill, log piles and axes"
+  },
+  {
+   "key": "s_ranch",
+   "kind": "sprite",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A medieval medieval horse ranch with fenced paddocks and a barn"
+  },
+  {
+   "key": "s_magetower",
+   "kind": "sprite",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A medieval tall arcane mage tower with floating crystals and blue glow"
+  },
+  {
+   "key": "s_brewery",
+   "kind": "sprite",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A medieval medieval brewery with copper kettles, barrels and a hop garden"
+  },
+  {
+   "key": "s_steelworks",
+   "kind": "sprite",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A medieval medieval steelworks forge with glowing furnace, anvil and chimney smoke"
+  },
+  {
+   "key": "s_house",
+   "kind": "sprite",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A medieval cozy timber-framed medieval cottage with thatched roof and lit windows"
+  },
+  {
+   "key": "s_warehouse",
+   "kind": "sprite",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A medieval large wooden medieval warehouse with crates and barrels outside"
+  },
+  {
+   "key": "s_granary",
+   "kind": "sprite",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A medieval round stone medieval granary with conical roof and grain sacks"
+  },
+  {
+   "key": "s_market",
+   "kind": "sprite",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A medieval bustling medieval market square with colorful stalls and awnings"
+  },
+  {
+   "key": "s_barracks",
+   "kind": "sprite",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A medieval fortified medieval barracks with training yard, weapon racks and red banners"
+  },
+  {
+   "key": "s_stables",
+   "kind": "sprite",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A medieval medieval stables with horses, hay bales and a wooden paddock"
+  },
+  {
+   "key": "s_workshop",
+   "kind": "sprite",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A medieval medieval siege workshop with a half-built trebuchet and timber"
+  },
+  {
+   "key": "s_temple",
+   "kind": "sprite",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A medieval white stone medieval temple with golden dome and glowing windows"
+  },
+  {
+   "key": "s_academy",
+   "kind": "sprite",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A medieval medieval academy with a library tower, observatory dome and scholars"
+  },
+  {
+   "key": "s_walls",
+   "kind": "sprite",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A medieval section of thick medieval stone city walls with a gatehouse and towers"
+  },
+  {
+   "key": "s_scaffold",
+   "kind": "sprite",
+   "emoji": "🏗️",
+   "hue": 30,
+   "prompt": "Wooden construction scaffolding with ladders, a small wooden crane and stacked timber and stone blocks"
+  },
+  {
+   "key": "s_tree1",
+   "kind": "sprite",
+   "emoji": "🌳",
+   "hue": 110,
+   "prompt": "A lush round oak tree"
+  },
+  {
+   "key": "s_tree2",
+   "kind": "sprite",
+   "emoji": "🌲",
+   "hue": 120,
+   "prompt": "A tall dark green pine tree"
+  },
+  {
+   "key": "s_well",
+   "kind": "sprite",
+   "emoji": "⛲",
+   "hue": 210,
+   "prompt": "A small round stone village well with a wooden roof and bucket"
+  },
+  {
+   "key": "s_hay",
+   "kind": "sprite",
+   "emoji": "🌾",
+   "hue": 45,
+   "prompt": "Two golden haystacks next to a wooden cart"
+  },
+  {
+   "key": "t_cobble",
+   "kind": "tile",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "Grey medieval cobblestone street paving"
+  },
+  {
+   "key": "t_dirtplot",
+   "kind": "tile",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "Packed brown earth building plot with a few small stones, edged by a thin border of wooden stakes"
   }
  ]
 }
@@ -3304,7 +3529,7 @@ const AssetPipeline = {
   staticManifest: {},     // key -> relative path
   db: null,
   busy: false,
-  SIZES: { icon: [256, 256], portrait: [384, 384], banner: [960, 540], backdrop: [1600, 900], tile: [128, 128] },
+  SIZES: { icon: [256, 256], portrait: [384, 384], banner: [960, 540], backdrop: [1600, 900], tile: [128, 128], sprite: [512, 512] },
   DEFAULT_BASE: "https://api.code.signor.ai/api-2/v1",
   KEY_STORAGE: "ironhold_api_key",
   CFG_STORAGE: "ironhold_api_cfg",
@@ -3669,6 +3894,173 @@ const City = {
   },
 };
 
+/* =====================================================================
+   7a-2. CITY MAP: an isometric town ground with roads and building plots
+   ---------------------------------------------------------------------
+   A 13×10 tile grid: cobblestone roads every third row/column split the
+   ground into 2×2 blocks of plots. The Town Hall stands on the central
+   block; the 39 building lots are the plots around it, nearest first, so
+   the city grows outward as the Town Hall unlocks more. Leftover plots
+   become gardens (a well, haystacks, trees).
+   The ground is a CSS-rotated grid (rotateX 60° · rotateZ 45°); buildings
+   are upright sprites on a flat layer, placed with the same projection.
+   ===================================================================== */
+const CityMap = {
+  cols: 13, rows: 10, cell: 64, margin: 1,
+  init() {
+    if (this.lots) return;
+    const cells = [];
+    for (let r = 0; r < this.rows; r++) for (let c = 0; c < this.cols; c++) {
+      if (this.isRoad(r, c) || this.isPlaza(r, c)) continue;
+      const d = Math.hypot(r + 0.5 - 5, c + 0.5 - 5), a = Math.atan2(r + 0.5 - 5, c + 0.5 - 5);
+      cells.push({ r, c, d, a });
+    }
+    cells.sort((x, y) => x.d - y.d || x.a - y.a);
+    this.lots = [{ r: 4, c: 4, th: true }, ...cells.slice(0, City.MAX_LOTS - 1)];
+    this.gardens = cells.slice(City.MAX_LOTS - 1);
+    const W = (this.cols + 2 * this.margin) * this.cell, H = (this.rows + 2 * this.margin) * this.cell;
+    this.gw = W; this.gh = H;
+    this.head = this.cell * 2.6;                        // room above the ground for tall buildings
+    this.bw = (W + H) / Math.SQRT2;
+    this.bh = (W + H) / (2 * Math.SQRT2) + this.head;
+    this.gcx = this.bw / 2; this.gcy = this.head + (this.bh - this.head) / 2;
+  },
+  isRoad(r, c) { return r % 3 === 0 || c % 3 === 0; },
+  isPlaza(r, c) { return r >= 4 && r <= 5 && c >= 4 && c <= 5; },
+  /** Screen position (inside the map box) of a point given in tile units (col, row), measured inside the play area. */
+  project(col, row) {
+    const x = (col + this.margin) * this.cell - this.gw / 2, y = (row + this.margin) * this.cell - this.gh / 2;
+    return [this.gcx + (x - y) / Math.SQRT2, this.gcy + (x + y) / (2 * Math.SQRT2)];
+  },
+  center(i) { const L = this.lots[i]; return L.th ? this.project(5, 5) : this.project(L.c + 0.5, L.r + 0.5); },
+  depth(i) { const L = this.lots[i]; return L.th ? 10 : L.r + L.c + 1; },
+};
+
+const CityView = {
+  zoom: window.innerWidth < 820 ? 1.9 : 1.15, panX: 0, panY: 0, built: false,
+  sprite(key) { return AssetPipeline.hasArt(key) ? AssetPipeline.src(key) : null; },
+  tex(key) { return AssetPipeline.hasArt(key) ? `url('${AssetPipeline.src(key)}')` : ""; },
+  /** Build the ground (once) and the controls. */
+  buildGround() {
+    CityMap.init();
+    const host = $("#cityPlots"), M = CityMap, c = M.cell;
+    let g = "";
+    for (let r = -M.margin; r < M.rows + M.margin; r++) for (let col = -M.margin; col < M.cols + M.margin; col++) {
+      const inside = r >= 0 && col >= 0 && r < M.rows && col < M.cols;
+      let cls = "gc";
+      if (!inside) cls += " g-edge";
+      else if (M.isPlaza(r, col)) cls += " g-plaza";
+      else if (M.isRoad(r, col)) cls += " g-road";
+      else cls += " g-plot";
+      const li = inside ? M.lots.findIndex((L) => !L.th && L.r === r && L.c === col) : -1;
+      g += `<div class="${cls}" ${li > 0 ? `id="gc-${li}" data-action="lot" data-i="${li}"` : ""} style="left:${(col + M.margin) * c}px;top:${(r + M.margin) * c}px"></div>`;
+    }
+    host.innerHTML = `<div class="citymap" id="cityMap" style="width:${M.bw}px;height:${M.bh}px">
+        <div class="ground" style="left:${M.gcx - M.gw / 2}px;top:${M.gcy - M.gh / 2}px;width:${M.gw}px;height:${M.gh}px;--cell:${c}px">${g}</div>
+        <div class="sprites" id="citySprites"></div>
+      </div>
+      <div class="map-ctrl"><button data-action="mapZoom" data-d="1.15" title="Zoom in">＋</button><button data-action="mapZoom" data-d="0.87" title="Zoom out">－</button><button data-action="mapZoom" data-d="0" title="Reset view">⟲</button></div>`;
+    this.applyTextures();
+    this.bindPan();
+    this.built = true;
+    this.fit();
+  },
+  applyTextures() {
+    const grass = this.tex("t_plains"), road = this.tex("t_cobble"), plot = this.tex("t_dirtplot");
+    const root = document.documentElement.style;
+    root.setProperty("--tex-grass", grass || "none");
+    root.setProperty("--tex-road", road || "none");
+    root.setProperty("--tex-plot", plot || "none");
+  },
+  fit() {
+    const host = $("#cityPlots"), map = $("#cityMap");
+    if (!host || !map) return;
+    const k = Math.min(host.clientWidth / CityMap.bw, host.clientHeight / CityMap.bh) * this.zoom;
+    this.k = k;
+    map.style.transform = `translate(-50%, -50%) translate(${this.panX}px, ${this.panY}px) scale(${k})`;
+  },
+  bindPan() {
+    if (this._bound) return;
+    this._bound = true;
+    const host = $("#cityPlots");
+    let drag = null;
+    host.addEventListener("pointerdown", (e) => { if (e.button !== 0) return; drag = { x: e.clientX, y: e.clientY, px: this.panX, py: this.panY, moved: false }; });
+    window.addEventListener("pointermove", (e) => {
+      if (!drag) return;
+      const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+      if (Math.abs(dx) + Math.abs(dy) > 6) drag.moved = true;
+      if (drag.moved) { this.panX = drag.px + dx; this.panY = drag.py + dy; this.fit(); host.classList.add("dragging"); }
+    });
+    window.addEventListener("pointerup", () => { if (drag && drag.moved) { this.justDragged = true; setTimeout(() => (this.justDragged = false), 60); } drag = null; host.classList.remove("dragging"); });
+    host.addEventListener("click", (e) => { if (this.justDragged) { e.stopPropagation(); e.preventDefault(); } }, true);
+    host.addEventListener("wheel", (e) => { e.preventDefault(); this.zoomBy(e.deltaY < 0 ? 1.1 : 0.91); }, { passive: false });
+    window.addEventListener("resize", () => this.fit());
+  },
+  zoomBy(f) {
+    if (!f) { this.zoom = window.innerWidth < 820 ? 1.9 : 1.15; this.panX = 0; this.panY = 0; }
+    else this.zoom = clamp(this.zoom * f, 0.6, 2.6);
+    this.fit();
+  },
+
+  /** Draw the buildings, markers and decorations; then live-update timers and badges. */
+  update(s) {
+    if (!this.built || !$("#cityMap")) this.buildGround();
+    const M = CityMap, lots = City.lots(s);
+    const sig = lots + "|" + s.city.slots.map((sl) => (sl ? sl.type + sl.level + (sl.build ? "b" + sl.build.to : "") : "-")).join(",") + "|" + Object.keys(AssetPipeline.staticManifest).length + AssetPipeline.memory.size;
+    if (sig !== this.sig) {
+      this.sig = sig;
+      this.applyTextures();
+      let h = "";
+      // gardens and trees
+      const deco = ["s_well", "s_hay", "s_tree1", "s_tree2", "s_tree1"];
+      M.gardens.forEach((L, k) => {
+        const [x, y] = M.project(L.c + 0.5, L.r + 0.5), src = this.sprite(deco[k % deco.length]);
+        if (src) h += `<img class="deco" src="${src}" alt="" style="left:${x}px;top:${y}px;z-index:${L.r + L.c};--w:${M.cell * 1.2}px">`;
+      });
+      for (let r = -1; r <= M.rows; r++) for (let c = -1; c <= M.cols; c++) {
+        if (r >= 0 && c >= 0 && r < M.rows && c < M.cols) continue;
+        if ((r * 7 + c * 13) % 3) continue;
+        const [x, y] = M.project(c + 0.5, r + 0.5), src = this.sprite((r + c) % 2 ? "s_tree1" : "s_tree2");
+        if (src) h += `<img class="deco" src="${src}" alt="" style="left:${x}px;top:${y}px;z-index:${r + c};--w:${M.cell * 1.3}px">`;
+      }
+      s.city.slots.forEach((sl, i) => {
+        if (i >= M.lots.length) return;
+        const [x, y] = M.center(i), z = M.depth(i) + 20;
+        const g = $("#gc-" + i);
+        if (g) g.classList.toggle("g-locked", i >= lots);
+        if (i >= lots) { h += `<div class="lotmark locked" style="left:${x}px;top:${y}px;z-index:${z}" title="Unlocks at Town Hall level ${City.lotUnlockTH(i)}">🔒</div>`; return; }
+        if (!sl) { h += `<div class="lotmark empty" id="lot-${i}" data-action="lot" data-i="${i}" style="left:${x}px;top:${y}px;z-index:${z}" title="Empty plot: click to build">＋</div>`; return; }
+        const B = BUILDINGS[sl.type], src = this.sprite("s_" + sl.type);
+        const w = (i === 0 ? 2.5 : 1.38) * M.cell;
+        const under = sl.build && sl.level === 0;
+        const scaff = this.sprite("s_scaffold");
+        h += `<div class="spr ${src ? "" : "badge"} ${under ? "new-build" : ""} ${i === 0 ? "th" : ""}" id="lot-${i}" data-action="lot" data-i="${i}" style="left:${x}px;top:${y}px;z-index:${z};--w:${w}px">
+          ${under && scaff ? `<img class="body" src="${scaff}" alt="">` : src ? `<img class="body" src="${src}" alt="">` : `<div class="pimg"><img src="${AssetPipeline.src(B.asset)}" alt=""></div>`}
+          ${sl.build && !under && scaff ? `<img class="scaf-over" src="${scaff}" alt="">` : ""}
+          ${sl.build ? `<div class="cbar"><i data-ring="${i}"></i><b data-bt="${i}"></b></div>` : ""}
+          <span class="plvl">${sl.level}</span><span class="pup hidden" data-up="${i}">▲</span>
+          ${JOB_OF[sl.type] ? `<span class="pwork" data-work="${i}"></span>` : ""}
+          <div class="pname">${B.name}</div></div>`;
+      });
+      $("#citySprites").innerHTML = h;
+    }
+    // live parts
+    const busyAll = City.busy(s) >= City.builders(s);
+    s.city.slots.forEach((sl, i) => {
+      if (!sl || i >= lots) return;
+      if (sl.build) {
+        const r = $(`[data-ring="${i}"]`); if (r) r.style.width = ((1 - sl.build.remaining / sl.build.total) * 100).toFixed(1) + "%";
+        const t = $(`[data-bt="${i}"]`); if (t) t.textContent = fmtTime(sl.build.remaining);
+      }
+      const up = $(`[data-up="${i}"]`);
+      if (up) up.classList.toggle("hidden", busyAll || !!City.blocker(s, sl.type, i));
+      const wk = $(`[data-work="${i}"]`);
+      if (wk) { const j = JOB_OF[sl.type]; wk.textContent = `👷 ${s.jobs[j]}/${Economy.jobSlots(s, j)}`; }
+    });
+    $$("#citySprites .spr").forEach((el) => el.classList.toggle("active", HUD.open === "building" && +el.dataset.i === HUD.lot));
+  },
+};
+
 const JOB_OF = Object.fromEntries(Object.entries(JOBS).map(([j, d]) => [d.building, j]));
 // (legacy fixed layout, no longer used)
 const CITY_LAYOUT = {
@@ -3790,38 +4182,7 @@ const HUD = {
   /* ===================== the city scene ===================== */
   updateCity(s) {
     const lots = City.lots(s);
-    const sig = lots + "|" + s.city.slots.map((sl) => (sl ? sl.type + sl.level + (sl.build ? "b" + sl.build.to : "") : "-")).join(",");
-    const host = $("#cityPlots");
-    if (sig !== this.sig.city) {
-      this.sig.city = sig;
-      host.innerHTML = s.city.slots.map((sl, i) => {
-        const [x, y] = City.layout(i);
-        const pos = `left:${x}%;top:${y}%`;
-        if (i >= lots) return `<div class="plot lot locked-lot" style="${pos}" title="Unlocks at Town Hall level ${City.lotUnlockTH(i)}"><div class="pimg lot-dirt"><span>🔒</span></div><div class="pname">TH ${City.lotUnlockTH(i)}</div></div>`;
-        if (!sl) return `<div class="plot lot empty-lot" id="lot-${i}" data-action="lot" data-i="${i}" style="${pos}" title="Empty lot: click to build"><div class="pimg lot-dirt"><span>＋</span></div><div class="pname">Empty lot</div></div>`;
-        const B = BUILDINGS[sl.type], prod = PRODUCES[sl.type];
-        return `<div class="plot ${i === 0 ? "big" : ""} ${sl.level === 0 ? "new-build" : ""}" id="lot-${i}" data-action="lot" data-i="${i}" style="${pos}">
-          <div class="pimg"><img data-asset="${B.asset}" alt=""></div>
-          ${sl.build ? `<div class="scaffold"><div class="ring" data-ring="${i}"></div><span class="crane">🏗️</span><b data-bt="${i}"></b></div>` : ""}
-          <span class="plvl">${sl.level}</span><span class="pup hidden" data-up="${i}">▲</span>
-          ${JOB_OF[sl.type] ? `<span class="pwork" data-work="${i}"></span>` : ""}
-          <div class="pname">${B.name}</div></div>`;
-      }).join("");
-      AssetPipeline.applyAll(host);
-    }
-    // live parts: construction rings, upgrade arrows, worker badges
-    const busyAll = City.busy(s) >= City.builders(s);
-    s.city.slots.forEach((sl, i) => {
-      if (!sl || i >= lots) return;
-      if (sl.build) {
-        const r = $(`[data-ring="${i}"]`); if (r) r.style.setProperty("--p", ((1 - sl.build.remaining / sl.build.total) * 100).toFixed(1));
-        const t = $(`[data-bt="${i}"]`); if (t) t.textContent = fmtTime(sl.build.remaining);
-      }
-      const up = $(`[data-up="${i}"]`);
-      if (up) up.classList.toggle("hidden", busyAll || !!City.blocker(s, sl.type, i));
-      const wk = $(`[data-work="${i}"]`);
-      if (wk) { const j = JOB_OF[sl.type]; wk.textContent = `👷 ${s.jobs[j]}/${Economy.jobSlots(s, j)}`; }
-    });
+    CityView.update(s);
     // floating production numbers every few seconds
     if (!this.lastPop || s.time - this.lastPop >= 5 || s.time < this.lastPop) {
       this.lastPop = s.time;
@@ -3834,7 +4195,7 @@ const HUD = {
         if (sl.type === "market" || sl.type === "townhall") amt = (sl.type === "market" ? 3 * sl.level : sl.level) * 5 * Economy.multiplier(s);
         if (amt < 0.5) return;
         const el = $("#lot-" + i);
-        if (!el) return;
+        if (!el || !el.classList.contains("spr")) return;
         const pop = document.createElement("div");
         pop.className = "prodpop";
         pop.innerHTML = `+${amt < 10 ? amt.toFixed(1) : fmt(amt)} <img src="${AssetPipeline.src(RESOURCES[res].asset)}" alt="">`;
@@ -4915,6 +5276,7 @@ const Actions = {
   closeWin: () => HUD.closeWin(),
   building: (d) => HUD.openBuilding(d.id),
   lot: (d) => HUD.openLot(+d.i),
+  mapZoom: (d) => CityView.zoomBy(Number(d.d)),
   buildOn: (d) => { if (City.start(GameState.current, d.id, +d.i)) { HUD.form.pick = null; HUD.openLot(+d.i); UI.update(); } },
   upgradeLot: (d) => { const s = GameState.current; const sl = s.city.slots[+d.i]; if (sl && City.start(s, sl.type, +d.i)) { HUD.sig.building = ""; UI.update(); } },
   demolish: (d) => {

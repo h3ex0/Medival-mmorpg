@@ -27,7 +27,22 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = path.join(ROOT, "assets", "generated");
 const MANIFEST = path.join(ROOT, "assets", "manifest.json");
-const SIZES = { icon: [256, 256], portrait: [384, 384], banner: [960, 540], backdrop: [1600, 900], tile: [128, 128] };
+const SIZES = { icon: [256, 256], portrait: [384, 384], banner: [960, 540], backdrop: [1600, 900], tile: [128, 128], sprite: [512, 512] };
+
+/** Sprites are painted on solid magenta; turn that background transparent (with soft, de-spilled edges). */
+async function keyOutMagenta(buf, w, h) {
+  const { data, info } = await sharp(buf).resize(w, h, { fit: "contain", background: { r: 255, g: 0, b: 255, alpha: 1 } }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i], g = data[i + 1], b = data[i + 2];
+    const mag = Math.min(r, b) - g;            // how "magenta" the pixel is
+    if (mag > 90 && r > 120 && b > 120) data[i + 3] = 0;
+    else if (mag > 35) {                         // edge pixel: fade out and remove the pink fringe
+      data[i + 3] = Math.max(0, Math.min(255, Math.round(255 * (90 - mag) / 55)));
+      data[i] = Math.min(r, g + 40); data[i + 2] = Math.min(b, g + 40);
+    }
+  }
+  return sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).trim({ threshold: 1 }).webp({ quality: 90, alphaQuality: 100 }).toBuffer();
+}
 
 // ---------- args ----------
 const args = process.argv.slice(2);
@@ -112,7 +127,7 @@ async function processOne(a) {
   let out = bytes, ext = extFor(bytes);
   if (sharp) {
     const [w, h] = SIZES[a.kind] || [256, 256];
-    out = await sharp(bytes).resize(w, h, { fit: "cover" }).webp({ quality: 86 }).toBuffer();
+    out = a.kind === "sprite" ? await keyOutMagenta(bytes, w, h) : await sharp(bytes).resize(w, h, { fit: "cover" }).webp({ quality: 86 }).toBuffer();
     ext = "webp";
   }
   for (const old of fs.readdirSync(OUT_DIR)) if (old.startsWith(a.key + ".")) fs.unlinkSync(path.join(OUT_DIR, old));
