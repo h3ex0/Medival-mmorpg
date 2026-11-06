@@ -26,6 +26,18 @@ A single-player idle RPG city builder for the browser. Grow your population, ass
 | **Idle / offline** | 1 s tick based on real elapsed time. When you return, offline progress (capped at 12 h) is simulated in 10 s steps, and a summary pops up. |
 | **Persistence** | Autosaves every 5 s, plus manual Save, Export (copy/download), Import (paste/file) and Reset. |
 
+## Interface
+
+An MMO-style HUD over your city: the **city scene** with clickable building plots (level badges; a green ▲ means you can upgrade it now), your **Lord Commander's portrait frame** (level, XP, morale, army power), the **resource bar**, a **quest tracker**, a **chat-style chronicle** (All / War / Realm tabs) and an **action bar** with hotkeys **1–9**: Kingdom, Citizens, Research, Army, Campaign, Quests, World Map, Realm, Settings. Esc closes windows.
+
+## Campaign
+
+Expeditions are now a **story campaign**: 11 quests in 4 chapters (The Borderlands, The Orc War, Shadows Rising, The End of Days). Each has a quest giver with dialogue, an objective, a **bonus objective** (win while leading in person), a one-time quest reward you collect by **turning the quest in**, and battle spoils on every victory. Quests unlock in order. Completed ones can be replayed as bounties. The Endless Conquest and world map raids are side quests.
+
+## Battlefield extras
+
+When you lead a battle in person, your **Lord Commander rides onto the field** as a hero unit (stats grow with his level, +10% aura to adjacent allies; if he falls, your army loses heart). Enemy armies bring **generals** (Bandit Chief, Goblin King, Orc Warlord, Lich, Giant Jarl, Dark Lord): kill one and its whole army routs. **Panic** spreads to battered squads next to a destroyed one, **fireballs set forests ablaze** (they burn into scorched earth), you can **undo** your last move, and the enemy turn plays at 1×/2×/4× speed.
+
 ## Code layout (inside `index.html`)
 
 1. **`GameState`**: save schema, hydrate/migrate, load/save/export/import

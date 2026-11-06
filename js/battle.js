@@ -23,6 +23,7 @@ const TERRAIN = {
   bridge:   { name: "Bridge",    move: 1, def: 0.9,  elev: 1, desc: "A narrow crossing. Perfect for holding a chokepoint." },
   swamp:    { name: "Swamp",     move: 3, def: 0.85, elev: 0, cavExtra: 1, desc: "Boggy ground that's slow to cross. −15% defense." },
   wall:     { name: "Wall",      move: 1, def: 1.6,  elev: 2, rangeBonus: 1, desc: "Only the defender can stand on walls: +60% defense and +1 range. Siege units can smash them." },
+  ashes:    { name: "Scorched Earth", move: 1, def: 0.9, elev: 1, desc: "A burned-out forest. −10% defense." },
   rubble:   { name: "Rubble",    move: 2, def: 1.1,  elev: 1, desc: "A breached wall. +10% defense." },
 };
 
@@ -44,6 +45,12 @@ const ENEMY_UNITS = {
   dark_knight:   { name: "Dark Knight",     asset: "e_dark_knight",  hp: 40,   atk: 13,  def: 8,  rng: 1, mv: 5, cls: "cav", charge: true },
   demon:         { name: "Demon",           asset: "e_demon",        hp: 80,   atk: 20,  def: 8,  rng: 1, mv: 4, cls: "inf", big: true },
   drake:         { name: "Fire Drake",      asset: "e_drake",        hp: 50,   atk: 14,  def: 5,  rng: 2, mv: 6, cls: "ranged", flying: true, big: true },
+  bandit_chief:  { name: "Bandit Chief",    asset: "e_bandit",       hp: 45,   atk: 10,  def: 3,  rng: 1, mv: 4, cls: "inf", general: true },
+  goblin_king:   { name: "Goblin King",     asset: "e_goblin",       hp: 70,   atk: 14,  def: 3,  rng: 1, mv: 5, cls: "cav", general: true },
+  orc_warlord:   { name: "Orc Warlord",     asset: "e_berserker",    hp: 260,  atk: 55,  def: 6,  rng: 1, mv: 4, cls: "inf", general: true },
+  lich:          { name: "Lich",            asset: "e_necromancer",  hp: 300,  atk: 70,  def: 7,  rng: 4, mv: 3, cls: "ranged", general: true, heal: 6 },
+  giant_jarl:    { name: "Giant Jarl",      asset: "e_frost_giant",  hp: 450,  atk: 80,  def: 9,  rng: 1, mv: 3, cls: "inf", general: true, big: true },
+  dark_lord:     { name: "Dark Lord",       asset: "e_dark_knight",  hp: 600,  atk: 110, def: 12, rng: 1, mv: 5, cls: "cav", general: true, charge: true },
   dragon:        { name: "Elder Dragon",    asset: "e_dragon",       hp: 1400, atk: 160, def: 12, rng: 2, mv: 5, cls: "ranged", flying: true, big: true, boss: true },
   titan:         { name: "Storm Titan",     asset: "e_titan",        hp: 6000, atk: 650, def: 16, rng: 3, mv: 3, cls: "inf", big: true, boss: true },
 };
@@ -51,7 +58,15 @@ const ENEMY_UNITS = {
 const EXTRA_UNITS = {
   guard: { name: "Town Guard", asset: "u_guard", hp: 12, atk: 4, def: 3, rng: 1, mv: 3, cls: "inf" },
 };
-const udef = (type) => (typeof UNITS !== "undefined" && UNITS[type]) || ENEMY_UNITS[type] || EXTRA_UNITS[type];
+/** Your Lord Commander on the battlefield: one hero whose stats grow with the commander level. */
+function heroType(lvl) {
+  lvl = Math.max(1, lvl | 0);
+  const k = "hero" + lvl;
+  if (!EXTRA_UNITS[k]) EXTRA_UNITS[k] = { name: "Lord Commander", asset: "commander", hp: 120 + 50 * lvl, atk: 25 + 8 * lvl, def: 6 + 0.5 * lvl, rng: 1, mv: 5, cls: "cav", charge: true, hero: true, aura: true, boss: true };
+  return k;
+}
+const udef = (type) => (typeof UNITS !== "undefined" && UNITS[type]) || ENEMY_UNITS[type] || EXTRA_UNITS[type] || (/^hero\d+$/.test(type) ? EXTRA_UNITS[heroType(+type.slice(4))] : undefined);
+const FACTION_GENERALS = { bandits: "bandit_chief", goblins: "goblin_king", orcs: "orc_warlord", undead: "lich", giants: "giant_jarl", dark: "dark_lord" };
 
 /** One number to compare units by (and armies, as count × this). */
 function unitPower(d) {
@@ -293,12 +308,15 @@ const Battle = {
       weather: opts.weather && WEATHER[opts.weather] ? opts.weather : rollWeather(),
       vet: { ...(opts.vet || {}) },       // player unit type -> veteran rank (each rank: +6% attack and defense)
       vetXp: {},                          // player unit type -> enemy power destroyed in this battle
+      fire: {},                           // tile index -> turns left burning
+      heroFell: false, generalFell: false,
       cmd: { level: (opts.context && opts.context.cmdLevel) || 1, power: armyPower(opts.playerUnits), cd: { rally: 0, barrage: 0, warcry: 0, march: 0 }, warcry: 0, march: 0 },
       initial: { player: { ...opts.playerUnits }, enemy: { ...opts.enemyUnits } },
       log: [], result: null,
     };
     this.addSquads(b, "player", opts.playerUnits);
     if (opts.guards) this.addSquads(b, "player", { guard: opts.guards });
+    if (opts.hero) this.addSquads(b, "player", { [heroType(opts.hero)]: 1 });
     this.addSquads(b, "enemy", opts.enemyUnits);
     this.autoDeploy(b, "player");
     this.autoDeploy(b, "enemy");
@@ -519,6 +537,7 @@ const Battle = {
     m *= ta.atkAll || 1;
     m *= (b.bonus && b.bonus[att.side]) || 1;
     if (att.side === "player" && b.cmd && b.cmd.warcry === b.turn && b.active === "player") m *= 1.3;
+    if (this.inAura(b, att)) m *= 1.1;
     if (ta.ambush && (at === "forest" || at === "hill")) m *= ta.ambush;
     const ea = TERRAIN[at].elev, ed = TERRAIN[dt].elev;
     if (ea > ed) m *= 1.2; else if (ea < ed) m *= 0.85;
@@ -545,6 +564,7 @@ const Battle = {
     if (def.side === "player" && b.vet) defense *= 1 + 0.06 * (b.vet[def.type] || 0);
     if (td.hold && !def.moved) defense *= td.hold;
     if (def.broken) defense *= 0.75;
+    if (this.inAura(b, def)) defense *= 1.1;
     if (A.armorPierce) defense *= 0.6;
     return this.count(att) * A.atk * m * 8 / (8 + defense);
   },
@@ -566,7 +586,8 @@ const Battle = {
     events.push({ x: def.x, y: def.y, text: `−${killed}`, cls: "hit", id: def.id });
     const an = udef(att.type).name, dn = udef(def.type).name;
     let msg = `${att.side === "player" ? "Your" : "Enemy"} ${an} hit ${dn}: ${killed} killed`;
-    if (def.hp <= 0) msg += ` (squad destroyed)`;
+    if (def.hp <= 0) { msg += ` (squad destroyed)`; this.onDestroyed(b, def, events); }
+    if (udef(att.type).splash) this.ignite(b, def.x, def.y);
     if (att.side === "player" && killed > 0) b.vetXp[att.type] = (b.vetXp[att.type] || 0) + killed * unitPower(udef(def.type));
     att.aimed = false;
     // a squad that loses 30%+ in one blow while below 40% strength breaks and flees
@@ -586,6 +607,7 @@ const Battle = {
         const k = b4 - this.count(o);
         splashKills += k;
         if (att.side === "player" && k > 0) b.vetXp[att.type] = (b.vetXp[att.type] || 0) + k * unitPower(udef(o.type));
+        if (o.hp <= 0) this.onDestroyed(b, o, events);
         events.push({ x: o.x, y: o.y, text: `−${k}`, cls: "hit", id: o.id });
       }
       if (splashKills) msg += `, +${splashKills} more caught in the blast`;
@@ -632,6 +654,8 @@ const Battle = {
     for (const s of this.alive(b, side)) {
       s.moved = false; s.acted = false; s.braced = false; s.movedDist = 0; s.aimed = false;
       if (s.skillCd > 0) s.skillCd--;
+      const fi = s.y * b.w + s.x;
+      if (b.fire && b.fire[fi]) { const b4 = this.count(s); s.hp = Math.max(1, s.hp - s.maxHp * 0.1); this.addLog(b, `🔥 Flames burn a ${side === "player" ? "friendly" : "enemy"} ${udef(s.type).name} squad (−${b4 - this.count(s)}).`); }
       if (s.broken > 0) { s.broken--; if (!s.broken) this.addLog(b, `The ${side === "player" ? "your" : "enemy"} ${udef(s.type).name} squad has regrouped.`); }
       const d = udef(s.type);
       if (d.regen) s.hp = Math.min(s.maxHp, s.hp + s.maxHp * d.regen);
@@ -673,6 +697,9 @@ const Battle = {
     if (b.active === "player") this.startTurn(b, "enemy");
     else {
       b.turn++;
+      for (const k of Object.keys(b.fire || {})) {
+        if (--b.fire[k] <= 0) { delete b.fire[k]; b.tiles[+k] = "ashes"; b.burnt = (b.burnt || []).concat(+k); }
+      }
       if (b.turn > b.maxTurns) { this.finish(b, b.defender, "timeout"); return; }
       this.startTurn(b, "player");
       this.addLog(b, `— Turn ${b.turn} —`);
@@ -711,7 +738,7 @@ const Battle = {
       const x = idx % W, y = (idx / W) | 0;
       s.x = x; s.y = y; s.movedDist = cost;
       const tr = TERRAIN[this.tile(b, x, y)];
-      let tileBonus = (tr.def - 1) * 4 + (d.rng > 1 && tr.rangeBonus ? 2 : 0);
+      let tileBonus = (tr.def - 1) * 4 + (d.rng > 1 && tr.rangeBonus ? 2 : 0) - (b.fire && b.fire[idx] ? 8 : 0);
       if (d.rng > 1) {
         const threat = meleeOpp.some((o) => Math.max(Math.abs(o.x - x), Math.abs(o.y - y)) <= 2);
         if (threat) tileBonus -= 4;
@@ -782,6 +809,46 @@ const Battle = {
     s.acted = true; s.moved = true;
     return events;
   },
+  /** A squad next to its own hero or general fights +10% better. */
+  inAura(b, s) {
+    for (const o of b.squads) {
+      if (o === s || o.hp <= 0 || o.side !== s.side) continue;
+      const d = udef(o.type);
+      if ((d.aura || d.general) && this.dist(o, s) <= 1) return true;
+    }
+    return false;
+  },
+  /** Called when a squad is wiped out: generals and heroes falling shake the whole army; neighbours may panic. */
+  onDestroyed(b, def, events) {
+    const D = udef(def.type);
+    if (D.general) {
+      b.generalFell = def.side === "enemy" || b.generalFell;
+      for (const o of this.alive(b, def.side)) if (!udef(o.type).boss) { o.broken = 2; events.push({ x: o.x, y: o.y, text: "ROUT!", cls: "rout" }); }
+      this.addLog(b, `👑 The ${D.name} has fallen! The whole ${def.side === "enemy" ? "enemy" : "allied"} army wavers and breaks!`);
+      return;
+    }
+    if (D.hero) {
+      b.heroFell = true;
+      b.bonus.player = (b.bonus.player || 1) * 0.85;
+      this.addLog(b, "🩸 Your Lord Commander is struck down and carried from the field! Your army loses heart (−15% attack).");
+      return;
+    }
+    // panic spreads to nearby, already-battered squads
+    for (const o of this.alive(b, def.side)) {
+      const od = udef(o.type);
+      if (od.boss || od.general || o.broken || this.dist(o, def) > 1 || o.hp > o.maxHp * 0.6) continue;
+      if (Math.random() < 0.35) { o.broken = 2; events.push({ x: o.x, y: o.y, text: "PANIC", cls: "rout" }); this.addLog(b, `😱 Seeing their comrades fall, a ${def.side === "player" ? "friendly" : "enemy"} ${od.name} squad panics!`); }
+    }
+  },
+  /** Fireballs set forests ablaze. */
+  ignite(b, x, y) {
+    const i = y * b.w + x;
+    if (b.tiles[i] !== "forest" || b.fire[i]) return false;
+    b.fire[i] = 2;
+    this.addLog(b, "🔥 The forest catches fire!");
+    return true;
+  },
+
   /* ===================== squad skills ===================== */
   skillOf(s) { return SKILLS[udef(s.type).cls] || null; },
   skillBlocker(b, s) {
@@ -853,6 +920,7 @@ const Battle = {
         s.hp = Math.max(0, s.hp - dmg * (t.cover || 1) * 8 / (8 + D.def * t.def));
         killed += before - this.count(s);
         events.push({ x: s.x, y: s.y, text: `−${before - this.count(s)}`, cls: "hit", id: s.id });
+        if (s.hp <= 0) this.onDestroyed(b, s, events);
       }
       for (let y = cy - 1; y <= cy + 1; y++) for (let x = cx - 1; x <= cx + 1; x++)
         if (x >= 0 && y >= 0 && x < b.w && y < b.h) events.push({ x, y, text: "➶", cls: "arrow" });
@@ -950,6 +1018,8 @@ const BattleUI = {
   busy: false,
   cell: 48,
   onDone: null,
+  speed: (() => { try { return +localStorage.getItem("ironhold_battle_speed") || 1; } catch { return 1; } })(),
+  lastMove: null,
 
   open(b, onDone) {
     this.b = b; this.onDone = onDone; this.sel = null; this.busy = false; this.targeting = null;
@@ -1063,6 +1133,8 @@ const BattleUI = {
       const skBtn = `<button class="btn" data-bf="skill" ${my && sk && !skBlk ? "" : "disabled"} title="${sk ? esc(sk.name + ": " + sk.desc) : "Select one of your squads to use its skill"}${skBlk && sk ? " (" + esc(skBlk) + ")" : ""}">${sk ? sk.icon + " " + sk.name : "✦ Skill"}${sqs && sqs.skillCd > 0 ? ` <small>${sqs.skillCd}</small>` : ""}</button>`;
       btns = `<span class="abilities" title="Lord Commander abilities">${ab}</span>${skBtn}<button class="btn" data-bf="brace" ${my && this.sel && !this.selSquad()?.acted ? "" : "disabled"} title="Skip this squad's attack: +50% defense until your next turn">🛡 Brace</button>
         <button class="btn" data-bf="auto" ${my ? "" : "disabled"} title="Let your captains finish the battle">Auto-battle</button>
+        <button class="btn" data-bf="undo" ${my && this.canUndo() ? "" : "disabled"} title="Take back your last move (if that squad hasn't attacked)">↶ Undo</button>
+        <button class="btn" data-bf="speed" title="Enemy turn animation speed">⏩ ${this.speed}×</button>
         <button class="btn danger" data-bf="retreat" ${my ? "" : "disabled"}>Retreat</button>
         <button class="btn primary" data-bf="end" ${my ? "" : "disabled"}>End turn ⏎</button>`;
     } else {
@@ -1086,6 +1158,12 @@ const BattleUI = {
       for (const t of Battle.targets(b, sq)) marks += `<div class="mark m-attack" data-cell="${t.y * b.w + t.x}" style="left:${t.x * c}px;top:${t.y * c}px"></div>`;
       for (const i of Battle.wallTargets(b, sq)) marks += `<div class="mark m-attack" data-cell="${i}" style="left:${(i % b.w) * c}px;top:${((i / b.w) | 0) * c}px"></div>`;
     }
+    for (const k of Object.keys(b.fire || {})) {
+      const i = +k;
+      marks += `<div class="mark m-fire" style="left:${(i % b.w) * c}px;top:${((i / b.w) | 0) * c}px"><span>🔥</span></div>`;
+    }
+    for (const i of b.burnt || []) this.updateTile(i);
+    b.burnt = [];
     for (const [k, hp] of Object.entries(b.wallHp)) {
       const i = +k;
       marks += `<div class="wallbar" style="left:${(i % b.w) * c}px;top:${((i / b.w) | 0) * c}px"><i style="width:${Math.max(0, hp / b.wallMax) * 100}%"></i></div>`;
@@ -1108,7 +1186,7 @@ const BattleUI = {
         if (typeof AssetPipeline !== "undefined") AssetPipeline.applyAll(el);
       }
       el.dataset.cell = s.y * b.w + s.x;
-      el.className = `unit side-${s.side}${s.broken ? " broken" : ""}${s.aimed ? " aimed" : ""}${sq === s ? " sel" : ""}${s.acted && b.phase === "battle" && s.side === b.active ? " done" : ""}${s.braced ? " braced" : ""}${d.boss ? " boss" : ""}`;
+      el.className = `unit side-${s.side}${d.hero ? " hero" : ""}${d.general ? " general" : ""}${s.broken ? " broken" : ""}${s.aimed ? " aimed" : ""}${sq === s ? " sel" : ""}${s.acted && b.phase === "battle" && s.side === b.active ? " done" : ""}${s.braced ? " braced" : ""}${d.boss ? " boss" : ""}`;
       el.style.left = s.x * c + "px"; el.style.top = s.y * c + "px";
       el.title = `${d.name} ×${Battle.count(s)}`;
       el.querySelector(".cnt").textContent = Battle.count(s);
@@ -1131,7 +1209,7 @@ const BattleUI = {
   },
   squadCard(s, mine) {
     const b = this.b, d = udef(s.type), t = Battle.terrainAt(b, s);
-    const traits = [d.antiCav && "Anti-cavalry ×2", d.charge && "Charge", d.armorPierce && "Armor-piercing", d.heal && `Heals ${d.heal}/soldier`, d.breach && "Breaches walls", d.vsBig && (d.slayer ? "×2.5 vs giants" : "×1.6 vs giants"), d.splash && "Splash damage", d.mounted && "Mounted", d.flying && "Flying", d.regen && "Regenerates", d.minRng && `Min range ${d.minRng}`].filter(Boolean);
+    const traits = [d.hero && "Your hero: +10% to adjacent allies. If he falls, the army loses heart", d.general && "General: +10% to adjacent allies. Kill it to rout the whole enemy army!", d.antiCav && "Anti-cavalry ×2", d.charge && "Charge", d.armorPierce && "Armor-piercing", d.heal && `Heals ${d.heal}/soldier`, d.breach && "Breaches walls", d.vsBig && (d.slayer ? "×2.5 vs giants" : "×1.6 vs giants"), d.splash && "Splash damage", d.mounted && "Mounted", d.flying && "Flying", d.regen && "Regenerates", d.minRng && `Min range ${d.minRng}`].filter(Boolean);
     return `<div class="bf-h">${s.side === "player" ? "Your" : "Enemy"} ${esc(d.name)} ×${Battle.count(s)}</div>
       <div class="bf-stats"><span>HP <b>${Math.ceil(s.hp)}/${s.maxHp}</b></span><span>ATK <b>${d.atk}</b></span><span>DEF <b>${d.def}</b></span><span>RNG <b>${Battle.range(b, s)}</b></span><span>MOVE <b>${Battle.moveRange(b, s)}</b></span><span>Power <b>${fmt(unitPower(d) * Battle.count(s))}</b></span></div>
       ${traits.length ? `<div class="dim" style="font-size:11.5px;margin-top:4px">${traits.join(" · ")}</div>` : ""}
@@ -1180,6 +1258,12 @@ const BattleUI = {
     if (b.cmd.level < ABILITIES[id].lvl) return `Commander level ${ABILITIES[id].lvl}`;
     return Battle.abilityBlocker(b, id);
   },
+  canUndo() {
+    const m = this.lastMove, b = this.b;
+    if (!m || !b || b.phase !== "battle" || b.active !== "player") return false;
+    const s = b.squads.find((q) => q.id === m.id && q.hp > 0);
+    return !!(s && !s.acted && m.turn === b.turn && !Battle.at(b, m.x, m.y));
+  },
   selSquad() { return this.b && this.sel ? this.b.squads.find((s) => s.id === this.sel && s.hp > 0) : null; },
 
   click(i) {
@@ -1220,7 +1304,7 @@ const BattleUI = {
     if (s && s.side === "player") { this.sel = s.id; this.render(); this.hover(i); return; }
     if (sel && !sel.moved && !s) {
       const r = Battle.reachable(b, sel);
-      if (r.has(i)) { Battle.moveTo(b, sel, i, r.get(i)); this.render(); this.hover(i); return; }
+      if (r.has(i)) { this.lastMove = { id: sel.id, x: sel.x, y: sel.y, turn: b.turn }; Battle.moveTo(b, sel, i, r.get(i)); this.render(); this.hover(i); return; }
     }
     this.sel = null; this.render();
   },
@@ -1246,7 +1330,7 @@ const BattleUI = {
       if (u) { u.classList.remove("shake"); void u.offsetWidth; u.classList.add("shake"); }
     }
   },
-  sleep(ms) { return new Promise((r) => setTimeout(r, ms)); },
+  sleep(ms) { return new Promise((r) => setTimeout(r, ms / this.speed)); },
 
   async enemyTurn() {
     const b = this.b;
@@ -1293,6 +1377,21 @@ const BattleUI = {
         const ev = Battle.useSkill(b, s);
         if (ev) this.fx(ev);
         this.render(); this.save();
+        break;
+      }
+      case "undo": {
+        if (!this.canUndo() || this.busy) break;
+        const m = this.lastMove, s = b.squads.find((q) => q.id === m.id);
+        s.x = m.x; s.y = m.y; s.moved = false; s.movedDist = 0;
+        this.lastMove = null; this.sel = s.id;
+        Battle.addLog(b, "↶ Move taken back.");
+        this.render();
+        break;
+      }
+      case "speed": {
+        this.speed = this.speed >= 4 ? 1 : this.speed * 2;
+        try { localStorage.setItem("ironhold_battle_speed", this.speed); } catch {}
+        this.render();
         break;
       }
       case "brace": { const s = this.selSquad(); if (s && !s.acted) { Battle.brace(b, s); this.afterPlayerAction(); } break; }

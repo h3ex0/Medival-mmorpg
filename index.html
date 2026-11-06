@@ -425,158 +425,357 @@ body.in-battle { overflow: hidden; }
   .bf-side { width: auto; }
   .bf-board-wrap { flex: none; max-width: 100%; justify-content: flex-start; }
 }
+
+/* =====================================================================
+   MMO RPG THEME (overrides the dashboard styles above)
+   ===================================================================== */
+:root {
+  --gold-1: #f6dc8c; --gold-2: #d6a645; --gold-3: #8a6326; --gold-4: #4a3414;
+  --frame-bg: linear-gradient(180deg, rgba(34, 26, 17, 0.97), rgba(18, 14, 10, 0.97));
+  --frame-border: 2px solid #8a6326;
+  --panel: rgba(26, 20, 14, 0.94);
+  --panel-2: rgba(12, 10, 8, 0.55);
+  --panel-3: #2a2015;
+  --border: #4c3a20;
+  --border-hi: #7a5a2a;
+  --accent: #d6a645;
+  --accent-2: #f6dc8c;
+  --text: #f1e6cc;
+  --muted: #b5a37f;
+  --dim: #85765a;
+}
+html, body { height: 100%; overflow: hidden; }
+body {
+  background: #07060a;
+  background-image: none;
+  font-size: 13.5px;
+}
+
+/* ---------- city scene ---------- */
+.scene { position: fixed; inset: 0; background-image: var(--bg-art), radial-gradient(1200px 700px at 50% 40%, #33402a, #0b0d08); background-size: cover; background-position: center; filter: saturate(1.05); }
+.scene-vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 35%, rgba(0,0,0,0.55) 75%, rgba(0,0,0,0.85) 100%), linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 18%, rgba(0,0,0,0) 75%, rgba(0,0,0,0.6) 100%); pointer-events: none; }
+.plots { position: absolute; left: 25%; right: 21%; top: 100px; bottom: 100px; }
+.plot { position: absolute; transform: translate(-50%, -50%); width: 96px; text-align: center; cursor: pointer; transition: transform 0.15s; z-index: 1; }
+.plot:hover { transform: translate(-50%, -54%) scale(1.06); z-index: 2; }
+.plot .pimg { width: 84px; height: 84px; margin: 0 auto; border-radius: 50%; overflow: hidden; border: 3px solid var(--gold-3); box-shadow: 0 0 0 2px #120d07, 0 8px 18px rgba(0,0,0,0.75), inset 0 0 12px rgba(0,0,0,0.6); background: #1b140c; }
+.plot.big .pimg { width: 116px; height: 116px; border-width: 4px; }
+.plot.big { width: 130px; }
+.plot img { width: 100%; height: 100%; object-fit: cover; }
+.plot .pname { display: inline-block; margin-top: 4px; padding: 2px 9px; font-family: var(--font-display); font-size: 11.5px; color: var(--gold-1); background: linear-gradient(180deg, #2b1f10, #160f07); border: 1px solid var(--gold-3); border-radius: 4px; box-shadow: 0 3px 8px rgba(0,0,0,0.7); white-space: nowrap; text-shadow: 0 1px 2px #000; }
+.plot .plvl { position: absolute; top: 2px; right: 4px; min-width: 26px; height: 26px; padding: 0 4px; border-radius: 13px; background: radial-gradient(circle at 35% 30%, #f8dd8c, #a0701f); color: #2a1a05; font-weight: 800; font-size: 12px; line-height: 26px; border: 2px solid #2a1a05; box-shadow: 0 2px 6px rgba(0,0,0,0.7); }
+.plot.big .plvl { top: 4px; right: 8px; }
+.plot.locked .pimg { filter: grayscale(1) brightness(0.45); border-color: #3a3a3a; }
+.plot.locked .pname { color: #9a8f78; border-color: #3a3328; }
+.plot .pup { position: absolute; top: -6px; left: 8px; font-size: 20px; color: #6dff7a; text-shadow: 0 0 8px rgba(80,255,100,0.9), 0 2px 2px #000; animation: bob 1.2s ease-in-out infinite; }
+@keyframes bob { 50% { transform: translateY(-5px); } }
+.plot.active .pimg { border-color: var(--gold-1); box-shadow: 0 0 0 2px #120d07, 0 0 22px rgba(246,220,140,0.6); }
+
+/* ---------- HUD top ---------- */
+.hud-top { position: fixed; top: 0; left: 0; right: 0; z-index: 20; display: flex; align-items: flex-start; gap: 12px; padding: 8px 12px; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,0.7), rgba(0,0,0,0)); }
+.hud-top > * { pointer-events: auto; }
+.unitframe { display: flex; align-items: center; gap: 0; cursor: pointer; min-width: 270px; }
+.uf-portrait { position: relative; width: 74px; height: 74px; flex: none; border-radius: 50%; border: 3px solid var(--gold-2); box-shadow: 0 0 0 2px #120d07, 0 0 0 4px var(--gold-3), 0 6px 16px rgba(0,0,0,0.8); overflow: visible; z-index: 2; background: #000; }
+.uf-portrait img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.uf-lvl { position: absolute; bottom: -6px; left: -6px; width: 28px; height: 28px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #f8dd8c, #a0701f); border: 2px solid #2a1a05; color: #2a1a05; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+.uf-body { margin-left: -14px; padding: 6px 12px 6px 22px; background: var(--frame-bg); border: 1px solid var(--gold-3); border-left: 0; border-radius: 0 10px 10px 0; box-shadow: 0 6px 16px rgba(0,0,0,0.7); width: 210px; }
+.uf-name { font-family: var(--font-display); color: var(--gold-1); font-size: 13px; margin-bottom: 4px; display: flex; justify-content: space-between; gap: 6px; white-space: nowrap; }
+.uf-power { font-family: var(--font-body); font-size: 11px; color: #e9b3ff; }
+.uf-bar { position: relative; height: 14px; border-radius: 3px; background: #0b0805; border: 1px solid #3a2a12; overflow: hidden; margin-top: 3px; }
+.uf-bar i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; transition: width 1s linear; }
+.uf-bar.xp i { background: linear-gradient(180deg, #b48cff, #6a3fd0); }
+.uf-bar.mor i { background: linear-gradient(180deg, #8de38a, #2f8d3c); }
+.uf-bar.low i { background: linear-gradient(180deg, #ff8a7a, #a3271d) !important; }
+.uf-bar span { position: relative; display: block; text-align: center; font-size: 10.5px; line-height: 13px; font-weight: 700; color: #fff; text-shadow: 0 1px 2px #000; }
+.crest { display: flex; align-items: center; gap: 8px; color: var(--gold-1); font-family: var(--font-display); margin-left: auto; }
+.crest img { width: 40px; height: 40px; border-radius: 8px; border: 2px solid var(--gold-3); }
+.crest b { display: block; font-size: 16px; } .crest small { font-family: var(--font-body); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.hud-top .res-strip { flex: 1; justify-content: center; gap: 5px; max-width: 980px; }
+.hud-top .res-chip { min-width: 0; flex: 0 1 auto; max-width: none; padding: 3px 8px 4px 4px; grid-template-columns: 26px auto; gap: 0 6px; background: linear-gradient(180deg, rgba(40,30,18,0.92), rgba(16,12,8,0.92)); border: 1px solid var(--gold-4); border-radius: 6px; }
+.hud-top .res-chip img { width: 26px; height: 26px; border-radius: 5px; }
+.hud-top .res-chip .rv { font-size: 12.5px; color: #fff; }
+.hud-top .res-chip .rv .cap { font-size: 10.5px; }
+.hud-top .res-chip .rr { font-size: 10px; }
+.hud-top .pop-chip { flex: 0 1 auto; min-width: 0; }
+.hud-top .pop-grid { font-size: 10px; }
+
+/* ---------- raid & battle alerts ---------- */
+.hud-alerts { position: fixed; top: 92px; left: 50%; transform: translateX(-50%); z-index: 19; width: min(640px, calc(100vw - 24px)); }
+.hud-alerts .alert { background: var(--frame-bg); border: 1px solid var(--gold-3); box-shadow: 0 8px 24px rgba(0,0,0,0.8); }
+.hud-alerts .alert.bad { border-color: #b4322c; box-shadow: 0 0 0 1px #000, 0 0 24px rgba(220,50,40,0.45); }
+
+/* ---------- quest tracker ---------- */
+.tracker { position: fixed; right: 12px; top: 96px; width: 290px; z-index: 15; max-height: calc(100vh - 220px); overflow-y: auto; text-shadow: 0 1px 3px #000, 0 0 6px #000; }
+.tr-sec { margin-bottom: 10px; }
+.tr-h { font-family: var(--font-display); color: var(--gold-2); font-size: 12px; letter-spacing: 0.08em; border-bottom: 1px solid rgba(214,166,69,0.35); padding-bottom: 2px; margin-bottom: 4px; display: flex; justify-content: space-between; }
+.tr-q { cursor: pointer; padding: 3px 4px; border-radius: 5px; }
+.tr-q:hover { background: rgba(0,0,0,0.45); }
+.tr-title { color: #ffd94a; font-weight: 700; font-size: 12.5px; }
+.tr-title .mk { display: inline-block; width: 16px; color: #ffd94a; font-weight: 900; }
+.tr-obj { color: #fff; font-size: 12px; padding-left: 18px; }
+.tr-obj.done { color: #8de38a; }
+.tr-obj .dim { color: #c9bda0; }
+
+/* ---------- chat ---------- */
+.chat { position: fixed; left: 12px; bottom: 12px; width: 340px; height: 180px; z-index: 15; background: rgba(0,0,0,0.55); border: 1px solid rgba(138,99,38,0.6); border-radius: 8px; display: flex; flex-direction: column; backdrop-filter: blur(2px); }
+.chat.min { height: 30px; }
+.chat.min .log { display: none; }
+.chat-tabs { display: flex; gap: 2px; padding: 3px; border-bottom: 1px solid rgba(138,99,38,0.4); }
+.chat-tab { background: transparent; border: 0; color: var(--muted); font-family: inherit; font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 4px; cursor: pointer; }
+.chat-tab.active { background: rgba(214,166,69,0.2); color: var(--gold-1); }
+.chat-min { margin-left: auto; }
+.chat .log { flex: 1; max-height: none; padding: 4px 8px; gap: 1px; display: flex; flex-direction: column; overflow-y: auto; }
+.chat .log-entry { background: transparent; border: 0; padding: 1px 0; font-size: 12px; text-shadow: 0 1px 2px #000; animation: none; color: #e9e0c8; }
+.chat .log-entry time { color: #8c7f63; }
+.chat .log-entry.good { color: #9cf08f; } .chat .log-entry.bad { color: #ff8f80; } .chat .log-entry.war { color: #e2b0ff; } .chat .log-entry.build { color: #ffd77a; } .chat .log-entry.info { color: #8fe0ff; }
+.chat.f-war .log-entry:not(.war):not(.bad) { display: none; }
+.chat.f-realm .log-entry.war, .chat.f-realm .log-entry.bad { display: none; }
+
+/* ---------- action bar ---------- */
+.actionbar { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 16; display: flex; gap: 6px; padding: 8px 10px; background: linear-gradient(180deg, rgba(42,31,17,0.96), rgba(16,11,6,0.96)); border: 2px solid var(--gold-3); border-radius: 12px; box-shadow: 0 0 0 1px #000, 0 10px 30px rgba(0,0,0,0.85); }
+.slot { position: relative; width: 58px; height: 58px; border-radius: 8px; border: 2px solid #5c4421; background: radial-gradient(circle at 50% 35%, #3b2c18, #120c06); color: #fff; font-size: 26px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 10px rgba(0,0,0,0.8); transition: border-color 0.15s, box-shadow 0.15s; }
+.slot:hover { border-color: var(--gold-1); box-shadow: inset 0 0 10px rgba(0,0,0,0.8), 0 0 14px rgba(246,220,140,0.5); }
+.slot.active { border-color: var(--gold-1); background: radial-gradient(circle at 50% 35%, #6a4a1c, #1e1408); }
+.slot .key { position: absolute; top: 1px; left: 4px; font-size: 10px; font-weight: 800; color: #e9d7a7; text-shadow: 0 1px 1px #000; }
+.slot .lbl { position: absolute; bottom: -1px; left: 0; right: 0; font-size: 8.5px; font-weight: 700; letter-spacing: 0.02em; color: #e9d7a7; text-shadow: 0 1px 2px #000; text-align: center; }
+.slot .note-dot { position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; border-radius: 9px; background: #e3342f; color: #fff; font-size: 11px; font-weight: 800; line-height: 18px; text-align: center; padding: 0 4px; border: 2px solid #000; }
+
+/* ---------- windows ---------- */
+.win-layer { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+.win { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(980px, calc(100vw - 32px)); max-height: calc(100vh - 200px); pointer-events: auto; display: flex; flex-direction: column; background: var(--frame-bg); border: var(--frame-border); border-radius: 6px; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #2c2012, 0 30px 80px rgba(0,0,0,0.9); animation: winIn 0.18s ease; }
+.win.hidden { display: none; }
+@keyframes winIn { from { opacity: 0; transform: translate(-50%, -48%) scale(0.98); } to { opacity: 1; transform: translate(-50%, -50%); } }
+.win::before, .win::after { content: "❖"; position: absolute; top: -12px; color: var(--gold-2); font-size: 20px; text-shadow: 0 0 6px #000; }
+.win::before { left: -9px; } .win::after { right: -9px; }
+.win-title { display: flex; align-items: center; justify-content: center; position: relative; padding: 9px 44px; background: linear-gradient(180deg, #4a1d14, #2a0f0a); border-bottom: 2px solid var(--gold-3); font-family: var(--font-display); color: var(--gold-1); font-size: 17px; letter-spacing: 0.06em; text-shadow: 0 2px 3px #000; border-radius: 4px 4px 0 0; }
+.win-x { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #c4483a, #6d1810); color: #ffe; border: 2px solid var(--gold-3); cursor: pointer; font-weight: 800; }
+.win-body { padding: 14px 16px; overflow-y: auto; }
+#win-building { width: min(560px, calc(100vw - 32px)); }
+
+/* ---------- inner components re-skinned ---------- */
+.card, .job-row, .commander, .mission, .exp-active, .queue, .summary-box, .quest, .doctrine { background: rgba(0,0,0,0.32); border-color: var(--border); }
+.card:hover { border-color: var(--border-hi); }
+.card .title h3 { color: var(--gold-1); }
+.section-title { color: var(--gold-2); border-bottom: 1px solid rgba(214,166,69,0.25); padding-bottom: 3px; }
+.badge { background: #120d07; border-color: var(--gold-3); color: var(--gold-1); }
+.btn { background: linear-gradient(180deg, #3d2d17, #1f160b); border-color: #7a5a2a; color: #f1dca4; text-shadow: 0 1px 1px #000; }
+.btn:hover:not(:disabled) { background: linear-gradient(180deg, #4e3a1d, #2a1d0e); border-color: var(--gold-2); }
+.btn.primary { background: linear-gradient(180deg, #f2c75e, #b07a22); color: #2a1803; border-color: #f6dc8c; text-shadow: none; }
+.btn.primary:hover:not(:disabled) { background: linear-gradient(180deg, #ffd977, #c48a2a); }
+.btn.teal { background: linear-gradient(180deg, #3aa36c, #1f6a40); color: #effff4; border-color: #8de3b0; }
+.btn.danger { background: linear-gradient(180deg, #8a2a22, #4a1410); border-color: #c85a4c; color: #ffe2dc; }
+.bar { background: #0b0805; border-color: #3a2a12; }
+.res-chip, .alert, .toast, .modal, .bf-card { border-color: var(--border-hi); }
+.modal { background: var(--frame-bg); border: var(--frame-border); }
+.modal-head { background: linear-gradient(180deg, #4a1d14, #2a0f0a); border-bottom: 2px solid var(--gold-3); }
+.modal-head h2 { color: var(--gold-1); }
+.toast { background: var(--frame-bg); border-left-color: var(--gold-2); }
+.toasts { bottom: 100px; }
+input[type=text], input[type=password], input[type=number], select, textarea { background: #0d0a06; border-color: #5c4421; color: var(--text); }
+.bf { background: radial-gradient(1200px 700px at 50% 0%, #2a2014, #0a0806); }
+.bf-top { background: linear-gradient(180deg, #2a0f0a, #160805); border-bottom: 2px solid var(--gold-3); }
+.bf-card { background: var(--frame-bg); }
+.bf-h { color: var(--gold-1); }
+.unit.hero img { border-color: #ffd94a; box-shadow: 0 0 0 2px #000, 0 0 14px rgba(255,217,74,0.9); }
+.unit.general img { border-color: #ff2d2d; box-shadow: 0 0 0 2px #000, 0 0 14px rgba(255,45,45,0.9); }
+.unit.hero::after { content: "👑"; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); font-size: calc(var(--cell) * 0.32); }
+.unit.general::after { content: "☠"; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); font-size: calc(var(--cell) * 0.32); color: #ff6b6b; }
+.mark.m-fire { display: flex; align-items: center; justify-content: center; background: rgba(255,90,0,0.35); box-shadow: inset 0 0 12px rgba(255,140,0,0.9); animation: flicker 0.6s ease-in-out infinite alternate; z-index: 1; }
+.mark.m-fire span { font-size: calc(var(--cell) * 0.45); opacity: 0.9; }
+@keyframes flicker { from { opacity: 0.75; } to { opacity: 1; } }
+.t-ashes { background: radial-gradient(circle at 40% 40%, #3b3530, #23201d); }
+
+/* ---------- campaign quest log ---------- */
+.questlog { display: grid; grid-template-columns: 270px 1fr; gap: 14px; min-height: 420px; }
+.ql-list { border-right: 1px solid var(--border); padding-right: 10px; overflow-y: auto; }
+.ql-ch { font-family: var(--font-display); color: var(--gold-2); font-size: 12px; margin: 10px 0 4px; letter-spacing: 0.06em; }
+.ql-ch:first-child { margin-top: 0; }
+.ql-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; cursor: pointer; font-size: 13px; border: 1px solid transparent; }
+.ql-item:hover { background: rgba(214,166,69,0.08); }
+.ql-item.sel { background: rgba(214,166,69,0.16); border-color: var(--gold-3); }
+.ql-item .mk { width: 20px; text-align: center; font-weight: 900; font-size: 15px; }
+.ql-item.locked { color: #6f6553; }
+.mk.available { color: #ffd94a; } .mk.ready { color: #ffd94a; } .mk.marching { color: #c084fc; } .mk.complete { color: #8de38a; }
+.ql-detail { overflow-y: auto; }
+.ql-head { display: flex; gap: 14px; align-items: center; margin-bottom: 10px; }
+.ql-face { width: 74px; height: 74px; flex: none; border-radius: 50%; border: 3px solid var(--gold-2); background: radial-gradient(circle at 40% 35%, #4a3a22, #120d07); display: flex; align-items: center; justify-content: center; font-size: 38px; box-shadow: 0 6px 14px rgba(0,0,0,0.7); }
+.ql-title { font-family: var(--font-display); color: var(--gold-1); font-size: 19px; }
+.ql-giver { color: var(--muted); font-size: 12.5px; }
+.ql-speech { position: relative; background: #e9dcb8; color: #2b1d0c; border-radius: 6px; padding: 12px 14px; font-family: Georgia, serif; font-size: 14px; line-height: 1.5; box-shadow: inset 0 0 30px rgba(120,80,30,0.35), 0 4px 12px rgba(0,0,0,0.5); margin-bottom: 12px; }
+.ql-speech::before { content: ""; position: absolute; top: -8px; left: 28px; border: 8px solid transparent; border-bottom-color: #e9dcb8; border-top: 0; }
+.ql-obj { margin: 4px 0; font-size: 13px; }
+.ql-obj .ok { color: #8de38a; } .ql-obj .no { color: #85765a; }
+.ql-rewards { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 6px 0 12px; }
+@media (max-width: 1100px) {
+  .tracker { display: none; }
+  .plots { left: 4%; right: 4%; }
+}
+@media (max-width: 820px) {
+  html, body { overflow: auto; height: auto; }
+  .hud-top { position: sticky; flex-wrap: wrap; background: rgba(0,0,0,0.85); }
+  .crest { display: none; }
+  .unitframe { min-width: 0; }
+  .hud-top .res-strip { justify-content: flex-start; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; width: 100%; flex: 1 1 100%; max-width: none; }
+  .hud-top .res-chip { padding: 2px 5px 3px 3px; grid-template-columns: 20px auto; }
+  .hud-top .res-chip img { width: 20px; height: 20px; }
+  .hud-top .res-chip .rv { font-size: 11px; } .hud-top .res-chip .rv .cap { display: none; }
+  .hud-top .pop-chip { grid-column: span 3; }
+  .uf-portrait { width: 56px; height: 56px; } .uf-body { width: 190px; }
+  .scene { position: fixed; }
+  .plots { position: relative; left: auto; right: auto; top: auto; bottom: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 6px; padding: 16px 8px 190px; }
+  .plot, .plot.big { position: relative; transform: none; left: auto !important; top: auto !important; width: auto; }
+  .plot:hover { transform: none; }
+  .plot .pimg, .plot.big .pimg { width: 74px; height: 74px; }
+  .hud-alerts { position: relative; top: auto; left: auto; transform: none; margin: 8px auto; }
+  .chat { left: 8px; right: 8px; width: auto; bottom: 86px; height: 150px; }
+  .actionbar { left: 0; right: 0; transform: none; bottom: 0; border-radius: 0; overflow-x: auto; justify-content: flex-start; padding: 6px; }
+  .slot { width: 50px; height: 50px; flex: none; font-size: 22px; }
+  .win { top: 0; left: 0; transform: none; width: 100vw; max-height: 100vh; height: 100vh; border-radius: 0; animation: none; }
+  .win::before, .win::after { display: none; }
+  .questlog { grid-template-columns: 1fr; }
+  .ql-list { border-right: 0; border-bottom: 1px solid var(--border); max-height: 220px; }
+}
 </style>
 </head>
 <body>
 
 <!-- =====================================================================
-     HEADER: live resource counters + population summary
+     CITY SCENE: the city itself, with clickable building plots
      ===================================================================== -->
-<header class="topbar">
-  <div class="brand">
-    <img data-asset="crest" alt="" />
-    <div><h1>Ironhold</h1><small>Idle Dominion</small></div>
+<div class="scene"><div class="scene-vignette"></div><div class="plots" id="cityPlots"></div></div>
+
+<!-- =====================================================================
+     HUD: hero frame, resources, raid alert, quest tracker, chat, action bar
+     ===================================================================== -->
+<header class="hud-top">
+  <div class="unitframe" data-action="win" data-win="army" title="Your Lord Commander (A)">
+    <div class="uf-portrait"><img data-asset="commander" alt="" /><span class="uf-lvl" id="cmdLevel">1</span></div>
+    <div class="uf-body">
+      <div class="uf-name">Lord of Ironhold <span class="uf-power" id="armyBadge"></span></div>
+      <div class="uf-bar xp" title="Experience"><i id="cmdXpBar"></i><span id="cmdXp"></span></div>
+      <div class="uf-bar mor" title="Morale"><i id="moraleBar"></i><span id="moraleTxt"></span></div>
+    </div>
   </div>
   <div class="res-strip" id="resStrip"></div>
+  <div class="crest" title="Ironhold: Idle Dominion"><img data-asset="crest" alt="" /><div><b>Ironhold</b><small>Idle Dominion</small></div></div>
 </header>
 
-<main class="layout">
-  <!-- LEFT: City map / buildings / workforce -->
-  <section class="col-left">
-    <div class="panel">
-      <div class="panel-head">
-        <h2>The City</h2>
-        <div class="tabs" role="tablist">
-          <button class="tab active" data-action="tab" data-tab="buildings">Buildings</button>
-          <button class="tab" data-action="tab" data-tab="workforce">Workforce</button>
-          <button class="tab" data-action="tab" data-tab="research">Research</button>
-        </div>
-      </div>
-      <div class="panel-body col-scroll">
-        <div id="tab-buildings"><div class="grid-cards" id="buildingList"></div></div>
-        <div id="tab-research" class="hidden">
-          <div id="researchNow"></div>
-          <div class="grid-cards" id="techList"></div>
-        </div>
-        <div id="tab-workforce" class="hidden">
-          <div class="summary-box" id="popSummary"></div>
-          <div id="jobList"></div>
-        </div>
-      </div>
-    </div>
+<div class="hud-alerts" id="raidBox"></div>
+
+<aside class="tracker" id="tracker"></aside>
+
+<section class="chat" id="chat">
+  <div class="chat-tabs">
+    <button class="chat-tab active" data-action="chatTab" data-tab="all">All</button>
+    <button class="chat-tab" data-action="chatTab" data-tab="war">War</button>
+    <button class="chat-tab" data-action="chatTab" data-tab="realm">Realm</button>
+    <button class="chat-tab" data-action="clearLog" title="Clear the log">⌫</button>
+    <button class="chat-tab chat-min" data-action="chatToggle" title="Minimize">▾</button>
+  </div>
+  <div class="log" id="log"></div>
+</section>
+
+<nav class="actionbar" id="actionBar"></nav>
+
+<!-- =====================================================================
+     WINDOWS (opened from the action bar, the city or hotkeys)
+     ===================================================================== -->
+<div class="win-layer" id="winLayer">
+  <section class="win hidden" id="win-kingdom" data-title="🏰 Kingdom">
+    <div class="grid-cards" id="buildingList"></div>
   </section>
 
-  <!-- MIDDLE: military & expeditions -->
-  <section class="col-mid">
-    <div class="panel">
-      <div class="panel-head"><h2>War Council</h2><div class="btn-row" style="align-items:center"><button class="btn teal sm" data-action="worldMap">🗺️ World Map</button><span class="badge war" id="armyBadge">0 soldiers</span></div></div>
-      <div class="panel-body col-scroll">
-        <div class="commander">
-          <img data-asset="commander" alt="" />
-          <div>
-            <div class="title" style="display:flex;justify-content:space-between;align-items:center;gap:6px">
-              <h3 style="font-size:14px">Lord Commander</h3><span class="badge" id="cmdLevel">Lv 1</span>
-            </div>
-            <div class="bar war" style="margin:6px 0 4px"><i id="cmdXpBar"></i></div>
-            <div class="stat-row"><span>Experience</span><b id="cmdXp">0 / 40</b></div>
-            <div class="stat-row"><span>Morale</span><b id="moraleTxt">100%</b></div>
-            <div class="bar good fast"><i id="moraleBar"></i></div>
-          </div>
-        </div>
-
-        <div id="raidBox"></div>
-
-        <div class="section-title">Battle Doctrine <span class="dim" style="text-transform:none;letter-spacing:0">(used by your captains in auto battles)</span></div>
-        <div class="doctrines" id="doctrineList"></div>
-
-        <div class="section-title">Barracks Training</div>
-        <div class="grid-cards" id="unitList"></div>
-        <div class="queue" id="queueBox"></div>
-
-        <div class="section-title">Standing Army</div>
-        <div class="summary-box" id="armySummary"></div>
-
-        <div class="section-title">Active Expeditions <span class="dim" id="expSlots"></span></div>
-        <div id="activeExp"></div>
-
-        <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">Expedition Board <button class="btn teal sm" data-action="worldMap">🗺️ Raid the World Map</button></div>
-        <div id="missionList"></div>
-      </div>
-    </div>
+  <section class="win hidden" id="win-citizens" data-title="👥 Citizens">
+    <div class="summary-box" id="popSummary"></div>
+    <div id="jobList"></div>
   </section>
 
-  <!-- RIGHT: log, controls, artwork -->
-  <section class="col-right">
-    <div class="panel">
-      <div class="panel-head"><h2>Realm Affairs</h2><span class="badge" id="questBadge">Quests</span></div>
-      <div class="panel-body">
-        <div id="eventBox"></div>
-        <div id="templeBox"></div>
-        <div id="marketBox"></div>
-        <div class="section-title">Quests</div>
-        <div id="questList"></div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head"><h2>Chronicle</h2><button class="btn sm" data-action="clearLog">Clear</button></div>
-      <div class="panel-body"><div class="log" id="log"></div></div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head"><h2>Realm Controls</h2><span class="save-status" id="saveStatus">Not saved yet</span></div>
-      <div class="panel-body">
-        <div class="btn-row" style="margin-bottom:10px">
-          <button class="btn primary" data-action="save">Save</button>
-          <button class="btn" data-action="export">Export Save</button>
-          <button class="btn" data-action="import">Import Save</button>
-          <button class="btn danger" data-action="reset">Reset</button>
-        </div>
-        <div class="kv" id="statsBox"></div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head"><h2>Artwork Forge</h2><span class="badge teal" id="artCount">0 / 0</span></div>
-      <div class="panel-body">
-        <p class="muted" style="margin:0 0 10px;font-size:12.5px">
-          The game uses AI art from <code>assets/generated/</code> when it's there. If not, it uses built-in icons.
-          You can also make art here in the browser with your own Signor API key.
-        </p>
-        <label class="field"><span>API key (only stored in this browser's localStorage)</span>
-          <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off" spellcheck="false" />
-        </label>
-        <label class="field"><span>Image model</span>
-          <select id="apiModel">
-            <option value="gemini-3.1-flash-image">gemini-3.1-flash-image (Nano Banana 2)</option>
-            <option value="gemini-3.1-flash-lite-image">gemini-3.1-flash-lite-image (fastest)</option>
-            <option value="gemini-nano-banana-2.1">gemini-nano-banana-2.1 (cheapest Gemini)</option>
-            <option value="gemini-3-pro-image">gemini-3-pro-image (highest quality)</option>
-            <option value="gpt-image-2-c">gpt-image-2-c</option>
-            <option value="gpt-image-2">gpt-image-2</option>
-            <option value="doubao-seedream-4-0-250828">doubao-seedream-4-0</option>
-          </select>
-        </label>
-        <label class="field"><span>API base URL</span>
-          <input type="text" id="apiBase" spellcheck="false" />
-        </label>
-        <div class="btn-row">
-          <button class="btn teal" data-action="genMissing" id="btnGenMissing">Generate missing art</button>
-          <button class="btn" data-action="genAll" id="btnGenAll">Regenerate all</button>
-          <button class="btn danger" data-action="clearArt">Clear cache</button>
-        </div>
-        <div class="art-progress hidden" id="artProgress">
-          <div class="stat-row"><span id="artStatus">Working…</span><b id="artPct">0%</b></div>
-          <div class="bar teal fast"><i id="artBar"></i></div>
-        </div>
-        <p class="note">Each image costs a little from your Signor wallet and takes about 10–80 s. If the browser can't reach the API (CORS), run <code>node tools/generate-assets.mjs</code> instead.</p>
-      </div>
-    </div>
+  <section class="win hidden" id="win-research" data-title="📜 Academy Research">
+    <div id="researchNow"></div>
+    <div class="grid-cards" id="techList"></div>
   </section>
-</main>
+
+  <section class="win hidden" id="win-army" data-title="⚔ War Council">
+    <div class="section-title">Battle Doctrine <span class="dim" style="text-transform:none;letter-spacing:0">(used by your captains in auto battles)</span></div>
+    <div class="doctrines" id="doctrineList"></div>
+    <div class="section-title">Barracks Training</div>
+    <div class="queue" id="queueBox"></div>
+    <div class="grid-cards" id="unitList"></div>
+    <div class="section-title">Standing Army</div>
+    <div class="summary-box" id="armySummary"></div>
+    <div class="section-title">Armies in the Field <span class="dim" id="expSlots"></span></div>
+    <div id="activeExp"></div>
+  </section>
+
+  <section class="win hidden" id="win-campaign" data-title="📖 Campaign Quest Log">
+    <div class="questlog">
+      <div class="ql-list" id="qlList"></div>
+      <div class="ql-detail" id="qlDetail"></div>
+    </div>
+    <div class="hidden" id="missionList"></div>
+  </section>
+
+  <section class="win hidden" id="win-quests" data-title="❗ Realm Quests">
+    <div style="margin-bottom:8px">Progress: <span class="badge" id="questBadge"></span></div>
+    <div id="questList"></div>
+  </section>
+
+  <section class="win hidden" id="win-realm" data-title="⚖ Realm Affairs">
+    <div id="eventBox"></div>
+    <div id="templeBox"></div>
+    <div id="marketBox"></div>
+  </section>
+
+  <section class="win hidden" id="win-building" data-title="Building">
+    <div id="buildingDetail"></div>
+  </section>
+
+  <section class="win hidden" id="win-settings" data-title="⚙ Realm Controls">
+    <div class="btn-row" style="margin-bottom:10px">
+      <button class="btn primary" data-action="save">Save</button>
+      <button class="btn" data-action="export">Export Save</button>
+      <button class="btn" data-action="import">Import Save</button>
+      <button class="btn danger" data-action="reset">Reset</button>
+      <span class="save-status" id="saveStatus">Not saved yet</span>
+    </div>
+    <div class="kv" id="statsBox"></div>
+    <div class="section-title" style="margin-top:16px">Artwork Forge <span class="badge teal" id="artCount">0 / 0</span></div>
+    <p class="muted" style="margin:0 0 10px;font-size:12.5px">
+      The game uses AI art from <code>assets/generated/</code> when it's there. If not, it uses built-in icons.
+      You can also make art here in the browser with your own Signor API key.
+    </p>
+    <label class="field"><span>API key (only stored in this browser's localStorage)</span>
+      <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off" spellcheck="false" />
+    </label>
+    <label class="field"><span>Image model</span>
+      <select id="apiModel">
+        <option value="gemini-nano-banana-2.1">gemini-nano-banana-2.1 (cheapest, about $0.027/image)</option>
+        <option value="gemini-3.1-flash-image">gemini-3.1-flash-image (Nano Banana 2)</option>
+        <option value="gemini-3.1-flash-lite-image">gemini-3.1-flash-lite-image (fastest)</option>
+        <option value="gemini-3-pro-image">gemini-3-pro-image (highest quality)</option>
+        <option value="gpt-image-2-c">gpt-image-2-c</option>
+        <option value="gpt-image-2">gpt-image-2</option>
+        <option value="doubao-seedream-4-0-250828">doubao-seedream-4-0</option>
+      </select>
+    </label>
+    <label class="field"><span>API base URL</span>
+      <input type="text" id="apiBase" spellcheck="false" />
+    </label>
+    <div class="btn-row">
+      <button class="btn teal" data-action="genMissing" id="btnGenMissing">Generate missing art</button>
+      <button class="btn" data-action="genAll" id="btnGenAll">Regenerate all</button>
+      <button class="btn danger" data-action="clearArt">Clear cache</button>
+    </div>
+    <div class="art-progress hidden" id="artProgress">
+      <div class="stat-row"><span id="artStatus">Working…</span><b id="artPct">0%</b></div>
+      <div class="bar teal fast"><i id="artBar"></i></div>
+    </div>
+    <p class="note">Each image costs a little from your Signor wallet and takes about 10–80 s. If the browser can't reach the API (CORS), run <code>node tools/generate-assets.mjs</code> instead.</p>
+  </section>
+</div>
 
 <div class="toasts" id="toasts"></div>
 <div id="modalRoot"></div>
+
 
 <!-- =====================================================================
      ASSET CATALOG (single source of truth for every generated image)
@@ -1565,6 +1764,59 @@ const QUESTS = [
   { id: "th15",       text: "Raise the Town Hall to level 15",        check: (s) => s.buildings.townhall >= 15,          reward: { relics: 25 } },
 ];
 
+/*
+ * The Campaign: every expedition is a story quest with a quest giver, dialogue, objectives and a one-time reward
+ * you collect by turning the quest in. Quests unlock in order. Completed quests can be replayed as bounties.
+ */
+const CAMPAIGN_ORDER = ["bandits", "goblins", "abbey", "orcs", "trollbridge", "giants", "necropolis", "dragon", "citadel", "abyss", "titan"];
+const CHAPTERS = ["I · The Borderlands", "II · The Orc War", "III · Shadows Rising", "IV · The End of Days"];
+const CAMPAIGN = {
+  bandits:    { chapter: 0, giver: "Captain Aldric", face: "🧔", title: "Trouble on the King's Road", general: "bandit_chief",
+                intro: "My lord, the merchants won't travel the King's Road anymore. A gang of cutthroats has made camp in the Darkwood and their chief takes a toll in blood. Clear them out and the trade will flow again.",
+                outro: "The road is safe once more. The merchants are already singing your name in the taverns, and they sent this as thanks.",
+                objective: "Defeat the bandits in the Darkwood and slay their Chief", reward: { gold: 400, wood: 200 }, bonus: { steel: 60 } },
+  goblins:    { chapter: 0, giver: "Ranger Tamsin", face: "🏹", title: "The Warren Beneath the Hills", general: "goblin_king",
+                intro: "Goblins have been stealing sheep from the hill farms, my lord. I tracked them to a warren in the hills. Their king rides a great warg. Kill him and the rest will scatter like rats.",
+                outro: "The warren is silent. We found the farmers' stolen goods and a little more besides.",
+                objective: "Storm the Goblin Warrens and kill the Goblin King", reward: { gold: 700, food: 500 }, bonus: { horses: 5 } },
+  abbey:      { chapter: 0, giver: "Sister Maren", face: "🕯️", title: "The Restless Dead", general: null,
+                intro: "The old abbey in the marsh... the dead walk there now. Two necromancers are raising my brothers and sisters from their graves. Please, my lord, let them rest.",
+                outro: "The bells of the abbey rang tonight for the first time in years. The dead sleep again. Take these offerings from a grateful temple.",
+                objective: "Cleanse the Haunted Abbey of the undead", reward: { gold: 900, stone: 600 }, bonus: { faith: 80 } },
+  orcs:       { chapter: 1, giver: "King Osric", face: "👑", title: "The Iron Tusk Warband", general: "orc_warlord",
+                intro: "Lord of Ironhold, the Iron Tusk orcs have built a stronghold on our border and their Warlord dreams of burning my kingdom. You have proven yourself. Break their walls and bring me his head.",
+                outro: "The Warlord is dead and the orc tribes fight among themselves. The crown will remember this, and rewards you handsomely.",
+                objective: "Breach the Orc Stronghold and slay the Warlord", reward: { gold: 2000, steel: 300 }, bonus: { relics: 1 } },
+  trollbridge:{ chapter: 1, giver: "Guildmaster Bren", face: "💰", title: "Toll of the Troll Bridge", general: null,
+                intro: "Trolls have taken the old stone bridge over the river and they eat anyone who can't pay the toll. My caravans need that crossing, my lord. I'll pay well.",
+                outro: "The bridge is ours again. My caravans are already rolling. As promised, your share.",
+                objective: "Drive the trolls off the bridge", reward: { gold: 3000, wood: 1500 }, bonus: { steel: 400 } },
+  giants:     { chapter: 1, giver: "Ranger Tamsin", face: "🏹", title: "Winter's Teeth", general: "giant_jarl",
+                intro: "The frost giants came down from the peaks with an orc host behind them. Their Jarl holds Frostfang Pass. If he isn't stopped, the snows will bury our northern farms.",
+                outro: "The pass is open and the Jarl's hammer hangs in your hall. The north is safe.",
+                objective: "Win the battle at Frostfang Pass and slay the Giant Jarl", reward: { gold: 4000, steel: 600 }, bonus: { relics: 1 } },
+  necropolis: { chapter: 2, giver: "Sister Maren", face: "🕯️", title: "City of the Dead", general: "lich",
+                intro: "The necromancers from the abbey served a greater master. A Lich has woken the Necropolis in the marsh, and an army of the dead marches behind its walls. Only you can end this.",
+                outro: "The Lich's phylactery is shattered. The marsh is quiet. The temple gives you its holiest relics.",
+                objective: "Break into the Necropolis and destroy the Lich", reward: { gold: 8000, crystals: 30 }, bonus: { relics: 2 } },
+  dragon:     { chapter: 2, giver: "Archmage Velor", face: "🧙", title: "The Ember Wyrm", general: null,
+                intro: "An Elder Dragon has woken in the valley, and its drakes burn everything in sight. Bring ballistae and the bravest soldiers you have. Its hoard could fill a kingdom's treasury.",
+                outro: "The Ember Wyrm is dead! Its hoard is beyond counting, and the scales alone will armor a hundred knights.",
+                objective: "Slay the Elder Dragon in its lair", reward: { gold: 10000, steel: 1500 }, bonus: { relics: 3 } },
+  citadel:    { chapter: 2, giver: "King Osric", face: "👑", title: "The Shadow Citadel", general: "dark_lord",
+                intro: "Everything leads back to the Shadow Citadel. The Dark Lord there sent the orcs, woke the Lich and stirred the dragon. Take his fortress, my lord, and end this war.",
+                outro: "The Dark Lord has fallen and his citadel burns. The realm is saved, but the archmage brings grave news...",
+                objective: "Storm the Shadow Citadel and defeat the Dark Lord", reward: { gold: 15000, steel: 2500 }, bonus: { relics: 4 } },
+  abyss:      { chapter: 3, giver: "Archmage Velor", face: "🧙", title: "The Gate Below", general: null,
+                intro: "The Dark Lord's death broke a seal. An Abyssal Gate has opened and demons pour out of it. We must fight through them so I can close it.",
+                outro: "The gate is sealed. The demons are gone. But the mountains tremble, and the storm is coming...",
+                objective: "Fight through the Abyssal Gate", reward: { gold: 25000, crystals: 80 }, bonus: { relics: 5 } },
+  titan:      { chapter: 3, giver: "King Osric", face: "👑", title: "Throne of the Storm", general: null,
+                intro: "The Storm Titan, oldest of the giants, has claimed the mountain throne. This is the final battle, Lord of Ironhold. Win it, and your name will be sung for a thousand years.",
+                outro: "The Titan has fallen and the storm is over. You are the greatest hero this realm has ever known. All hail the Lord of Ironhold!",
+                objective: "Topple the Storm Titan", reward: { gold: 60000, steel: 10000 }, bonus: { relics: 10 } },
+};
+
 /* Temple blessings: spend Faith on timed buffs. */
 const BLESSINGS = {
   harvest:     { buff: "harvest",     cost: 60,  dur: 600, name: "Blessing of Plenty",  icon: "🌽" },
@@ -1626,6 +1878,7 @@ const GameState = {
       offer: null,                   // a pending event offer {id, cost, get|unit,n, expires}
       nextEventAt: 600,
       world: null,                   // the world map (generated on first visit)
+      campaign: { done: {}, led: {}, turned: {} },   // story quest progress
       veterancy: {},                 // unit type -> battle experience (veteran ranks)
       nextId: 1,
       log: [],                       // [{id, t, msg, type}]
@@ -1643,6 +1896,13 @@ const GameState = {
     // saves from before wood existed get a lumber camp and some timber to start with
     if (!raw.buildings || raw.buildings.lumbercamp === undefined) { out.buildings.lumbercamp = Math.max(1, out.buildings.townhall * 2); out.resources.wood = Math.max(out.resources.wood, 500); }
     out.veterancy = { ...(raw.veterancy || {}) };
+    const rc = raw.campaign || {};
+    out.campaign = { done: { ...(rc.done || {}) }, led: { ...(rc.led || {}) }, turned: { ...(rc.turned || {}) } };
+    // players who already beat a mission before the campaign existed can turn it in now
+    // beating a later mission counts every earlier story quest as done (so veterans needn't replay the start)
+    let last = -1;
+    CAMPAIGN_ORDER.forEach((id, i) => { if ((out.stats.missionWins[id] || 0) > 0) last = i; });
+    for (let i = 0; i <= last; i++) out.campaign.done[CAMPAIGN_ORDER[i]] = true;
     out.log = Array.isArray(raw.log) ? raw.log.slice(-120) : [];
     if (!TACTICS[out.doctrine]) out.doctrine = "balanced";
     out.research = { levels: { ...((raw.research && raw.research.levels) || {}) }, current: (raw.research && raw.research.current && TECHS[raw.research.current.id]) ? raw.research.current : null };
@@ -1976,7 +2236,11 @@ const Military = {
       return n ? World.asMission(s, n) : null;
     }
     const m = MISSIONS[id];
-    if (!m.endless) return { ...m, id, enemyTactic: m.fortified ? "holdline" : "balanced" };
+    if (!m.endless) {
+      const c = CAMPAIGN[id];
+      const army = c && c.general ? { ...m.army, [c.general]: 1 } : m.army;
+      return { ...m, id, army, enemyTactic: m.fortified ? "holdline" : "balanced" };
+    }
     const c = this.conquestArmy(s), st = s.conquest, g = Math.pow(1.22, st - 1);
     return {
       ...m, id, name: `${m.name}: Stage ${st}`, sub: FACTIONS[c.faction].name, army: c.army, map: c.map, fortified: c.fortified,
@@ -2009,6 +2273,7 @@ const Military = {
     if (!m) return "Unknown target";
     if (m.node) { const nb = World.blocker(s, World.node(s, m.node)); if (nb) return nb; }
     if (s.commander.level < m.level) return `Commander level ${m.level} required`;
+    if (CAMPAIGN[id] && !Campaign.unlocked(s, id)) return `Finish the quest "${CAMPAIGN[CAMPAIGN_ORDER[CAMPAIGN_ORDER.indexOf(id) - 1]].title}" first`;
     if (s.battle) return "Finish the battle you are leading first";
     if (!manual && s.expeditions.length >= this.expeditionSlots(s)) return s.buildings.barracks ? "No free expedition slots" : "Build a Barracks first";
     if (units && this.sum(units) <= 0) return "Select at least one unit";
@@ -2034,7 +2299,7 @@ const Military = {
   assault(s, id, units, tactic) {
     if (this.deployBlocker(s, id, units, true)) return null;
     const clean = this.take(s, units);
-    s.battle = Battle.create(this.battleOpts(s, id, clean, "assault", tactic));
+    s.battle = Battle.create({ ...this.battleOpts(s, id, clean, "assault", tactic), hero: s.commander.level });
     s.stats.battlesLed++;
     addLog(s, `You ride out at the head of ${this.sum(clean)} soldiers to assault ${this.mission(s, id).name}.`, "war");
     return s.battle;
@@ -2075,6 +2340,7 @@ const Military = {
     const power = this.raidPower(s);
     const faction = pickFaction(power);
     const army = composeArmy(faction, power);
+    if (power >= 150 && FACTION_GENERALS[faction]) army[FACTION_GENERALS[faction]] = 1;
     const maps = ["plains", "forest", "hills", "river", "valley", "mountain"];
     s.raidCount++;
     s.raid = { id: s.nextId++, faction, army, power: armyPower(army), mapType: maps[Math.floor(Math.random() * maps.length)], arriveAt: s.time + BALANCE.raidWarning, deadline: 0, phase: "approaching" };
@@ -2108,6 +2374,7 @@ const Military = {
     if (!s.raid || s.raid.phase === "fighting" || s.battle) return null;
     const opts = this.raidOpts(s);
     opts.context.led = true;
+    opts.hero = s.commander.level;
     this.take(s, s.army);
     s.raid.phase = "fighting";
     s.battle = Battle.create(opts);
@@ -2136,6 +2403,8 @@ const Military = {
     s.stats.enemiesSlain += slain;
     const rep = { win, lost, slain, parts: [], kind: ctx.kind, title: b.title };
     if (win && ctx.led) s.stats.battlesLedWon++;
+    if (b.heroFell) { s.morale = Math.max(0, s.morale - 15); addLog(s, "Your Lord Commander was wounded in battle and needs time to recover (−15 morale).", "bad"); }
+    if (b.generalFell && win) rep.parts.push("Enemy general slain");
     // veteran experience
     for (const [t, xp] of Object.entries(b.vetXp || {})) {
       if (!UNITS[t]) continue;
@@ -2198,6 +2467,13 @@ const Military = {
     if (win) {
       s.stats.won++;
       s.stats.missionWins[ctx.mission] = (s.stats.missionWins[ctx.mission] || 0) + 1;
+      if (CAMPAIGN[ctx.mission] && !s.campaign.done[ctx.mission]) {
+        s.campaign.done[ctx.mission] = true;
+        for (const id of CAMPAIGN_ORDER.slice(0, CAMPAIGN_ORDER.indexOf(ctx.mission))) s.campaign.done[id] = true;
+        rep.parts.push(`Quest "${CAMPAIGN[ctx.mission].title}" complete: turn it in!`);
+        addLog(s, `📖 Quest objective complete: ${CAMPAIGN[ctx.mission].objective}. Return to ${CAMPAIGN[ctx.mission].giver} to turn it in.`, "war");
+      }
+      if (CAMPAIGN[ctx.mission] && ctx.led) s.campaign.led[ctx.mission] = true;
       const lm = (1 + 0.05 * (s.commander.level - 1)) * (ctx.kind === "assault" ? BALANCE.manualLootBonus : 1);
       const bundle = {};
       for (const [r, [lo, hi]] of Object.entries(m.loot)) bundle[r] = randInt(lo, hi);
@@ -2366,6 +2642,34 @@ const Quests = {
   },
   rewardText(r) { return Object.entries(r).map(([k, v]) => amount(k, v)).join(", "); },
   ready(s) { return this.open(s, 4).filter((q) => q.check(s)).length; },
+};
+
+const Campaign = {
+  unlocked(s, id) { const i = CAMPAIGN_ORDER.indexOf(id); return i <= 0 || !!s.campaign.turned[CAMPAIGN_ORDER[i - 1]]; },
+  /** locked | available | marching | ready (turn in) | complete */
+  state(s, id) {
+    if (s.campaign.turned[id]) return "complete";
+    if (s.campaign.done[id]) return "ready";
+    if (!this.unlocked(s, id) || s.commander.level < MISSIONS[id].level) return "locked";
+    if (s.expeditions.some((e) => e.mission === id) || (s.battle && s.battle.context && s.battle.context.mission === id)) return "marching";
+    return "available";
+  },
+  current(s) { return CAMPAIGN_ORDER.find((id) => !s.campaign.turned[id]) || null; },
+  turnIn(s, id) {
+    if (this.state(s, id) !== "ready") return false;
+    const c = CAMPAIGN[id];
+    const bundle = { ...c.reward };
+    if (s.campaign.led[id]) for (const [r, v] of Object.entries(c.bonus)) bundle[r] = (bundle[r] || 0) + v;
+    const { relics, ...rest } = bundle;
+    Economy.grant(s, rest);
+    if (relics) { s.resources.relics += relics; s.stats.relicsFound += relics; }
+    s.campaign.turned[id] = true;
+    Military.addXp(s, Math.round(MISSIONS[id].xp * 1.5));
+    addLog(s, `📖 Quest turned in: "${c.title}". ${c.giver}: "${c.outro}" Reward: ${Quests.rewardText(bundle)}.`, "good");
+    const next = this.current(s);
+    if (next) addLog(s, `📖 New quest from ${CAMPAIGN[next].giver}: "${CAMPAIGN[next].title}"`, "war");
+    return true;
+  },
 };
 
 const Temple = {
@@ -2826,6 +3130,221 @@ const AssetPipeline = {
 };
 
 /* =====================================================================
+   7b. HUD: city scene, action bar, windows, quest tracker, campaign log
+   ===================================================================== */
+// [x%, y%, big?] inside the city scene
+const CITY_LAYOUT = {
+  academy: [6, 10], magetower: [28, 10], ranch: [50, 10], workshop: [72, 10], stables: [94, 10],
+  temple: [8, 37], townhall: [50, 36, true], barracks: [92, 37],
+  lumbercamp: [6, 64], house: [28, 64], steelworks: [50, 66], market: [72, 64], walls: [94, 64],
+  farm: [6, 91], granary: [28, 91], brewery: [50, 92], warehouse: [72, 91], quarry: [94, 91],
+};
+const HUD_ACTIONS = [
+  { id: "kingdom",  icon: "🏰", lbl: "Kingdom",  key: "1" },
+  { id: "citizens", icon: "👥", lbl: "Citizens", key: "2" },
+  { id: "research", icon: "📜", lbl: "Research", key: "3" },
+  { id: "army",     icon: "⚔️", lbl: "Army",     key: "4" },
+  { id: "campaign", icon: "📖", lbl: "Campaign", key: "5" },
+  { id: "quests",   icon: "❗", lbl: "Quests",   key: "6" },
+  { id: "world",    icon: "🗺️", lbl: "World",    key: "7" },
+  { id: "realm",    icon: "⚖️", lbl: "Realm",    key: "8" },
+  { id: "settings", icon: "⚙️", lbl: "Settings", key: "9" },
+];
+const QUEST_MARK = { available: "!", ready: "?", marching: "⚔", complete: "✓", locked: "🔒" };
+
+const HUD = {
+  open: null,
+  building: null,
+  qsel: null,
+  sig: {},
+
+  build() {
+    // window frames: title bar + scrolling body
+    for (const w of $$(".win")) {
+      if (w.querySelector(".win-title")) continue;
+      const body = document.createElement("div");
+      body.className = "win-body";
+      while (w.firstChild) body.appendChild(w.firstChild);
+      w.innerHTML = `<div class="win-title"><span class="wt">${w.dataset.title}</span><button class="win-x" data-action="closeWin" title="Close (Esc)">✕</button></div>`;
+      w.appendChild(body);
+    }
+    if (window.innerWidth < 820) $("#chat").classList.add("min");
+    $("#actionBar").innerHTML = HUD_ACTIONS.map((a) => `<button class="slot" data-action="win" data-win="${a.id}" id="slot-${a.id}" title="${a.lbl} (${a.key})"><span class="key">${a.key}</span>${a.icon}<span class="lbl">${a.lbl}</span></button>`).join("");
+    $("#cityPlots").innerHTML = Object.entries(CITY_LAYOUT).map(([id, [x, y, big]]) => `
+      <div class="plot ${big ? "big" : ""}" id="plot-${id}" data-action="building" data-id="${id}" style="left:${x}%;top:${y}%">
+        <div class="pimg"><img data-asset="${BUILDINGS[id].asset}" alt=""></div>
+        <span class="plvl">0</span><span class="pup hidden">▲</span>
+        <div class="pname">${BUILDINGS[id].name}</div>
+      </div>`).join("");
+    AssetPipeline.applyAll($("#cityPlots"));
+    this.sig = {};
+  },
+
+  openWin(id) {
+    if (id === "world") { this.closeWin(); WorldUI.show(); return; }
+    if (this.open === id && id !== "building") { this.closeWin(); return; }
+    for (const w of $$(".win")) w.classList.add("hidden");
+    const w = $("#win-" + id);
+    if (!w) return;
+    w.classList.remove("hidden");
+    this.open = id;
+    $$(".slot").forEach((s) => s.classList.toggle("active", s.dataset.win === id));
+    if (id === "campaign" && !this.qsel) this.qsel = Campaign.current(GameState.current) || CAMPAIGN_ORDER[0];
+    this.sig = {};
+    UI.update();
+  },
+  closeWin() {
+    for (const w of $$(".win")) w.classList.add("hidden");
+    this.open = null; this.building = null;
+    $$(".slot").forEach((s) => s.classList.remove("active"));
+    $$(".plot").forEach((p) => p.classList.remove("active"));
+  },
+  openBuilding(id) {
+    this.building = id;
+    $("#win-building .wt").textContent = BUILDINGS[id].name;
+    $$(".plot").forEach((p) => p.classList.toggle("active", p.id === "plot-" + id));
+    this.openWin("building");
+  },
+
+  update(s) {
+    // ---- city plots
+    for (const id of Object.keys(CITY_LAYOUT)) {
+      const el = $("#plot-" + id), lvl = s.buildings[id];
+      el.classList.toggle("locked", lvl === 0);
+      el.querySelector(".plvl").textContent = lvl;
+      el.querySelector(".pup").classList.toggle("hidden", !!Economy.buildBlocker(s, id));
+    }
+    // ---- notification dots on the action bar
+    const dots = {
+      kingdom: Object.keys(BUILDINGS).filter((id) => !Economy.buildBlocker(s, id)).length,
+      campaign: CAMPAIGN_ORDER.filter((id) => ["ready"].includes(Campaign.state(s, id))).length,
+      quests: Quests.ready(s),
+      citizens: Economy.unemployed(s) > 0 ? 1 : 0,
+      realm: s.offer ? 1 : 0,
+      army: s.raid ? 1 : 0,
+    };
+    for (const a of HUD_ACTIONS) {
+      const slot = $("#slot-" + a.id);
+      let dot = slot.querySelector(".note-dot");
+      const n = dots[a.id] || 0;
+      if (n && !dot) { dot = document.createElement("span"); dot.className = "note-dot"; slot.appendChild(dot); }
+      if (dot) { if (n) dot.textContent = a.id === "citizens" || a.id === "army" || a.id === "realm" ? "!" : n; else dot.remove(); }
+    }
+    this.renderTracker(s);
+    if (this.open === "building" && this.building) this.renderBuilding(s);
+    if (this.open === "campaign") this.renderCampaign(s);
+  },
+
+  renderTracker(s) {
+    const cur = Campaign.current(s);
+    const open = Quests.open(s, 3);
+    const sig = (cur ? cur + Campaign.state(s, cur) + !!s.campaign.led[cur] : "") + "|" + open.map((q) => q.id + q.check(s)).join() + "|" + s.expeditions.map((e) => e.id).join();
+    if (sig !== this.sig.tracker) {
+      this.sig.tracker = sig;
+      let h = "";
+      if (cur) {
+        const c = CAMPAIGN[cur], st = Campaign.state(s, cur);
+        h += `<div class="tr-sec"><div class="tr-h"><span>📖 Campaign</span><span>${CHAPTERS[c.chapter].split(" · ")[0]}</span></div>
+          <div class="tr-q" data-action="questOpen" data-id="${cur}"><div class="tr-title"><span class="mk">${QUEST_MARK[st]}</span>${esc(c.title)}</div>
+          <div class="tr-obj ${s.campaign.done[cur] ? "done" : ""}">${s.campaign.done[cur] ? "✓" : "–"} ${esc(c.objective)}</div>
+          <div class="tr-obj ${s.campaign.led[cur] ? "done" : ""}">${s.campaign.led[cur] ? "✓" : "–"} <span class="dim">Bonus: win it leading in person</span></div>
+          ${st === "ready" ? `<div class="tr-obj done">➜ Return to ${esc(c.giver)}</div>` : st === "locked" ? `<div class="tr-obj"><span class="dim">Requires Commander Lv ${MISSIONS[cur].level}</span></div>` : ""}</div></div>`;
+      }
+      if (open.length) {
+        h += `<div class="tr-sec"><div class="tr-h"><span>❗ Realm Quests</span><span>${s.quests.length}/${QUESTS.length}</span></div>` +
+          open.map((q) => `<div class="tr-q" data-action="win" data-win="quests"><div class="tr-obj ${q.check(s) ? "done" : ""}" style="padding-left:0">${q.check(s) ? "✓" : "▫"} ${esc(q.text)}${q.check(s) ? " <b>(claim!)</b>" : ""}</div></div>`).join("") + `</div>`;
+      }
+      if (s.expeditions.length) {
+        h += `<div class="tr-sec"><div class="tr-h"><span>⚔ Armies in the Field</span></div>` +
+          s.expeditions.map((e) => `<div class="tr-q" data-action="win" data-win="army"><div class="tr-obj" style="padding-left:0">${esc(Military.mission(s, e.mission)?.name || "Expedition")} <span class="dim" data-trt="${e.id}"></span></div></div>`).join("") + `</div>`;
+      }
+      $("#tracker").innerHTML = h;
+    }
+    for (const e of s.expeditions) { const t = $(`[data-trt="${e.id}"]`); if (t) t.textContent = "· " + fmtTime(e.endAt - s.time); }
+  },
+
+  renderBuilding(s) {
+    const id = this.building, b = BUILDINGS[id], lvl = s.buildings[id];
+    const blk = Economy.buildBlocker(s, id), cost = Economy.buildingCost(id, lvl), maxed = lvl >= Economy.buildingMax(s, id);
+    const sig = id + lvl + blk + Object.entries(cost).map(([r, v]) => s.resources[r] >= v).join() + UI.buildingEffect(s, id);
+    if (sig === this.sig.building) return;
+    this.sig.building = sig;
+    const links = [];
+    const jobs = Object.entries(JOBS).filter(([, j]) => j.building === id);
+    if (jobs.length) links.push(`<button class="btn" data-action="win" data-win="citizens">👥 Manage ${jobs.map(([, j]) => j.name).join(" & ")}</button>`);
+    if (["barracks", "stables", "workshop", "magetower", "temple"].includes(id)) links.push(`<button class="btn" data-action="win" data-win="army">⚔ Train troops</button>`);
+    if (id === "academy") links.push(`<button class="btn" data-action="win" data-win="research">📜 Research</button>`);
+    if (["market", "temple"].includes(id)) links.push(`<button class="btn" data-action="win" data-win="realm">⚖ ${id === "market" ? "Trade" : "Blessings"}</button>`);
+    if (id === "townhall") links.push(`<button class="btn" data-action="win" data-win="kingdom">🏰 All buildings</button>`);
+    if (id === "walls" || id === "barracks") links.push(`<button class="btn" data-action="win" data-win="world">🗺 World Map</button>`);
+    $("#buildingDetail").innerHTML = `
+      <div style="display:flex;gap:14px;align-items:center;margin-bottom:10px">
+        <img data-asset="${b.asset}" alt="" style="width:120px;height:120px;border-radius:12px;border:3px solid var(--gold-3);object-fit:cover;box-shadow:0 8px 20px #000">
+        <div><div class="ql-title">${b.name}</div><span class="badge">Level ${lvl} / ${Economy.buildingMax(s, id)}</span>
+        <div class="desc" style="margin-top:6px;color:var(--muted)">${b.desc}</div></div>
+      </div>
+      <div class="effect" style="color:#8de3b0;margin-bottom:8px">${esc(UI.buildingEffect(s, id))}</div>
+      ${maxed ? `<div class="dim">${lvl >= (b.max || 99) ? "Fully upgraded." : "Upgrade the Town Hall to raise this building's limit."}</div>` : `
+      <div class="section-title">${lvl === 0 ? "Construction" : `Upgrade to level ${lvl + 1}`}</div>
+      <div class="costs" style="margin-bottom:8px;font-size:13px">${UI.costHtml(cost, s)}</div>
+      ${blk && blk !== "Not enough resources" ? `<div class="req" style="margin-bottom:8px">${esc(blk)}</div>` : ""}
+      <button class="btn primary" data-action="build" data-id="${id}" ${blk ? "disabled" : ""}>${lvl === 0 ? "⚒ Build" : "⬆ Upgrade"}</button>`}
+      ${links.length ? `<div class="btn-row" style="margin-top:12px">${links.join("")}</div>` : ""}`;
+    AssetPipeline.applyAll($("#buildingDetail"));
+  },
+
+  renderCampaign(s) {
+    const sel = this.qsel || CAMPAIGN_ORDER[0];
+    const sig = CAMPAIGN_ORDER.map((id) => Campaign.state(s, id) + !!s.campaign.led[id]).join() + sel + s.commander.level + s.conquest + s.army.militia + Military.homeCount(s);
+    if (sig === this.sig.campaign) return;
+    this.sig.campaign = sig;
+    let list = "";
+    CHAPTERS.forEach((ch, ci) => {
+      list += `<div class="ql-ch">Chapter ${ch}</div>`;
+      for (const id of CAMPAIGN_ORDER.filter((x) => CAMPAIGN[x].chapter === ci)) {
+        const st = Campaign.state(s, id);
+        list += `<div class="ql-item ${st === "locked" ? "locked" : ""} ${id === sel ? "sel" : ""}" data-action="questOpen" data-id="${id}"><span class="mk ${st}">${QUEST_MARK[st]}</span><span>${esc(CAMPAIGN[id].title)}</span></div>`;
+      }
+    });
+    list += `<div class="ql-ch">Side Quests</div><div class="ql-item ${sel === "conquest" ? "sel" : ""}" data-action="questOpen" data-id="conquest"><span class="mk available">∞</span><span>Endless Conquest · Stage ${s.conquest}</span></div>
+      <div class="ql-item" data-action="win" data-win="world"><span class="mk available">🗺</span><span>Raid the World Map</span></div>`;
+    $("#qlList").innerHTML = list;
+
+    let d;
+    if (sel === "conquest") {
+      const m = Military.mission(s, "conquest"), blk = Military.deployBlocker(s, "conquest", null, true);
+      d = `<div class="ql-head"><div class="ql-face">🗺️</div><div><div class="ql-title">${esc(m.name)}</div><div class="ql-giver">Repeatable · ${esc(m.sub || "")}</div></div></div>
+        <div class="ql-speech">Beyond the borders, warlord after warlord rises to challenge you. Every stage you conquer brings a stronger foe and richer spoils. How far can the Lord of Ironhold go?</div>
+        <div class="section-title">Enemy forces · ⚔ ${fmt(armyPower(m.army))} · ${MAP_TYPES[m.map]}</div><div class="chips">${UI.armyChips(m.army)}</div>
+        <div class="section-title">Spoils</div><div class="ql-rewards costs">${Object.entries(m.loot).map(([r, [lo, hi]]) => `<span class="cost"><img data-asset="${RESOURCES[r].asset}" alt="">${fmt(lo)}–${fmt(hi)}</span>`).join("")}</div>
+        ${blk ? `<div class="req">${esc(blk)}</div>` : ""}<button class="btn primary" data-action="openDeploy" data-id="conquest" ${blk ? "disabled" : ""}>⚔ March to war</button>`;
+    } else {
+      const c = CAMPAIGN[sel], st = Campaign.state(s, sel), m = Military.mission(s, sel);
+      const blk = Military.deployBlocker(s, sel, null, true);
+      const rewardChips = (r) => Object.entries(r).map(([k, v]) => `<span class="cost"><img data-asset="${RESOURCES[k].asset}" alt="">${fmt(v)}</span>`).join("");
+      d = `<div class="ql-head"><div class="ql-face">${c.face}</div><div><div class="ql-title">${esc(c.title)}</div><div class="ql-giver">Quest giver: <b>${esc(c.giver)}</b> · Chapter ${CHAPTERS[c.chapter]} · Requires Commander Lv ${m.level}</div></div></div>
+        <div class="ql-speech">${esc(st === "ready" || st === "complete" ? c.outro : c.intro)}</div>
+        <div class="section-title">Objectives</div>
+        <div class="ql-obj"><span class="${s.campaign.done[sel] ? "ok" : "no"}">${s.campaign.done[sel] ? "☑" : "☐"}</span> ${esc(c.objective)}</div>
+        <div class="ql-obj"><span class="${s.campaign.led[sel] ? "ok" : "no"}">${s.campaign.led[sel] ? "☑" : "☐"}</span> Bonus: win the battle while leading it in person</div>
+        <div class="section-title">Enemy forces · ⚔ ${fmt(armyPower(m.army))} · ${MAP_TYPES[m.map]}${m.fortified ? " · Fortified" : ""}</div><div class="chips">${UI.armyChips(m.army)}</div>
+        <div class="section-title">Rewards</div>
+        <div class="ql-rewards costs"><span class="dim">Quest:</span> ${rewardChips(c.reward)} <span class="dim">Bonus objective:</span> ${rewardChips(c.bonus)}</div>
+        <div class="ql-rewards costs"><span class="dim">Battle spoils (every victory):</span> ${Object.entries(m.loot).map(([r, [lo, hi]]) => `<span class="cost"><img data-asset="${RESOURCES[r].asset}" alt="">${fmt(lo)}–${fmt(hi)}</span>`).join("")}</div>
+        <div class="btn-row">
+          ${st === "available" ? `<button class="btn primary" data-action="openDeploy" data-id="${sel}" ${blk ? "disabled" : ""}>⚔ Accept quest & deploy</button>` : ""}
+          ${st === "ready" ? `<button class="btn primary" data-action="turnIn" data-id="${sel}">📜 Turn in quest</button>` : ""}
+          ${st === "complete" ? `<button class="btn" data-action="openDeploy" data-id="${sel}" ${blk ? "disabled" : ""}>⚔ Replay as a bounty</button>` : ""}
+          ${st === "marching" ? `<span class="badge war">Your army is on its way…</span>` : ""}
+        </div>
+        ${st !== "complete" && st !== "ready" && blk ? `<div class="req" style="margin-top:6px">${esc(blk)}</div>` : ""}`;
+    }
+    $("#qlDetail").innerHTML = d;
+    AssetPipeline.applyAll($("#win-campaign"));
+  },
+};
+
+/* =====================================================================
    7. UI MODULE (DOM building, per-tick updates, events)
    ===================================================================== */
 const UI = {
@@ -2967,6 +3486,7 @@ const UI = {
     for (const id of ["apiKey", "apiModel", "apiBase"]) $("#" + id).onchange = () => this.saveForgeConfig();
 
     $("#log").innerHTML = "";
+    HUD.build();
     this.renderedLogId = 0;
     this.expSig = this.queueSig = this.raidSig = this.doctrineSig = "";
     AssetPipeline.applyAll();
@@ -3023,7 +3543,7 @@ const UI = {
       } else {
         r.cap.textContent = "/ " + fmt(caps[id]);
         const net = rates.net[id];
-        r.rr.textContent = `${fmtRate(net)} ${RESOURCES[id].name}/sec`;
+        r.rr.textContent = `${fmtRate(net)}/s`;
         r.rr.className = "rr " + (net > 0.004 ? "good" : net < -0.004 ? "bad" : "dim");
         r.fill.style.width = clamp((v / caps[id]) * 100, 0, 100) + "%";
         r.el.classList.toggle("full", v >= caps[id] - 0.01);
@@ -3073,19 +3593,20 @@ const UI = {
 
     // ---- military: commander
     const soldiers = Military.soldierCount(s);
-    $("#armyBadge").textContent = `${fmtInt(soldiers)} soldier${soldiers === 1 ? "" : "s"}`;
+    $("#armyBadge").textContent = `⚔ ${fmt(Military.power(s, Military.allUnits(s)))}`;
+    $("#armyBadge").title = `${fmtInt(soldiers)} soldiers`;
     const c = s.commander, need = Military.xpForLevel(c.level);
-    $("#cmdLevel").textContent = `Lv ${c.level}`;
-    $("#cmdXp").textContent = `${fmtInt(c.xp)} / ${fmtInt(need)}`;
+    $("#cmdLevel").textContent = c.level;
+    $("#cmdXp").textContent = `XP ${fmtInt(c.xp)} / ${fmtInt(need)}`;
     $("#cmdXpBar").style.width = (c.xp / need) * 100 + "%";
-    $("#moraleTxt").textContent = `${Math.round(s.morale)}% · battle bonus ×${Military.battleBonus(s).toFixed(2)}`;
-    $("#moraleTxt").className = s.morale < 50 ? "bad" : s.morale < 85 ? "warn" : "";
-    const mb = $("#moraleBar"); mb.style.width = s.morale + "%"; mb.parentElement.className = "bar fast " + (s.morale < 50 ? "bad" : "good");
+    $("#moraleTxt").textContent = `Morale ${Math.round(s.morale)}% · ×${Military.battleBonus(s).toFixed(2)}`;
+    const mb = $("#moraleBar"); mb.style.width = s.morale + "%"; mb.parentElement.classList.toggle("low", s.morale < 50);
 
     this.updateRaid(s);
     this.updateDoctrine(s);
     this.updateResearch(s);
     this.updateAffairs(s);
+    HUD.update(s);
 
     // ---- units
     for (const [id, u] of Object.entries(UNITS)) {
@@ -3563,7 +4084,7 @@ const Actions = {
   acceptOffer: () => { if (Events.accept(GameState.current)) UI.update(); },
   declineOffer: () => { Events.decline(GameState.current); UI.update(); },
   doctrine: (d) => { GameState.current.doctrine = d.id; UI.update(); UI.toast(`Doctrine: ${TACTICS[d.id].name}`); },
-  openDeploy: (d) => UI.openDeploy(d.id),
+  openDeploy: (d) => { UI.openDeploy(d.id); },
   dep: (d) => {
     const inp = $(`#modalRoot input[data-unit="${d.id}"]`);
     inp.value = d.d === "max" ? GameState.current.army[d.id] : 0;
@@ -3591,6 +4112,13 @@ const Actions = {
     if (est) UI.toast(`If your captains fight: about ${Math.round(est.chance * 100)}% chance to win, losing about ${Math.round(est.losses * 100)}% of your army.`, 6000);
   },
   resumeBattle: () => UI.openBattle(),
+  win: (d) => HUD.openWin(d.win),
+  closeWin: () => HUD.closeWin(),
+  building: (d) => HUD.openBuilding(d.id),
+  questOpen: (d) => { HUD.qsel = d.id; if (HUD.open !== "campaign") HUD.openWin("campaign"); else { HUD.sig.campaign = ""; UI.update(); } },
+  turnIn: (d) => { if (Campaign.turnIn(GameState.current, d.id)) { const nx = Campaign.current(GameState.current); if (nx) HUD.qsel = nx; HUD.sig = {}; UI.toast("Quest complete! Rewards collected."); UI.update(); } },
+  chatTab: (d) => { $$(".chat-tab[data-tab]").forEach((t) => t.classList.toggle("active", t.dataset.tab === d.tab)); const c = $("#chat"); c.classList.remove("f-war", "f-realm"); if (d.tab !== "all") c.classList.add("f-" + d.tab); },
+  chatToggle: () => $("#chat").classList.toggle("min"),
   worldMap: () => { UI.closeModal(); WorldUI.show(); },
   recall: (d) => { Military.recall(GameState.current, Number(d.id)); UI.update(); },
   closeModal: () => UI.closeModal(),
@@ -3657,7 +4185,13 @@ document.addEventListener("click", (e) => {
   const fn = Actions[el.dataset.action];
   if (fn) fn(el.dataset, e);
 });
-document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !BattleUI.b) UI.closeModal(); });
+document.addEventListener("keydown", (e) => {
+  if (BattleUI.b || (typeof WorldUI !== "undefined" && WorldUI.open)) return;
+  if (e.key === "Escape") { if ($("#modalRoot .modal")) UI.closeModal(); else HUD.closeWin(); return; }
+  if (/^(INPUT|SELECT|TEXTAREA)$/.test((e.target.tagName || "")) || e.ctrlKey || e.metaKey || e.altKey || $("#modalRoot .modal")) return;
+  const a = HUD_ACTIONS.find((x) => x.key === e.key);
+  if (a) { e.preventDefault(); HUD.openWin(a.id); }
+});
 window.addEventListener("beforeunload", () => GameState.save());
 document.addEventListener("visibilitychange", () => { if (document.hidden) GameState.save(); });
 
