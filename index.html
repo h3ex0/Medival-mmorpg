@@ -454,7 +454,7 @@ body {
 /* ---------- city scene ---------- */
 .scene { position: fixed; inset: 0; background-image: var(--bg-art), radial-gradient(1200px 700px at 50% 40%, #33402a, #0b0d08); background-size: cover; background-position: center; filter: saturate(1.05); }
 .scene-vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 35%, rgba(0,0,0,0.55) 75%, rgba(0,0,0,0.85) 100%), linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 18%, rgba(0,0,0,0) 75%, rgba(0,0,0,0.6) 100%); pointer-events: none; }
-.plots { position: absolute; left: 25%; right: 21%; top: 100px; bottom: 100px; }
+.plots { position: absolute; left: 25%; right: 21%; top: 128px; bottom: 104px; }
 .plot { position: absolute; transform: translate(-50%, -50%); width: 96px; text-align: center; cursor: pointer; transition: transform 0.15s; z-index: 1; }
 .plot:hover { transform: translate(-50%, -54%) scale(1.06); z-index: 2; }
 .plot .pimg { width: 84px; height: 84px; margin: 0 auto; border-radius: 50%; overflow: hidden; border: 3px solid var(--gold-3); box-shadow: 0 0 0 2px #120d07, 0 8px 18px rgba(0,0,0,0.75), inset 0 0 12px rgba(0,0,0,0.6); background: #1b140c; }
@@ -582,6 +582,80 @@ input[type=text], input[type=password], input[type=number], select, textarea { b
 .mark.m-fire { display: flex; align-items: center; justify-content: center; background: rgba(255,90,0,0.35); box-shadow: inset 0 0 12px rgba(255,140,0,0.9); animation: flicker 0.6s ease-in-out infinite alternate; z-index: 1; }
 .mark.m-fire span { font-size: calc(var(--cell) * 0.45); opacity: 0.9; }
 @keyframes flicker { from { opacity: 0.75; } to { opacity: 1; } }
+/* city lots */
+.plot.lot .lot-dirt { display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 45% 40%, #6b5434, #3a2c18 70%); border-style: dashed; border-color: #7a5a2a; }
+.plot.empty-lot .lot-dirt span { font-size: 34px; color: #f6dc8c; text-shadow: 0 0 10px rgba(246,220,140,0.8); animation: bob 1.6s ease-in-out infinite; }
+.plot.empty-lot .pname { color: #e9d7a7; opacity: 0.85; }
+.plot.empty-lot:hover .lot-dirt { border-color: var(--gold-1); box-shadow: 0 0 0 2px #120d07, 0 0 20px rgba(246,220,140,0.5); }
+.plot.locked-lot { cursor: default; opacity: 0.55; }
+.plot.locked-lot .lot-dirt { filter: grayscale(0.8) brightness(0.6); border-style: solid; border-color: #3a3328; }
+.plot.locked-lot .lot-dirt span { font-size: 22px; }
+.plot.locked-lot .pname { color: #9a8f78; border-color: #3a3328; font-size: 10.5px; }
+.plot.new-build .pimg img { filter: grayscale(1) brightness(0.55) sepia(0.4); }
+.scaffold { position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: 84px; height: 84px; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+.plot.big .scaffold { width: 116px; height: 116px; }
+.scaffold .ring { position: absolute; inset: -5px; border-radius: 50%; background: conic-gradient(#8de38a calc(var(--p, 0) * 1%), rgba(0,0,0,0.55) 0); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px)); mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px)); }
+.scaffold .crane { font-size: 30px; filter: drop-shadow(0 2px 3px #000); animation: crane 1.4s ease-in-out infinite; }
+@keyframes crane { 50% { transform: rotate(-8deg) translateY(-2px); } }
+.scaffold b { position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%); font-size: 11px; background: rgba(0,0,0,0.8); color: #8de38a; padding: 0 5px; border-radius: 5px; white-space: nowrap; }
+.scaffold.big { position: absolute; width: 140px; height: 140px; top: 0; left: 0; transform: none; }
+.pwork { position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); font-size: 10.5px; font-weight: 700; background: rgba(0,0,0,0.75); color: #e9d7a7; padding: 0 5px; border-radius: 6px; white-space: nowrap; }
+.prodpop { position: absolute; left: 50%; top: -6px; transform: translateX(-50%); font-weight: 800; font-size: 13px; color: #fff; text-shadow: 0 2px 3px #000, 0 0 6px #000; white-space: nowrap; pointer-events: none; animation: produp 2.4s ease-out forwards; display: flex; align-items: center; gap: 3px; z-index: 3; }
+.prodpop img { width: 18px; height: 18px; border-radius: 4px; }
+@keyframes produp { 0% { opacity: 0; transform: translate(-50%, 6px); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -38px); } }
+/* building forms */
+#win-building { width: min(860px, calc(100vw - 32px)); }
+.bhead { display: flex; gap: 16px; align-items: center; margin-bottom: 12px; }
+.bh-art { position: relative; width: 140px; height: 140px; flex: none; }
+.bh-art > img { width: 140px; height: 140px; border-radius: 14px; border: 3px solid var(--gold-3); object-fit: cover; box-shadow: 0 10px 24px #000; }
+.form-sec { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; }
+.form-sec.upg { border-color: var(--gold-3); }
+.form-sec.prod { display: flex; gap: 12px; align-items: center; }
+.form-sec.prod > img { width: 44px; height: 44px; border-radius: 8px; }
+.fs-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-family: var(--font-display); color: var(--gold-1); font-size: 14px; margin-bottom: 8px; flex-wrap: wrap; }
+.fs-h b { font-family: var(--font-body); font-size: 12px; color: var(--muted); font-weight: 600; }
+.seats { display: flex; flex-wrap: wrap; gap: 6px; }
+.seat { width: 46px; height: 46px; border-radius: 50%; border: 2px dashed #6b5434; background: rgba(0,0,0,0.4); color: #e9d7a7; font-size: 18px; cursor: pointer; padding: 0; overflow: hidden; transition: transform 0.1s, border-color 0.15s; }
+.seat:hover { transform: scale(1.08); border-color: var(--gold-1); }
+.seat.on { border: 2px solid var(--gold-2); box-shadow: 0 0 8px rgba(214,166,69,0.45); }
+.seat.on img { width: 100%; height: 100%; object-fit: cover; }
+.seat.on:hover { border-color: #ff8a7a; filter: brightness(0.8); }
+.gauge { margin-bottom: 8px; }
+.g-l { display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 3px; }
+.g-b { height: 14px; background: #0b0805; border: 1px solid #3a2a12; border-radius: 7px; overflow: hidden; }
+.g-b i { display: block; height: 100%; transition: width 0.6s; }
+img.inl { width: 16px; height: 16px; vertical-align: -3px; border-radius: 3px; }
+.tcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; }
+.tcard { display: grid; grid-template-columns: 64px 1fr; gap: 10px; padding: 8px; border-radius: 9px; background: rgba(0,0,0,0.35); border: 1px solid var(--border); }
+.tc-img { width: 64px; height: 64px; border-radius: 8px; object-fit: cover; border: 2px solid var(--gold-3); }
+.tc-h { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 2px; }
+.tc-h b { color: var(--gold-1); font-family: var(--font-display); font-size: 13px; }
+.slider-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+.slider-row input[type=range] { flex: 1; accent-color: #d6a645; }
+.slider-row b { min-width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
+.seg { display: inline-flex; border: 1px solid var(--gold-3); border-radius: 8px; overflow: hidden; margin-bottom: 8px; }
+.seg button { background: transparent; border: 0; color: var(--muted); padding: 6px 14px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.seg button.on { background: linear-gradient(180deg, #f2c75e, #b07a22); color: #2a1803; }
+.restiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; margin-bottom: 10px; }
+.restile { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.35); color: var(--text); cursor: pointer; font-family: inherit; }
+.restile img { width: 36px; height: 36px; border-radius: 7px; }
+.restile small { color: var(--muted); font-size: 11px; }
+.restile.on { border-color: var(--gold-1); box-shadow: 0 0 12px rgba(246,220,140,0.4); }
+.trade-box { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; align-items: center; }
+.trade-sum { text-align: center; font-size: 12px; color: var(--muted); }
+.trade-sum b { display: flex; align-items: center; gap: 4px; font-size: 20px; color: var(--gold-1); }
+.trade-sum img { width: 22px; height: 22px; border-radius: 4px; }
+.bless { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.bcard { text-align: center; padding: 10px 8px; border-radius: 9px; background: rgba(0,0,0,0.35); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; align-items: center; }
+.bcard.active { border-color: #8de38a; box-shadow: 0 0 12px rgba(141,227,138,0.3); }
+.bc-ic { font-size: 28px; }
+.bchoices { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+.bchoice { display: grid; grid-template-columns: 72px 1fr; gap: 10px; padding: 8px; border-radius: 10px; background: rgba(0,0,0,0.35); border: 1px solid var(--border); }
+.bchoice > img { width: 72px; height: 72px; border-radius: 10px; object-fit: cover; border: 2px solid var(--gold-3); }
+.bchoice b { color: var(--gold-1); font-family: var(--font-display); }
+.bchoice.blocked { opacity: 0.6; }
+.bchoice.picked { border-color: var(--gold-1); box-shadow: 0 0 14px rgba(246,220,140,0.35); }
+@media (max-width: 820px) { .trade-box { grid-template-columns: 1fr; } .bhead { flex-direction: column; align-items: flex-start; } .locked-lot ~ .locked-lot ~ .locked-lot ~ .locked-lot { display: none; } }
 .mor-wrap { white-space: nowrap; }
 .mbar { display: inline-block; width: 70px; height: 8px; background: #0b0805; border: 1px solid #3a2a12; border-radius: 4px; overflow: hidden; vertical-align: middle; }
 .mbar i { display: block; height: 100%; transition: width 0.4s; }
@@ -2103,12 +2177,15 @@ const GameState = {
       world: null,                   // the world map (generated on first visit)
       campaign: { done: {}, led: {}, turned: {} },   // story quest progress
       gear: { equipped: { weapon: null, armor: null, helm: null, banner: null, relic: null }, bag: [] },
+      city: null,                    // building lots: { slots: [{type, level, build?: {to, remaining, total}} | null] }
       veterancy: {},                 // unit type -> battle experience (veteran ranks)
       nextId: 1,
       log: [],                       // [{id, t, msg, type}]
       stats: { goldEarned: 0, built: 0, trained: 0, won: 0, lost: 0, fallen: 0, deserted: 0, starved: 0, relicsFound: 0, playSeconds: 0, peakPop: 6, raidsWon: 0, raidsLost: 0, enemiesSlain: 0, battlesLed: 0, battlesLedWon: 0, missionWins: {}, sitesRaided: 0, sitesCaptured: 0, blessings: 0, trades: 0, territoriesDefended: 0, territoriesLost: 0 },
     };
   },
+  /** A brand-new realm, with its starting buildings placed on lots. */
+  newGame() { const s = this.fresh(); s.city = City.fromCounts(s.buildings); City.sync(s); return s; },
   /** Merge a loaded save onto a fresh template so older saves gain new fields. */
   hydrate(raw) {
     const base = this.fresh();
@@ -2139,7 +2216,14 @@ const GameState = {
     if (out.battle && (!out.battle.squads || !out.battle.tiles)) out.battle = null;
     if (out.battle) { try { Battle.repair(out.battle); } catch (e) { console.warn("Saved battle could not be repaired", e); out.battle = null; } }
     for (const k of Object.keys(out.resources)) if (!isFinite(out.resources[k])) out.resources[k] = 0;
-    out.version = 2;
+    // building lots: older saves get their buildings laid out on lots
+    if (raw.city && Array.isArray(raw.city.slots)) {
+      out.city = { slots: raw.city.slots.map((x) => (x && BUILDINGS[x.type] ? x : null)) };
+      if (!out.city.slots[0] || out.city.slots[0].type !== "townhall") out.city = City.fromCounts(out.buildings);
+      while (out.city.slots.length < City.MAX_LOTS) out.city.slots.push(null);
+    } else out.city = City.fromCounts(out.buildings);
+    City.sync(out);
+    out.version = 3;
     return out;
   },
   load() {
@@ -2273,8 +2357,9 @@ const Economy = {
     if (def.max) return def.max;
     return s.buildings.townhall * (def.maxPerTH || 5);
   },
-  /** Why a building can't be built right now (null if it can). */
-  buildBlocker(s, id) {
+  /** Why a building can't be built right now (null if it can). Construction goes through City (lots, builders, timers). */
+  buildBlocker(s, id) { return s.city ? City.blocker(s, id) : this.legacyBlocker(s, id); },
+  legacyBlocker(s, id) {
     const def = BUILDINGS[id], lvl = s.buildings[id];
     if (lvl >= this.buildingMax(s, id)) return id === "townhall" ? "Max level reached" : `Upgrade the Town Hall to raise the limit (${this.buildingMax(s, id)})`;
     if (def.popReq) {
@@ -2287,8 +2372,9 @@ const Economy = {
     if (!this.canAfford(s, cost)) return "Not enough resources";
     return null;
   },
-  build(s, id) {
-    if (this.buildBlocker(s, id)) return false;
+  build(s, id) { return City.start(s, id); },
+  legacyBuild(s, id) {
+    if (this.legacyBlocker(s, id)) return false;
     const lvl = s.buildings[id];
     this.pay(s, this.buildingCost(id, lvl));
     s.buildings[id]++;
@@ -2445,6 +2531,16 @@ const Military = {
       made++;
     }
     return made;
+  },
+
+  /** Dismiss soldiers: they go home as idle citizens (no refund). */
+  release(s, id, n) {
+    n = Math.min(Math.floor(n), s.army[id] || 0);
+    if (n <= 0) return 0;
+    s.army[id] -= n;
+    s.population.citizens += n;
+    addLog(s, `🏳️ ${n} ${plural(UNITS[id].name, n)} were released from service and returned home.`, "info");
+    return n;
   },
 
   /* ---------------- expeditions ---------------- */
@@ -3126,6 +3222,7 @@ const Engine = {
     const shortage = Economy.step(s, dt);
     Military.step(s, dt, shortage);
     Research.step(s, dt);
+    City.step(s, dt);
     Events.step(s);
     World.step(s);
   },
@@ -3440,7 +3537,140 @@ const AssetPipeline = {
 /* =====================================================================
    7b. HUD: city scene, action bar, windows, quest tracker, campaign log
    ===================================================================== */
-// [x%, y%, big?] inside the city scene
+/* =====================================================================
+   7a. CITY: building lots, construction with builders & timers
+   ---------------------------------------------------------------------
+   The city is a set of lots. Each lot holds one building with its own level.
+   Farms, quarries, houses etc. can be built many times (each up to a level cap);
+   unique buildings (Town Hall, Barracks, Market…) exist once.
+   The economy still reads s.buildings[type] = total level of that type,
+   so every formula, limit and balance rule keeps working.
+   ===================================================================== */
+const MULTI_BUILDINGS = ["farm", "quarry", "lumbercamp", "house", "warehouse", "granary", "steelworks", "ranch", "brewery"];
+const PRODUCES = { farm: "food", quarry: "stone", lumbercamp: "wood", steelworks: "steel", ranch: "horses", brewery: "ale", magetower: "crystals", temple: "faith", market: "gold", townhall: "gold" };
+const TRAINS_AT = { barracks: "Barracks", stables: "Stables", workshop: "Siege Workshop", magetower: "Mage Tower", temple: "Temple" };
+
+const City = {
+  MAX_LOTS: 40,
+  lots(s) { return Math.min(this.MAX_LOTS, 10 + 2 * s.buildings.townhall); },
+  lotUnlockTH(i) { return Math.max(1, Math.ceil((i + 1 - 10) / 2)); },
+  builders(s) { return 1 + Math.floor(s.buildings.townhall / 3); },
+  busy(s) { return s.city.slots.filter((x) => x && x.build).length; },
+  isMulti(type) { return MULTI_BUILDINGS.includes(type); },
+  instCap(s, type) { return this.isMulti(type) ? 5 + s.buildings.townhall : Economy.buildingMax(s, type); },
+  /** Total level of a building type (including levels under construction when pending = true). */
+  total(s, type, pending = true) {
+    let t = 0;
+    for (const sl of s.city.slots) if (sl && sl.type === type) t += pending && sl.build ? sl.build.to : sl.level;
+    return t;
+  },
+  instances(s, type) { return s.city.slots.map((sl, i) => (sl && sl.type === type ? i : -1)).filter((i) => i >= 0); },
+
+  /** Lay out an existing set of building levels onto lots (new games and old saves). */
+  fromCounts(b) {
+    const th = Math.max(1, b.townhall || 1), cap = 5 + th;
+    const slots = [{ type: "townhall", level: th }];
+    for (const id of Object.keys(BUILDINGS)) {
+      if (id === "townhall") continue;
+      let n = b[id] || 0;
+      if (!n) continue;
+      if (!this.isMulti(id)) { slots.push({ type: id, level: n }); continue; }
+      while (n > 0) { const l = Math.min(cap, n); slots.push({ type: id, level: l }); n -= l; }
+    }
+    while (slots.length < this.MAX_LOTS) slots.push(null);
+    return { slots };
+  },
+  /** Recompute the per-type totals the economy uses. */
+  sync(s) {
+    for (const id of Object.keys(BUILDINGS)) s.buildings[id] = 0;
+    for (const sl of s.city.slots) if (sl && BUILDINGS[sl.type]) s.buildings[sl.type] += sl.level;
+    s.buildings.townhall = Math.max(1, s.buildings.townhall);
+    // fewer job slots after a demolition: send the extra workers home
+    for (const j of Object.keys(JOBS)) s.jobs[j] = Math.min(s.jobs[j] || 0, Economy.jobSlots(s, j));
+  },
+  buildTime(s, type, to) {
+    const base = type === "townhall" ? 30 : this.isMulti(type) ? 6 : 12;
+    return Math.round(Math.min(3600, base * Math.pow(1.32, to - 1)));
+  },
+  /** Where the next level of `type` goes: an instance below its cap, else the first free unlocked lot. */
+  target(s, type) {
+    const cap = this.instCap(s, type);
+    const inst = this.instances(s, type).filter((i) => !s.city.slots[i].build && s.city.slots[i].level < cap)
+      .sort((a, b) => s.city.slots[a].level - s.city.slots[b].level);
+    if (inst.length) return inst[0];
+    if (!this.isMulti(type) && this.instances(s, type).length) return null;
+    const free = s.city.slots.findIndex((sl, i) => i > 0 && i < this.lots(s) && !sl);
+    return free >= 0 ? free : null;
+  },
+  /** Why the next level of `type` can't start (null if it can). idx = a specific lot. */
+  blocker(s, type, idx) {
+    const def = BUILDINGS[type], total = this.total(s, type);
+    if (total >= Economy.buildingMax(s, type)) return type === "townhall" ? "Max level reached" : `Upgrade the Town Hall to raise the limit (${Economy.buildingMax(s, type)})`;
+    if (idx !== undefined) {
+      const sl = s.city.slots[idx];
+      if (idx >= this.lots(s)) return `Lot unlocks at Town Hall level ${this.lotUnlockTH(idx)}`;
+      if (sl && sl.build) return "Under construction";
+      if (sl && sl.type !== type) return "Lot is taken";
+      if (sl && sl.level >= this.instCap(s, type)) return `This ${def.name} is at its level cap (${this.instCap(s, type)}). Build another on an empty lot`;
+      if (!sl && !this.isMulti(type) && this.instances(s, type).length) return `You can only have one ${def.name}`;
+    } else if (this.target(s, type) === null) {
+      return this.instances(s, type).some((i) => s.city.slots[i].build) && !this.isMulti(type) ? "Under construction" : "No free building lot. Upgrade the Town Hall for more lots";
+    }
+    if (def.popReq) { const need = def.popReq(total); if (Economy.totalPop(s) < need) return `Requires ${need} population`; }
+    if (this.busy(s) >= this.builders(s)) return `All builders are busy (${this.builders(s)}/${this.builders(s)})`;
+    const cost = Economy.buildingCost(type, total);
+    const over = Economy.overCap(s, cost);
+    if (over) return `${RESOURCES[over].name} storage too small (${fmt(Economy.caps(s)[over])}). Build ${over === "food" ? "Granaries" : "Warehouses"}`;
+    if (!Economy.canAfford(s, cost)) return "Not enough resources";
+    return null;
+  },
+  /** Start building or upgrading on a lot. */
+  start(s, type, idx = this.target(s, type)) {
+    if (idx === null || idx === undefined || this.blocker(s, type, idx)) return false;
+    const cost = Economy.buildingCost(type, this.total(s, type));
+    Economy.pay(s, cost);
+    const sl = s.city.slots[idx] || (s.city.slots[idx] = { type, level: 0 });
+    const t = this.buildTime(s, type, sl.level + 1);
+    sl.build = { to: sl.level + 1, remaining: t, total: t };
+    addLog(s, `🔨 Builders start ${sl.level ? `upgrading the ${BUILDINGS[type].name} to level ${sl.level + 1}` : `a new ${BUILDINGS[type].name}`} (${fmtTime(t)}).`, "build");
+    return true;
+  },
+  demolish(s, idx) {
+    const sl = s.city.slots[idx];
+    if (!sl || idx === 0 || !this.isMulti(sl.type)) return false;
+    s.city.slots[idx] = null;
+    this.sync(s);
+    addLog(s, `🪓 The ${BUILDINGS[sl.type].name} was torn down. The lot is free again.`, "build");
+    return true;
+  },
+  step(s, dt) {
+    let changed = false;
+    for (const sl of s.city.slots) {
+      if (!sl || !sl.build) continue;
+      sl.build.remaining -= dt;
+      if (sl.build.remaining <= 0) {
+        sl.level = sl.build.to; delete sl.build; changed = true;
+        s.stats.built++;
+        addLog(s, sl.type === "townhall" ? `🏰 The Town Hall has been raised to level ${sl.level}! New building lots are open.` : `✅ ${BUILDINGS[sl.type].name} ${sl.level === 1 ? "built" : `upgraded to level ${sl.level}`}.`, "build");
+      }
+    }
+    if (changed) this.sync(s);
+  },
+  /** Lot positions on the city scene: the Town Hall in the middle, three rings of lots around it. */
+  layout(i) {
+    if (i === 0) return [50, 52];
+    const rings = [[8, 17, 21], [13, 32, 38], [18, 47, 50]];
+    let k = i - 1;
+    for (const [n, rx, ry] of rings) {
+      if (k < n) { const a = -Math.PI / 2 + (k / n) * Math.PI * 2 + (n === 13 ? 0.24 : 0); return [50 + rx * Math.cos(a), 52 + ry * Math.sin(a) * 0.86]; }
+      k -= n;
+    }
+    return [50, 50];
+  },
+};
+
+const JOB_OF = Object.fromEntries(Object.entries(JOBS).map(([j, d]) => [d.building, j]));
+// (legacy fixed layout, no longer used)
 const CITY_LAYOUT = {
   academy: [6, 10], magetower: [28, 10], ranch: [50, 10], workshop: [72, 10], stables: [94, 10],
   temple: [8, 37], townhall: [50, 36, true], barracks: [92, 37],
@@ -3479,14 +3709,8 @@ const HUD = {
     }
     if (window.innerWidth < 820) $("#chat").classList.add("min");
     $("#actionBar").innerHTML = HUD_ACTIONS.map((a) => `<button class="slot" data-action="win" data-win="${a.id}" id="slot-${a.id}" title="${a.lbl} (${a.key})"><span class="key">${a.key}</span>${a.icon}<span class="lbl">${a.lbl}</span></button>`).join("");
-    $("#cityPlots").innerHTML = Object.entries(CITY_LAYOUT).map(([id, [x, y, big]]) => `
-      <div class="plot ${big ? "big" : ""}" id="plot-${id}" data-action="building" data-id="${id}" style="left:${x}%;top:${y}%">
-        <div class="pimg"><img data-asset="${BUILDINGS[id].asset}" alt=""></div>
-        <span class="plvl">0</span><span class="pup hidden">▲</span>
-        <div class="pname">${BUILDINGS[id].name}</div>
-      </div>`).join("");
-    AssetPipeline.applyAll($("#cityPlots"));
     this.sig = {};
+    this.form = this.form || {};
   },
 
   openWin(id) {
@@ -3504,25 +3728,14 @@ const HUD = {
   },
   closeWin() {
     for (const w of $$(".win")) w.classList.add("hidden");
-    this.open = null; this.building = null;
+    this.open = null; this.building = null; this.lot = null;
     $$(".slot").forEach((s) => s.classList.remove("active"));
     $$(".plot").forEach((p) => p.classList.remove("active"));
   },
-  openBuilding(id) {
-    this.building = id;
-    $("#win-building .wt").textContent = BUILDINGS[id].name;
-    $$(".plot").forEach((p) => p.classList.toggle("active", p.id === "plot-" + id));
-    this.openWin("building");
-  },
 
   update(s) {
-    // ---- city plots
-    for (const id of Object.keys(CITY_LAYOUT)) {
-      const el = $("#plot-" + id), lvl = s.buildings[id];
-      el.classList.toggle("locked", lvl === 0);
-      el.querySelector(".plvl").textContent = lvl;
-      el.querySelector(".pup").classList.toggle("hidden", !!Economy.buildBlocker(s, id));
-    }
+    // ---- the city
+    this.updateCity(s);
     // ---- notification dots on the action bar
     const dots = {
       kingdom: Object.keys(BUILDINGS).filter((id) => !Economy.buildBlocker(s, id)).length,
@@ -3541,7 +3754,7 @@ const HUD = {
       if (dot) { if (n) dot.textContent = a.id === "citizens" || a.id === "army" || a.id === "realm" ? "!" : n; else dot.remove(); }
     }
     this.renderTracker(s);
-    if (this.open === "building" && this.building) this.renderBuilding(s);
+    if (this.open === "building" && this.lot !== undefined && this.lot !== null) this.renderBuilding(s);
     if (this.open === "campaign") this.renderCampaign(s);
     if (this.open === "armory") this.renderArmory(s);
   },
@@ -3574,34 +3787,277 @@ const HUD = {
     for (const e of s.expeditions) { const t = $(`[data-trt="${e.id}"]`); if (t) t.textContent = "· " + fmtTime(e.endAt - s.time); }
   },
 
+  /* ===================== the city scene ===================== */
+  updateCity(s) {
+    const lots = City.lots(s);
+    const sig = lots + "|" + s.city.slots.map((sl) => (sl ? sl.type + sl.level + (sl.build ? "b" + sl.build.to : "") : "-")).join(",");
+    const host = $("#cityPlots");
+    if (sig !== this.sig.city) {
+      this.sig.city = sig;
+      host.innerHTML = s.city.slots.map((sl, i) => {
+        const [x, y] = City.layout(i);
+        const pos = `left:${x}%;top:${y}%`;
+        if (i >= lots) return `<div class="plot lot locked-lot" style="${pos}" title="Unlocks at Town Hall level ${City.lotUnlockTH(i)}"><div class="pimg lot-dirt"><span>🔒</span></div><div class="pname">TH ${City.lotUnlockTH(i)}</div></div>`;
+        if (!sl) return `<div class="plot lot empty-lot" id="lot-${i}" data-action="lot" data-i="${i}" style="${pos}" title="Empty lot: click to build"><div class="pimg lot-dirt"><span>＋</span></div><div class="pname">Empty lot</div></div>`;
+        const B = BUILDINGS[sl.type], prod = PRODUCES[sl.type];
+        return `<div class="plot ${i === 0 ? "big" : ""} ${sl.level === 0 ? "new-build" : ""}" id="lot-${i}" data-action="lot" data-i="${i}" style="${pos}">
+          <div class="pimg"><img data-asset="${B.asset}" alt=""></div>
+          ${sl.build ? `<div class="scaffold"><div class="ring" data-ring="${i}"></div><span class="crane">🏗️</span><b data-bt="${i}"></b></div>` : ""}
+          <span class="plvl">${sl.level}</span><span class="pup hidden" data-up="${i}">▲</span>
+          ${JOB_OF[sl.type] ? `<span class="pwork" data-work="${i}"></span>` : ""}
+          <div class="pname">${B.name}</div></div>`;
+      }).join("");
+      AssetPipeline.applyAll(host);
+    }
+    // live parts: construction rings, upgrade arrows, worker badges
+    const busyAll = City.busy(s) >= City.builders(s);
+    s.city.slots.forEach((sl, i) => {
+      if (!sl || i >= lots) return;
+      if (sl.build) {
+        const r = $(`[data-ring="${i}"]`); if (r) r.style.setProperty("--p", ((1 - sl.build.remaining / sl.build.total) * 100).toFixed(1));
+        const t = $(`[data-bt="${i}"]`); if (t) t.textContent = fmtTime(sl.build.remaining);
+      }
+      const up = $(`[data-up="${i}"]`);
+      if (up) up.classList.toggle("hidden", busyAll || !!City.blocker(s, sl.type, i));
+      const wk = $(`[data-work="${i}"]`);
+      if (wk) { const j = JOB_OF[sl.type]; wk.textContent = `👷 ${s.jobs[j]}/${Economy.jobSlots(s, j)}`; }
+    });
+    // floating production numbers every few seconds
+    if (!this.lastPop || s.time - this.lastPop >= 5 || s.time < this.lastPop) {
+      this.lastPop = s.time;
+      const r = Economy.rates(s);
+      s.city.slots.forEach((sl, i) => {
+        if (!sl || !sl.level || i >= lots) return;
+        const res = PRODUCES[sl.type];
+        if (!res) return;
+        let amt = r.prod[res] * 5 * (sl.level / Math.max(1, s.buildings[sl.type]));
+        if (sl.type === "market" || sl.type === "townhall") amt = (sl.type === "market" ? 3 * sl.level : sl.level) * 5 * Economy.multiplier(s);
+        if (amt < 0.5) return;
+        const el = $("#lot-" + i);
+        if (!el) return;
+        const pop = document.createElement("div");
+        pop.className = "prodpop";
+        pop.innerHTML = `+${amt < 10 ? amt.toFixed(1) : fmt(amt)} <img src="${AssetPipeline.src(RESOURCES[res].asset)}" alt="">`;
+        el.appendChild(pop);
+        setTimeout(() => pop.remove(), 2400);
+      });
+    }
+  },
+
+  /* ===================== building forms ===================== */
+  openLot(i) {
+    const s = GameState.current, sl = s.city.slots[i];
+    this.lot = i; this.form = this.form || {};
+    $("#win-building .wt").textContent = sl ? BUILDINGS[sl.type].name : "Empty Lot";
+    this.sig.building = "";
+    this.openWin("building");
+  },
+  openBuilding(type) {
+    const s = GameState.current;
+    const i = City.instances(s, type)[0];
+    if (i !== undefined) this.openLot(i);
+    else { const t = City.target(s, type); if (t !== null) { this.lot = t; this.form = this.form || {}; this.form.pick = type; this.sig.building = ""; $("#win-building .wt").textContent = "Empty Lot"; this.openWin("building"); } }
+  },
+  seatsHtml(s, job) {
+    const J = JOBS[job], slots = Economy.jobSlots(s, job), n = s.jobs[job];
+    if (!slots) return `<div class="dim">No ${J.name.toLowerCase()} jobs yet.</div>`;
+    const per = Math.max(1, Math.ceil(slots / 30)), seats = Math.ceil(slots / per), filled = Math.ceil(n / per);
+    let h = `<div class="seats">`;
+    for (let k = 0; k < seats; k++) h += k < filled
+      ? `<button class="seat on" data-action="seat" data-job="${job}" data-d="-${per}" title="Send ${per} home"><img src="${AssetPipeline.src(J.asset)}" alt=""></button>`
+      : `<button class="seat" data-action="seat" data-job="${job}" data-d="${per}" title="Put ${per} to work">＋</button>`;
+    h += `</div>`;
+    return `<div class="form-sec"><div class="fs-h"><span>👷 ${J.name}</span><b>${n} / ${slots}</b></div>
+      ${h}<div class="dim" style="font-size:11.5px;margin:4px 0 6px">${J.desc}${per > 1 ? ` · each figure = ${per} workers` : ""} · Click a figure to send workers home, or an empty seat to hire. ${fmtInt(Economy.unemployed(s))} citizens are idle.</div>
+      <div class="btn-row"><button class="btn sm" data-action="assign" data-id="${job}" data-d="max">Fill every seat</button><button class="btn sm" data-action="assign" data-id="${job}" data-d="-max">Send all home</button></div></div>`;
+  },
+  gauge(label, v, max, color, extra = "") {
+    const p = max ? Math.min(100, (v / max) * 100) : 0;
+    return `<div class="gauge"><div class="g-l"><span>${label}</span><b>${fmt(v)} / ${fmt(max)}</b></div><div class="g-b"><i style="width:${p}%;background:${color}"></i></div>${extra}</div>`;
+  },
+  trainHtml(s, bType) {
+    const list = Object.entries(UNITS).filter(([, u]) => u.req[bType] !== undefined);
+    if (!list.length) return "";
+    const queueRoom = BALANCE.maxQueue - s.queue.length;
+    const cards = list.map(([id, u]) => {
+      const blk = Military.trainBlocker(s, id);
+      const locked = Object.entries(u.req).some(([b, l]) => s.buildings[b] < l);
+      let max = Math.min(s.jobs.recruit, queueRoom);
+      for (const [r, v] of Object.entries(u.cost)) max = Math.min(max, Math.floor(s.resources[r] / v));
+      max = Math.max(0, max);
+      const val = Math.min(this.form["t_" + id] ?? 1, max) || (max ? 1 : 0);
+      const vr = Military.vetRank(s.veterancy[id]);
+      return `<div class="tcard ${locked ? "locked-card" : ""}">
+        <img class="tc-img" src="${AssetPipeline.src(u.asset)}" alt="">
+        <div class="tc-body"><div class="tc-h"><b>${u.name}</b><span class="badge war">${vr ? "★".repeat(vr) + " " : ""}${s.army[id] || 0} home</span></div>
+          <div class="ustats">${UI.statLine(u)}</div>
+          <div class="costs">${UI.costHtml(u.cost, s)} <span class="dim">· ${u.time}s each</span></div>
+          ${locked ? `<div class="req">${esc(Military.reqText(id))}</div>` : `
+          <div class="slider-row"><input type="range" min="0" max="${max}" value="${val}" data-form="t_${id}" ${max ? "" : "disabled"}><b data-fv="t_${id}">${val}</b></div>
+          <button class="btn primary sm" data-action="trainN" data-id="${id}" ${!max || blk ? "disabled" : ""} title="${esc(blk || "")}">⚔ Train <span data-fv2="t_${id}">${val}</span></button>
+          ${blk && blk !== "Not enough resources" && !max ? `<div class="req">${esc(blk)}</div>` : ""}`}
+        </div></div>`;
+    }).join("");
+    const q = s.queue.filter((x) => list.some(([id]) => id === x.unit));
+    return `<div class="form-sec"><div class="fs-h"><span>⚔ Train troops</span><b>${s.jobs.recruit} recruits ready · queue ${s.queue.length}/${BALANCE.maxQueue}</b></div>
+      ${s.jobs.recruit ? "" : `<div class="req" style="margin-bottom:6px">Every soldier needs a Recruit. Assign citizens as Recruits at the Barracks.</div>`}
+      <div class="tcards">${cards}</div>
+      ${q.length ? `<div class="queue"><div class="stat-row"><span>Training ${UNITS[s.queue[0].unit].name}</span><b data-qt="1"></b></div><div class="bar war"><i data-qb="1"></i></div><div class="dim" style="font-size:11.5px;margin-top:4px">${q.length} in this building's queue</div></div>` : ""}</div>`;
+  },
+  releaseHtml(s) {
+    const list = Object.entries(UNITS).filter(([id]) => (s.army[id] || 0) > 0);
+    if (!list.length) return `<div class="form-sec"><div class="fs-h"><span>🏳️ Release soldiers</span></div><div class="dim">No soldiers at home.</div></div>`;
+    return `<div class="form-sec"><div class="fs-h"><span>🏳️ Release soldiers</span><b>they return as idle citizens</b></div>
+      <div class="tcards">${list.map(([id, u]) => {
+        const n = s.army[id], val = Math.min(this.form["r_" + id] ?? 1, n);
+        return `<div class="tcard"><img class="tc-img" src="${AssetPipeline.src(u.asset)}" alt=""><div class="tc-body"><div class="tc-h"><b>${u.name}</b><span class="badge">${n} home</span></div>
+          <div class="dim" style="font-size:11.5px">Saves ${(u.upkeep.food * val).toFixed(1)} food and ${(u.upkeep.gold * val).toFixed(1)} gold per second</div>
+          <div class="slider-row"><input type="range" min="1" max="${n}" value="${val}" data-form="r_${id}"><b data-fv="r_${id}">${val}</b></div>
+          <button class="btn danger sm" data-action="release" data-id="${id}">Release <span data-fv2="r_${id}">${val}</span></button></div></div>`;
+      }).join("")}</div></div>`;
+  },
+  marketHtml(s) {
+    const r = this.form.mres || "food", mode = this.form.mmode || "sell";
+    const price = mode === "sell" ? Market.sellPrice(s, r) : Market.buyPrice(s, r);
+    const max = mode === "sell" ? Math.floor(s.resources[r]) : Math.max(0, Math.floor(Math.min(Economy.caps(s)[r] - s.resources[r], s.resources.gold / Market.buyPrice(s, r))));
+    const val = Math.min(this.form.mamt ?? Math.floor(max / 2), max);
+    return `<div class="form-sec"><div class="fs-h"><span>⚖ Trading desk</span><b>Market level ${s.buildings.market}: better prices with each level</b></div>
+      <div class="seg"><button class="${mode === "sell" ? "on" : ""}" data-action="mset" data-k="mmode" data-v="sell">Sell for Gold</button><button class="${mode === "buy" ? "on" : ""}" data-action="mset" data-k="mmode" data-v="buy">Buy with Gold</button></div>
+      <div class="restiles">${Object.keys(TRADE_VALUE).map((k) => `<button class="restile ${k === r ? "on" : ""}" data-action="mset" data-k="mres" data-v="${k}"><img src="${AssetPipeline.src(RESOURCES[k].asset)}" alt=""><span>${RESOURCES[k].name}</span><small>${fmt(s.resources[k])}</small></button>`).join("")}</div>
+      <div class="trade-box"><div><div class="dim" style="font-size:12px">${mode === "sell" ? "Sell" : "Buy"} ${RESOURCES[r].name} at <b>${price.toFixed(2)}</b> Gold each</div>
+        <div class="slider-row"><input type="range" min="0" max="${max}" value="${val}" data-form="mamt" ${max ? "" : "disabled"}><b data-fv="mamt">${fmtInt(val)}</b></div></div>
+        <div class="trade-sum">${mode === "sell" ? "You receive" : "You pay"}<b><img src="${AssetPipeline.src("res_gold")}" alt=""> <span data-mtot="1">${fmtInt(val * price)}</span></b></div>
+        <button class="btn primary" data-action="mdeal" ${max ? "" : "disabled"}>${mode === "sell" ? "🪙 Sell" : "🛒 Buy"}</button></div></div>`;
+  },
+  blessHtml(s) {
+    return `<div class="form-sec"><div class="fs-h"><span>✨ Blessings</span><b><img class="inl" src="${AssetPipeline.src("res_faith")}" alt=""> ${fmt(s.resources.faith)} Faith</b></div><div class="bless">${Object.entries(BLESSINGS).map(([k, bl]) => {
+      const blk = Temple.blocker(s, k), act = s.buffs.find((x) => x.id === bl.buff);
+      return `<div class="bcard ${act ? "active" : ""}"><div class="bc-ic">${bl.icon}</div><b>${bl.name}</b><div class="dim" style="font-size:11.5px">${esc(EVENTS[bl.buff].desc.replace(/for \d+ minutes\.?/, "for 10 minutes."))}</div>
+        ${act ? `<div class="good" data-bless="${bl.buff}"></div>` : `<button class="btn sm primary" data-action="bless" data-id="${k}" ${blk ? "disabled" : ""} title="${esc(blk || "")}">${bl.cost} Faith</button>`}</div>`;
+    }).join("")}</div></div>`;
+  },
+  formBody(s, sl) {
+    const t = sl.type, out = [];
+    const job = JOB_OF[t];
+    switch (t) {
+      case "townhall": {
+        const builds = s.city.slots.map((x, i) => [x, i]).filter(([x]) => x && x.build);
+        out.push(`<div class="form-sec"><div class="fs-h"><span>🏰 Your city</span></div>
+          ${this.gauge("Building lots used", s.city.slots.filter((x, i) => x && i < City.lots(s)).length, City.lots(s), "linear-gradient(90deg,#b07a22,#f2c75e)")}
+          ${this.gauge("Builders at work", City.busy(s), City.builders(s), "linear-gradient(90deg,#2f8d3c,#8de38a)", `<div class="dim" style="font-size:11.5px">+1 builder every 3 Town Hall levels · +2 lots per level</div>`)}
+          ${builds.length ? `<div class="section-title">Under construction</div>${builds.map(([x, i]) => `<div class="stat-row"><span>${BUILDINGS[x.type].name} → Lv ${x.build.to}</span><b data-cbt="${i}"></b></div>`).join("")}` : ""}
+          <div class="btn-row" style="margin-top:8px"><button class="btn" data-action="win" data-win="kingdom">📋 All buildings list</button></div></div>`);
+        break;
+      }
+      case "barracks":
+        out.push(this.seatsHtml(s, "recruit"), this.trainHtml(s, "barracks"), this.releaseHtml(s));
+        break;
+      case "stables": case "workshop":
+        out.push(this.trainHtml(s, t)); break;
+      case "magetower":
+        out.push(this.seatsHtml(s, "arcanist"), this.trainHtml(s, "magetower")); break;
+      case "temple":
+        out.push(this.blessHtml(s), this.seatsHtml(s, "monk"), this.trainHtml(s, "temple")); break;
+      case "market":
+        out.push(this.marketHtml(s)); break;
+      case "academy": {
+        const c = s.research.current;
+        out.push(`<div class="form-sec"><div class="fs-h"><span>📜 Research</span><b>${Research.total(s)} levels learned</b></div>
+          ${c ? `<div class="stat-row"><span>${TECHS[c.id].icon} ${TECHS[c.id].name} → ${Research.lvl(s, c.id) + 1}</span><b data-rt="1"></b></div><div class="bar teal"><i data-rb="1"></i></div>` : `<div class="dim">The scholars are idle.</div>`}
+          <div class="btn-row" style="margin-top:8px"><button class="btn primary" data-action="win" data-win="research">Open the research tree</button></div></div>`);
+        break;
+      }
+      case "warehouse": case "granary": {
+        const caps = Economy.caps(s), keys = t === "granary" ? ["food"] : ["gold", "stone", "wood", "steel"];
+        out.push(`<div class="form-sec"><div class="fs-h"><span>📦 Storage</span><b>×${Economy.storageMultiplier(s).toFixed(1)} from your Town Hall</b></div>${keys.map((k) => this.gauge(`<img class="inl" src="${AssetPipeline.src(RESOURCES[k].asset)}" alt=""> ${RESOURCES[k].name}`, s.resources[k], caps[k], RESOURCES[k].color)).join("")}</div>`);
+        break;
+      }
+      case "house": {
+        const tot = Economy.totalPop(s), housing = Economy.housing(s), g = Economy.growthPerSecond(s);
+        out.push(`<div class="form-sec"><div class="fs-h"><span>🏠 Population</span><b>${g > 0 ? "1 newcomer every " + fmtTime(1 / g) : tot >= housing ? "Housing full" : "Not growing"}</b></div>
+          ${this.gauge("Housing", tot, housing, "linear-gradient(90deg,#2a998b,#3fc1b0)")}
+          <div class="kv"><span class="muted">Workers</span><b>${fmtInt(Economy.employed(s))}</b><span class="muted">Idle citizens</span><b>${fmtInt(Economy.unemployed(s))}</b><span class="muted">Recruits</span><b>${s.jobs.recruit}</b><span class="muted">Soldiers</span><b>${fmtInt(Military.soldierCount(s))}</b></div></div>`);
+        break;
+      }
+      case "walls":
+        out.push(`<div class="form-sec"><div class="fs-h"><span>🧱 Defenses</span></div><div>${esc(UI.buildingEffect(s, "walls"))}</div>${s.raid ? `<div class="req" style="margin-top:6px">Raiders are on their way!</div>` : ""}<div class="btn-row" style="margin-top:8px"><button class="btn" data-action="win" data-win="army">⚔ War Council</button></div></div>`);
+        break;
+      default:
+        if (job) out.push(this.seatsHtml(s, job));
+    }
+    if (job && !["barracks", "magetower", "temple"].includes(t)) {
+      const res = PRODUCES[t];
+      if (res) {
+        const r = Economy.rates(s);
+        out.unshift(`<div class="form-sec prod"><img src="${AssetPipeline.src(RESOURCES[res].asset)}" alt=""><div><b>${fmtRate(r.prod[res])} ${RESOURCES[res].name}/s</b><div class="dim" style="font-size:11.5px">from all your ${BUILDINGS[t].name}s (total level ${s.buildings[t]}). Net ${fmtRate(r.net[res])}/s, stock ${fmt(s.resources[res])} / ${fmt(Economy.caps(s)[res])}</div></div></div>`);
+      }
+    }
+    return out.join("");
+  },
   renderBuilding(s) {
-    const id = this.building, b = BUILDINGS[id], lvl = s.buildings[id];
-    const blk = Economy.buildBlocker(s, id), cost = Economy.buildingCost(id, lvl), maxed = lvl >= Economy.buildingMax(s, id);
-    const sig = id + lvl + blk + Object.entries(cost).map(([r, v]) => s.resources[r] >= v).join() + UI.buildingEffect(s, id);
-    if (sig === this.sig.building) return;
+    const i = this.lot, sl = s.city.slots[i];
+    const busy = City.busy(s);
+    if (!sl) {
+      // empty lot: choose what to build
+      const sig = "empty" + i + busy + Object.keys(BUILDINGS).map((t) => City.blocker(s, t, i)).join("|") + this.form.pick;
+      if (sig === this.sig.building) return;
+      this.sig.building = sig;
+      $("#win-building .wt").textContent = "Empty Lot";
+      const choices = Object.keys(BUILDINGS).filter((t) => t !== "townhall" && (City.isMulti(t) || !City.instances(s, t).length));
+      $("#buildingDetail").innerHTML = `<div class="dim" style="margin-bottom:10px">Choose a building for this lot. Builders: <b>${busy}/${City.builders(s)}</b> busy. Farms, quarries, houses and other production buildings can be built many times. Each copy goes up to level ${5 + s.buildings.townhall}.</div>
+        <div class="bchoices">${choices.map((t) => {
+          const B = BUILDINGS[t], blk = City.blocker(s, t, i), cost = Economy.buildingCost(t, City.total(s, t));
+          return `<div class="bchoice ${blk ? "blocked" : ""} ${this.form.pick === t ? "picked" : ""}"><img src="${AssetPipeline.src(B.asset)}" alt=""><div class="bc-body"><b>${B.name}</b><div class="dim" style="font-size:11.5px">${esc(B.desc)}</div>
+            <div class="costs">${UI.costHtml(cost, s)} <span class="dim">· ${fmtTime(City.buildTime(s, t, 1))}</span></div>
+            ${blk && blk !== "Not enough resources" ? `<div class="req">${esc(blk)}</div>` : ""}
+            <button class="btn primary sm" data-action="buildOn" data-i="${i}" data-id="${t}" ${blk ? "disabled" : ""}>⚒ Build here</button></div></div>`;
+        }).join("")}</div>`;
+      AssetPipeline.applyAll($("#buildingDetail"));
+      return;
+    }
+    const B = BUILDINGS[sl.type], blk = City.blocker(s, sl.type, i), total = City.total(s, sl.type);
+    const cost = Economy.buildingCost(sl.type, total);
+    const sig = [i, sl.type, sl.level, !!sl.build, blk, busy, Object.entries(cost).map(([r, v]) => s.resources[r] >= v).join(), s.jobs[JOB_OF[sl.type]], s.jobs.recruit, s.queue.length,
+      JSON.stringify(s.army), Math.floor(s.resources.faith / 10), s.buffs.length, this.form.mres, this.form.mmode, Math.floor(s.resources.gold / 200), Economy.unemployed(s) > 0, s.research.current && s.research.current.id].join("|");
+    if (sig === this.sig.building) { this.liveBuilding(s); return; }
     this.sig.building = sig;
-    const links = [];
-    const jobs = Object.entries(JOBS).filter(([, j]) => j.building === id);
-    if (jobs.length) links.push(`<button class="btn" data-action="win" data-win="citizens">👥 Manage ${jobs.map(([, j]) => j.name).join(" & ")}</button>`);
-    if (["barracks", "stables", "workshop", "magetower", "temple"].includes(id)) links.push(`<button class="btn" data-action="win" data-win="army">⚔ Train troops</button>`);
-    if (id === "academy") links.push(`<button class="btn" data-action="win" data-win="research">📜 Research</button>`);
-    if (["market", "temple"].includes(id)) links.push(`<button class="btn" data-action="win" data-win="realm">⚖ ${id === "market" ? "Trade" : "Blessings"}</button>`);
-    if (id === "townhall") links.push(`<button class="btn" data-action="win" data-win="kingdom">🏰 All buildings</button>`);
-    if (id === "walls" || id === "barracks") links.push(`<button class="btn" data-action="win" data-win="world">🗺 World Map</button>`);
+    $("#win-building .wt").textContent = B.name;
+    const cap = City.instCap(s, sl.type);
     $("#buildingDetail").innerHTML = `
-      <div style="display:flex;gap:14px;align-items:center;margin-bottom:10px">
-        <img data-asset="${b.asset}" alt="" style="width:120px;height:120px;border-radius:12px;border:3px solid var(--gold-3);object-fit:cover;box-shadow:0 8px 20px #000">
-        <div><div class="ql-title">${b.name}</div><span class="badge">Level ${lvl} / ${Economy.buildingMax(s, id)}</span>
-        <div class="desc" style="margin-top:6px;color:var(--muted)">${b.desc}</div></div>
-      </div>
-      <div class="effect" style="color:#8de3b0;margin-bottom:8px">${esc(UI.buildingEffect(s, id))}</div>
-      ${maxed ? `<div class="dim">${lvl >= (b.max || 99) ? "Fully upgraded." : "Upgrade the Town Hall to raise this building's limit."}</div>` : `
-      <div class="section-title">${lvl === 0 ? "Construction" : `Upgrade to level ${lvl + 1}`}</div>
-      <div class="costs" style="margin-bottom:8px;font-size:13px">${UI.costHtml(cost, s)}</div>
-      ${blk && blk !== "Not enough resources" ? `<div class="req" style="margin-bottom:8px">${esc(blk)}</div>` : ""}
-      <button class="btn primary" data-action="build" data-id="${id}" ${blk ? "disabled" : ""}>${lvl === 0 ? "⚒ Build" : "⬆ Upgrade"}</button>`}
-      ${links.length ? `<div class="btn-row" style="margin-top:12px">${links.join("")}</div>` : ""}`;
+      <div class="bhead"><div class="bh-art"><img src="${AssetPipeline.src(B.asset)}" alt="">${sl.build ? `<div class="scaffold big"><div class="ring" data-ring="w"></div><span class="crane">🏗️</span></div>` : ""}</div>
+        <div style="flex:1"><div class="ql-title">${B.name}</div>
+          <div class="btn-row" style="margin:4px 0"><span class="badge">Level ${sl.level}${City.isMulti(sl.type) ? ` / ${cap}` : ` / ${Economy.buildingMax(s, sl.type)}`}</span>${City.isMulti(sl.type) ? `<span class="badge teal">All ${B.name}s: Lv ${s.buildings[sl.type]} / ${Economy.buildingMax(s, sl.type)}</span>` : ""}</div>
+          <div class="desc" style="color:var(--muted)">${B.desc}</div>
+          <div class="effect" style="color:#8de3b0;margin-top:4px">${esc(UI.buildingEffect(s, sl.type))}</div></div></div>
+      <div class="form-sec upg">${sl.build ? `<div class="fs-h"><span>🏗️ ${sl.level ? `Upgrading to level ${sl.build.to}` : "Under construction"}</span><b data-bt="w"></b></div><div class="bar teal"><i data-bb="w"></i></div>`
+        : blk === "Max level reached" || (blk && blk.startsWith("This")) || (blk && blk.startsWith("Upgrade the Town Hall")) ? `<div class="dim">${esc(blk)}</div>`
+        : `<div class="fs-h"><span>⬆ Upgrade to level ${sl.level + 1}</span><b>${fmtTime(City.buildTime(s, sl.type, sl.level + 1))} · builders ${busy}/${City.builders(s)}</b></div>
+          <div class="costs" style="margin-bottom:6px;font-size:13px">${UI.costHtml(cost, s)}</div>
+          ${blk && blk !== "Not enough resources" ? `<div class="req" style="margin-bottom:6px">${esc(blk)}</div>` : ""}
+          <div class="btn-row"><button class="btn primary" data-action="upgradeLot" data-i="${i}" ${blk ? "disabled" : ""}>⬆ Upgrade</button>
+          ${City.isMulti(sl.type) && !sl.build ? `<button class="btn danger sm" data-action="demolish" data-i="${i}" title="Tear it down to free the lot (no refund)">🪓 Demolish</button>` : ""}</div>`}</div>
+      ${sl.level ? this.formBody(s, sl) : `<div class="dim">This building opens once construction is finished.</div>`}`;
     AssetPipeline.applyAll($("#buildingDetail"));
+    this.liveBuilding(s);
+  },
+  /** Timers and progress bars inside the open building form. */
+  liveBuilding(s) {
+    const sl = s.city.slots[this.lot];
+    if (sl && sl.build) {
+      const p = (1 - sl.build.remaining / sl.build.total) * 100;
+      const t = $('[data-bt="w"]'); if (t) t.textContent = fmtTime(sl.build.remaining) + " left";
+      const bb = $('[data-bb="w"]'); if (bb) bb.style.width = p + "%";
+      const r = $('[data-ring="w"]'); if (r) r.style.setProperty("--p", p.toFixed(1));
+    }
+    s.city.slots.forEach((x, i) => { const e = $(`#buildingDetail [data-cbt="${i}"]`); if (e && x && x.build) e.textContent = fmtTime(x.build.remaining); });
+    if (s.queue.length) {
+      const q = s.queue[0];
+      const t = $('#buildingDetail [data-qt="1"]'); if (t) t.textContent = fmtTime(q.remaining / Military.trainSpeed(s));
+      const b = $('#buildingDetail [data-qb="1"]'); if (b) b.style.width = (1 - q.remaining / q.total) * 100 + "%";
+    }
+    const c = s.research.current;
+    if (c) { const t = $('#buildingDetail [data-rt="1"]'); if (t) t.textContent = fmtTime(c.remaining); const b = $('#buildingDetail [data-rb="1"]'); if (b) b.style.width = (1 - c.remaining / c.total) * 100 + "%"; }
+    for (const bf of s.buffs) { const e = $(`#buildingDetail [data-bless="${bf.id}"]`); if (e) e.textContent = "Active · " + fmtTime(bf.until - s.time); }
   },
 
   itemCard(it, slotLabel) {
@@ -4458,6 +4914,30 @@ const Actions = {
   gearSalvage: (d) => { if (Armory.salvage(GameState.current, d.id)) { HUD.gsel = null; HUD.sig.armory = ""; UI.update(); } },
   closeWin: () => HUD.closeWin(),
   building: (d) => HUD.openBuilding(d.id),
+  lot: (d) => HUD.openLot(+d.i),
+  buildOn: (d) => { if (City.start(GameState.current, d.id, +d.i)) { HUD.form.pick = null; HUD.openLot(+d.i); UI.update(); } },
+  upgradeLot: (d) => { const s = GameState.current; const sl = s.city.slots[+d.i]; if (sl && City.start(s, sl.type, +d.i)) { HUD.sig.building = ""; UI.update(); } },
+  demolish: (d) => {
+    const i = +d.i, sl = GameState.current.city.slots[i];
+    if (!sl) return;
+    UI.modal("Demolish?", `<p>Tear down this level ${sl.level} ${BUILDINGS[sl.type].name}? You get nothing back, but the lot becomes free for something else.</p>`,
+      `<button class="btn" data-action="closeModal">Cancel</button><button class="btn danger" data-action="confirmDemolish" data-i="${i}">🪓 Demolish</button>`);
+  },
+  confirmDemolish: (d) => { if (City.demolish(GameState.current, +d.i)) { UI.closeModal(); HUD.closeWin(); HUD.sig = {}; UI.update(); } },
+  seat: (d) => { Economy.assign(GameState.current, d.job, Number(d.d)); HUD.sig.building = ""; UI.update(); },
+  trainN: (d) => {
+    const s = GameState.current, n = Military.train(s, d.id, HUD.form["t_" + d.id] ?? 1);
+    if (n) { addLog(s, `Began training ${n} ${plural(UNITS[d.id].name, n)}.`, "war"); UI.toast(`⚔ ${n} ${plural(UNITS[d.id].name, n)} in training`); }
+    HUD.sig.building = ""; UI.update();
+  },
+  release: (d) => { const s = GameState.current; const n = Military.release(s, d.id, HUD.form["r_" + d.id] ?? 1); if (n) UI.toast(`🏳️ ${n} released`); HUD.form["r_" + d.id] = 1; HUD.sig.building = ""; UI.update(); },
+  mset: (d) => { HUD.form[d.k] = d.v; HUD.form.mamt = undefined; HUD.sig.building = ""; UI.update(); },
+  mdeal: () => {
+    const s = GameState.current, r = HUD.form.mres || "food", mode = HUD.form.mmode || "sell", n = HUD.form.mamt ?? 0;
+    const ok = mode === "sell" ? Market.sell(s, r, n) : Market.buy(s, r, n);
+    UI.toast(ok ? `${mode === "sell" ? "Sold" : "Bought"} ${fmtInt(n)} ${RESOURCES[r].name}` : "That trade isn't possible right now.");
+    HUD.form.mamt = undefined; HUD.sig.building = ""; UI.update();
+  },
   questOpen: (d) => { HUD.qsel = d.id; if (HUD.open !== "campaign") HUD.openWin("campaign"); else { HUD.sig.campaign = ""; UI.update(); } },
   turnIn: (d) => { if (Campaign.turnIn(GameState.current, d.id)) { const nx = Campaign.current(GameState.current); if (nx) HUD.qsel = nx; HUD.sig = {}; UI.toast("Quest complete! Rewards collected."); UI.update(); } },
   chatTab: (d) => { $$(".chat-tab[data-tab]").forEach((t) => t.classList.toggle("active", t.dataset.tab === d.tab)); const c = $("#chat"); c.classList.remove("f-war", "f-realm"); if (d.tab !== "all") c.classList.add("f-" + d.tab); },
@@ -4512,7 +4992,7 @@ const Actions = {
     `<button class="btn" data-action="closeModal">Cancel</button><button class="btn danger" data-action="confirmReset">Reset everything</button>`),
   confirmReset: () => {
     if (BattleUI.b) BattleUI.close();
-    GameState.current = GameState.fresh();
+    GameState.current = GameState.newGame();
     addLog(GameState.current, "A new dominion begins. Assign workers and build up your city!", "info");
     GameState.save();
     UI.closeModal();
@@ -4535,6 +5015,17 @@ document.addEventListener("keydown", (e) => {
   const a = HUD_ACTIONS.find((x) => x.key === e.key);
   if (a) { e.preventDefault(); HUD.openWin(a.id); }
 });
+document.addEventListener("input", (e) => {
+  const el = e.target.closest("[data-form]");
+  if (!el) return;
+  const k = el.dataset.form, v = Number(el.value);
+  HUD.form[k] = v;
+  $$(`[data-fv="${k}"],[data-fv2="${k}"]`).forEach((x) => (x.textContent = k === "mamt" ? fmtInt(v) : v));
+  if (k === "mamt") {
+    const s = GameState.current, r = HUD.form.mres || "food", mode = HUD.form.mmode || "sell";
+    const t = $('[data-mtot="1"]'); if (t) t.textContent = fmtInt(v * (mode === "sell" ? Market.sellPrice(s, r) : Market.buyPrice(s, r)));
+  }
+});
 window.addEventListener("beforeunload", () => GameState.save());
 document.addEventListener("visibilitychange", () => { if (document.hidden) GameState.save(); });
 
@@ -4545,7 +5036,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) GameS
   let s = GameState.load();
   let offline = null;
   if (!s) {
-    s = GameState.fresh();
+    s = GameState.newGame();
     addLog(s, "Welcome, my liege. Put idle citizens to work, build Houses to grow, and raise a Barracks. Raiders will come, so be ready!", "info");
   } else {
     offline = Engine.offlineProgress(s);

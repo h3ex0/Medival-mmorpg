@@ -50,6 +50,17 @@ When you lead a battle in person, your **Lord Commander rides onto the field** a
 - **Objective battles**: world-map site raids, the Endless Conquest and territory defenses have a 🚩 banner. The attacker wins by holding it for 3 turns in a row. The AI marches on it or guards it.
 - **Range preview** when you select a missile unit.
 
+## City building
+
+Your city is a map of **building lots** around the Town Hall: 12 at the start and 2 more per Town Hall level (40 in total). Click an **empty lot** to choose what to build. Click a **building** to open its form. Farms, quarries, lumber camps, houses, warehouses, granaries, steelworks, ranches and breweries can be built **many times** (each copy goes up to level 5 + Town Hall level). The other buildings are unique. Construction takes **builders** (1, +1 every 3 Town Hall levels) and **time**: scaffolding and a progress ring show on the lot. You can demolish extra copies to free a lot. Working buildings show their worker count, a green ▲ when an upgrade is ready, and floating production numbers.
+
+**Building forms:**
+- **Farm / Quarry / Lumber Camp / Steelworks / Ranch / Brewery:** production readout plus a worker seat for every job. Click an empty seat to hire, or a worker to send them home.
+- **Barracks:** recruit seats, training cards with portraits, stats, costs and a quantity slider, the training queue, and **Release soldiers** (they go home as idle citizens).
+- **Stables / Siege Workshop / Mage Tower / Temple:** train their own units. The Temple also has blessing cards and monk seats.
+- **Market:** a trading desk. Pick a resource tile, switch between Sell and Buy, drag the slider and see the gold total before you deal.
+- **Warehouse / Granary:** storage gauges. **House:** population gauges. **Academy:** current research. **Town Hall:** lots, builders and every construction in progress.
+
 ## Armory (hotkey 0)
 
 Gear for your Lord Commander in 5 slots (weapon, armor, helm, banner, relic) and 4 rarities (Common, Rare, Epic, Legendary). Items roll bonuses to hero attack and health, army attack and defense, starting morale, battle loot and commander XP. Gear drops from victories: every campaign quest guarantees a drop the first time you win it (Epic from chapter III on), and world raids, the Endless Conquest and repelled raids can drop gear, with better odds when you lead in person or slay a general. Compare items before equipping them, and salvage spares for gold (Legendary gear also gives a Relic).
