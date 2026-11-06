@@ -45,12 +45,12 @@ const ENEMY_UNITS = {
   dark_knight:   { name: "Dark Knight",     asset: "e_dark_knight",  hp: 40,   atk: 13,  def: 8,  rng: 1, mv: 5, cls: "cav", charge: true },
   demon:         { name: "Demon",           asset: "e_demon",        hp: 80,   atk: 20,  def: 8,  rng: 1, mv: 4, cls: "inf", big: true },
   drake:         { name: "Fire Drake",      asset: "e_drake",        hp: 50,   atk: 14,  def: 5,  rng: 2, mv: 6, cls: "ranged", flying: true, big: true },
-  bandit_chief:  { name: "Bandit Chief",    asset: "e_bandit",       hp: 45,   atk: 10,  def: 3,  rng: 1, mv: 4, cls: "inf", general: true },
-  goblin_king:   { name: "Goblin King",     asset: "e_goblin",       hp: 70,   atk: 14,  def: 3,  rng: 1, mv: 5, cls: "cav", general: true },
-  orc_warlord:   { name: "Orc Warlord",     asset: "e_berserker",    hp: 260,  atk: 55,  def: 6,  rng: 1, mv: 4, cls: "inf", general: true },
-  lich:          { name: "Lich",            asset: "e_necromancer",  hp: 300,  atk: 70,  def: 7,  rng: 4, mv: 3, cls: "ranged", general: true, heal: 6 },
-  giant_jarl:    { name: "Giant Jarl",      asset: "e_frost_giant",  hp: 450,  atk: 80,  def: 9,  rng: 1, mv: 3, cls: "inf", general: true, big: true },
-  dark_lord:     { name: "Dark Lord",       asset: "e_dark_knight",  hp: 600,  atk: 110, def: 12, rng: 1, mv: 5, cls: "cav", general: true, charge: true },
+  bandit_chief:  { name: "Bandit Chief",    asset: "g_bandit_chief",       hp: 45,   atk: 10,  def: 3,  rng: 1, mv: 4, cls: "inf", general: true },
+  goblin_king:   { name: "Goblin King",     asset: "g_goblin_king",       hp: 70,   atk: 14,  def: 3,  rng: 1, mv: 5, cls: "cav", general: true },
+  orc_warlord:   { name: "Orc Warlord",     asset: "g_orc_warlord",    hp: 260,  atk: 55,  def: 6,  rng: 1, mv: 4, cls: "inf", general: true },
+  lich:          { name: "Lich",            asset: "g_lich",  hp: 300,  atk: 70,  def: 7,  rng: 4, mv: 3, cls: "ranged", general: true, heal: 6 },
+  giant_jarl:    { name: "Giant Jarl",      asset: "g_giant_jarl",  hp: 450,  atk: 80,  def: 9,  rng: 1, mv: 3, cls: "inf", general: true, big: true },
+  dark_lord:     { name: "Dark Lord",       asset: "g_dark_lord",  hp: 600,  atk: 110, def: 12, rng: 1, mv: 5, cls: "cav", general: true, charge: true },
   dragon:        { name: "Elder Dragon",    asset: "e_dragon",       hp: 1400, atk: 160, def: 12, rng: 2, mv: 5, cls: "ranged", flying: true, big: true, boss: true },
   titan:         { name: "Storm Titan",     asset: "e_titan",        hp: 5000, atk: 500, def: 15, rng: 3, mv: 3, cls: "inf", big: true, boss: true },
 };
@@ -59,13 +59,13 @@ const EXTRA_UNITS = {
   guard: { name: "Town Guard", asset: "u_guard", hp: 12, atk: 4, def: 3, rng: 1, mv: 3, cls: "inf" },
 };
 /** Your Lord Commander on the battlefield: one hero whose stats grow with the commander level. */
-function heroType(lvl) {
-  lvl = Math.max(1, lvl | 0);
-  const k = "hero" + lvl;
-  if (!EXTRA_UNITS[k]) EXTRA_UNITS[k] = { name: "Lord Commander", asset: "commander", hp: 120 + 50 * lvl, atk: 25 + 8 * lvl, def: 6 + 0.5 * lvl, rng: 1, mv: 5, cls: "cav", charge: true, hero: true, aura: true, boss: true };
+function heroType(lvl, hpPct = 0) {
+  lvl = Math.max(1, lvl | 0); hpPct = Math.max(0, Math.round(hpPct));
+  const k = "hero" + lvl + (hpPct ? "_" + hpPct : "");
+  if (!EXTRA_UNITS[k]) EXTRA_UNITS[k] = { name: "Lord Commander", asset: "commander", hp: Math.round((120 + 50 * lvl) * (1 + hpPct / 100)), atk: 25 + 8 * lvl, def: 6 + 0.5 * lvl, rng: 1, mv: 5, cls: "cav", charge: true, hero: true, aura: true, boss: true };
   return k;
 }
-const udef = (type) => (typeof UNITS !== "undefined" && UNITS[type]) || ENEMY_UNITS[type] || EXTRA_UNITS[type] || (/^hero\d+$/.test(type) ? EXTRA_UNITS[heroType(+type.slice(4))] : undefined);
+const udef = (type) => (typeof UNITS !== "undefined" && UNITS[type]) || ENEMY_UNITS[type] || EXTRA_UNITS[type] || (/^hero\d+(_\d+)?$/.test(type) ? EXTRA_UNITS[heroType(+type.slice(4).split("_")[0], +(type.split("_")[1] || 0))] : undefined);
 const FACTION_GENERALS = { bandits: "bandit_chief", goblins: "goblin_king", orcs: "orc_warlord", undead: "lich", giants: "giant_jarl", dark: "dark_lord" };
 
 /** One number to compare units by (and armies, as count × this). */
@@ -119,6 +119,13 @@ const SKILLS = {
   inf:     { id: "secondwind", name: "Second Wind",  icon: "💪", cd: 4, desc: "Recover 20% of the squad's full strength and shake off panic." },
   cav:     { id: "sprint",     name: "Sprint",       icon: "💨", cd: 3, desc: "+3 movement this turn (use it before moving)." },
   support: { id: "massheal",   name: "Mass Heal",    icon: "✨", cd: 4, desc: "Heal every friendly squad within 2 tiles by 10% of its strength." },
+};
+
+/* ---------- squad stances (free to change during your turn) ---------- */
+const STANCES = {
+  normal:     { name: "Normal",     icon: "⚖️", atk: 1,    def: 1,   desc: "No modifiers." },
+  aggressive: { name: "Aggressive", icon: "🔥", atk: 1.15, def: 0.85, desc: "+15% attack, −15% defense." },
+  defensive:  { name: "Defensive",  icon: "🛡️", atk: 0.85, def: 1.2, desc: "+20% defense, −15% attack, and stronger counterattacks." },
 };
 
 /* ---------- enemy factions (for raids and the endless conquest) ---------- */
@@ -312,13 +319,16 @@ const Battle = {
       heroFell: false, generalFell: false,
       morale: { player: Math.max(40, Math.min(100, 60 + 0.4 * (opts.morale ?? 100))), enemy: 100 },
       stats: { player: { dealt: 0, taken: 0 }, enemy: { dealt: 0, taken: 0 } },
+      heroAtk: 1 + (opts.heroAtk || 0) / 100,
+      fog: opts.fog !== false,
+      objective: null,
       cmd: { level: (opts.context && opts.context.cmdLevel) || 1, power: armyPower(opts.playerUnits), cd: { rally: 0, barrage: 0, warcry: 0, march: 0 }, warcry: 0, march: 0 },
       initial: { player: { ...opts.playerUnits }, enemy: { ...opts.enemyUnits } },
       log: [], result: null,
     };
     this.addSquads(b, "player", opts.playerUnits);
     if (opts.guards) this.addSquads(b, "player", { guard: opts.guards });
-    if (opts.hero) this.addSquads(b, "player", { [heroType(opts.hero)]: 1 });
+    if (opts.hero) this.addSquads(b, "player", { [heroType(opts.hero, opts.heroHp || 0)]: 1 });
     this.addSquads(b, "enemy", opts.enemyUnits);
     // big enemy armies hold a quarter of their squads back as a second wave
     const foes = b.squads.filter((q) => q.side === "enemy" && !udef(q.type).general && !udef(q.type).boss);
@@ -329,6 +339,7 @@ const Battle = {
     this.autoDeploy(b, "player");
     this.autoDeploy(b, "enemy");
     this.initMorale(b);
+    if (opts.objective) this.placeObjective(b);
     this.addLog(b, `${WEATHER[b.weather].icon} ${WEATHER[b.weather].name}: ${WEATHER[b.weather].desc}`);
     this.addLog(b, `${MAP_TYPES[b.mapType] || "Battlefield"}. ${b.attacker === "player" ? "You are attacking." : "You are defending."} Win before turn ${b.maxTurns} ends, or the defender holds.`);
     return b;
@@ -552,6 +563,8 @@ const Battle = {
     m *= (b.bonus && b.bonus[att.side]) || 1;
     if (att.side === "player" && b.cmd && b.cmd.warcry === b.turn && b.active === "player") m *= 1.3;
     if (this.inAura(b, att)) m *= 1.1;
+    if (A.hero) m *= b.heroAtk || 1;
+    m *= (STANCES[att.stance || "normal"] || STANCES.normal).atk;
     if (ta.ambush && (at === "forest" || at === "hill")) m *= ta.ambush;
     const ea = TERRAIN[at].elev, ed = TERRAIN[dt].elev;
     if (ea > ed) m *= 1.2; else if (ea < ed) m *= 0.85;
@@ -579,6 +592,7 @@ const Battle = {
     if (td.hold && !def.moved) defense *= td.hold;
     if (def.broken) defense *= 0.75;
     if (this.inAura(b, def)) defense *= 1.1;
+    defense *= (STANCES[def.stance || "normal"] || STANCES.normal).def;
     if (A.armorPierce) defense *= 0.6;
     return this.count(att) * A.atk * m * 8 / (8 + defense);
   },
@@ -589,11 +603,15 @@ const Battle = {
     let f = D.rng > 1 ? 0.3 : 0.5;
     if (def.braced && D.antiCav && A.cls === "cav") f = 1;
     if (def.braced && this.tac(b, def.side).hold) f = 1;
+    if (def.stance === "defensive") f = Math.min(1, f + 0.25);
     return f;
   },
   /** Attack a squad; the defender strikes back if it's in melee. Returns events for animation. */
   attack(b, att, def, events = []) {
     const before = this.count(def);
+    const A1 = udef(att.type);
+    const kind = A1.splash ? "fireball" : A1.slayer ? "bolt" : A1.cls === "siege" ? "boulder" : A1.rng > 1 && this.dist(att, def) > 1 ? "arrow" : "slash";
+    events.push({ proj: kind, from: [att.x, att.y], to: [def.x, def.y] });
     const dmg = this.damage(b, att, def);
     def.hp = Math.max(0, def.hp - dmg);
     const killed = before - this.count(def);
@@ -714,6 +732,7 @@ const Battle = {
   begin(b) {
     if (b.phase !== "deploy") return;
     b.phase = "battle";
+    this.aiStances(b, "enemy");
     this.startTurn(b, "player");
     this.addLog(b, `Turn 1. ${TACTICS[b.tactic].name} vs ${TACTICS[b.enemyTactic].name}.`);
   },
@@ -733,7 +752,8 @@ const Battle = {
     b.phase = "over";
     b.result = { winner, reason };
     const txt = { annihilation: "The enemy army has been destroyed.", timeout: "Time ran out. The defenders held.", retreat: "You sounded the retreat.",
-      rout: winner === "player" ? "The enemy's morale shattered and their army fled the field!" : "Your army's morale broke and it fled the field." };
+      rout: winner === "player" ? "The enemy's morale shattered and their army fled the field!" : "Your army's morale broke and it fled the field.",
+      objective: winner === "player" ? "Your banner flies over the field. The position is yours!" : "The enemy holds the banner. The position is lost." };
     this.addLog(b, (winner === "player" ? "VICTORY! " : "DEFEAT. ") + (reason === "annihilation" && winner === "enemy" ? "Your army has been wiped out." : txt[reason]));
   },
   retreat(b) { if (b.phase !== "over") this.finish(b, "enemy", "retreat"); },
@@ -743,6 +763,9 @@ const Battle = {
     if (this.checkEnd(b)) return;
     if (b.active === "player") this.startTurn(b, "enemy");
     else {
+      this.tickObjective(b);
+      if (b.phase === "over") return;
+      if (b.turn % 3 === 0) this.aiStances(b, "enemy");
       b.turn++;
       for (const k of Object.keys(b.fire || {})) {
         if (--b.fire[k] <= 0) { delete b.fire[k]; b.tiles[+k] = "ashes"; b.burnt = (b.burnt || []).concat(+k); }
@@ -852,6 +875,20 @@ const Battle = {
         }
       }
       if (wb) return wb;
+    }
+
+    // objective battles: some squads march on (or guard) the banner
+    const ob = b.objective;
+    if (ob && !d.general && d.rng <= 1 && (s.id % 2 === 0 || side === b.attacker && ob.hold > 0)) {
+      if (side === b.attacker || this.dist(s, ob) > 1) {
+        let mb = null, md = this.dist(s, ob);
+        for (const [idx, cost] of reach) {
+          const dd = Math.max(Math.abs((idx % W) - ob.x), Math.abs(((idx / W) | 0) - ob.y)) + (side === b.defender && idx === ob.y * W + ob.x ? 1 : 0);
+          if (dd < md) { md = dd; mb = { move: idx, cost, brace: side === b.defender }; }
+        }
+        if (mb) return mb;
+        if (side === b.defender) return { move: s.y * W + s.x, cost: 0, brace: true };
+      }
     }
 
     // otherwise advance (missile units try to stay out of melee)
@@ -995,6 +1032,67 @@ const Battle = {
     b.fire[i] = 2;
     this.addLog(b, "🔥 The forest catches fire!");
     return true;
+  },
+
+  /* ===================== fog of war (what YOUR scouts can see) ===================== */
+  sight(b, s) {
+    const d = udef(s.type), t = this.tile(b, s.x, s.y);
+    let r = 4 + (TERRAIN[t].elev >= 2 ? 1 : 0) + (d.cls === "cav" || d.mounted ? 1 : 0) + (d.flying ? 2 : 0) + (d.hero ? 1 : 0);
+    if (b.weather === "fog") r -= 2;
+    return Math.max(2, r);
+  },
+  /** Tiles your army can currently see (Uint8Array). Enemies in forests stay hidden unless a squad is within 2 tiles. */
+  visibility(b, side = "player") {
+    const v = new Uint8Array(b.w * b.h);
+    if (!b.fog || b.phase === "over") return v.fill(1);
+    for (const s of this.alive(b, side)) {
+      const r = this.sight(b, s);
+      for (let y = Math.max(0, s.y - r); y <= Math.min(b.h - 1, s.y + r); y++)
+        for (let x = Math.max(0, s.x - r); x <= Math.min(b.w - 1, s.x + r); x++) {
+          const i = y * b.w + x;
+          if (v[i]) continue;
+          if (Math.max(Math.abs(x - s.x), Math.abs(y - s.y)) <= 1 || this.los(b, s.x, s.y, x, y)) v[i] = 1;
+        }
+    }
+    return v;
+  },
+  canSee(b, vis, o) {
+    if (!b.fog || !vis[o.y * b.w + o.x]) return !b.fog;
+    if (this.tile(b, o.x, o.y) !== "forest") return true;
+    return this.alive(b, this.opp(o.side)).some((s) => this.dist(s, o) <= 2);
+  },
+
+  /* ===================== objective: plant and hold the banner ===================== */
+  placeObjective(b) {
+    const cx = Math.floor(b.w / 2), cy = Math.floor(b.h / 2);
+    let best = null, bd = Infinity;
+    for (let y = 0; y < b.h; y++) for (let x = 3; x < b.w - 3; x++) {
+      if (!this.canStand(b, { side: b.attacker, type: "militia" }, x, y) || !this.canStand(b, { side: b.defender, type: "militia" }, x, y)) continue;
+      const d = Math.abs(x - cx) * 1.2 + Math.abs(y - cy);
+      if (d < bd) { bd = d; best = [x, y]; }
+    }
+    if (best) {
+      b.objective = { x: best[0], y: best[1], hold: 0, need: 3 };
+      this.addLog(b, `🚩 Objective: ${b.attacker === "player" ? "you win" : "the enemy wins"} by holding the banner tile for ${b.objective.need} turns in a row.`);
+    }
+  },
+  /** Called once per round: the attacker gains ground by standing on the banner. */
+  tickObjective(b) {
+    const o = b.objective;
+    if (!o || b.phase !== "battle") return;
+    const on = this.at(b, o.x, o.y);
+    if (on && on.side === b.attacker) {
+      o.hold++;
+      this.addLog(b, `🚩 The ${b.attacker === "player" ? "your" : "enemy"} banner holds (${o.hold}/${o.need}).`);
+      if (o.hold >= o.need) this.finish(b, b.attacker, "objective");
+    } else o.hold = 0;
+  },
+  /** Enemy squads pick a stance that suits their role. */
+  aiStances(b, side) {
+    for (const q of this.alive(b, side)) {
+      const d = udef(q.type);
+      q.stance = d.rng > 1 || d.cls === "support" || d.cls === "siege" ? "normal" : side === b.defender || q.hp < q.maxHp * 0.5 ? "defensive" : "aggressive";
+    }
   },
 
   /* ===================== squad skills ===================== */
@@ -1195,6 +1293,7 @@ const BattleUI = {
     this.layout();
     this.renderTiles();
     this.render();
+    this.banner(b.title, `${WEATHER[b.weather || "clear"].icon} ${WEATHER[b.weather || "clear"].name} · ${MAP_TYPES[b.mapType] || ""}`, "intro");
     window.addEventListener("resize", this._resize = () => { this.layout(); this.renderTiles(); this.render(); });
   },
   close() {
@@ -1238,20 +1337,36 @@ const BattleUI = {
     board.style.height = b.h * this.cell + "px";
     board.style.setProperty("--cell", this.cell + "px");
   },
+  /** AI terrain texture for a tile type, if it has been generated. */
+  tex(t) {
+    const k = "t_" + t;
+    return typeof AssetPipeline !== "undefined" && AssetPipeline.hasArt(k) ? AssetPipeline.src(k) : null;
+  },
+  tileHtml(i) {
+    const b = this.b, c = this.cell, x = i % b.w, y = (i / b.w) | 0, t = b.tiles[i], tx = this.tex(t);
+    const glyph = tx ? {} : { forest: "🌲", mountain: "⛰️" };
+    return `<div class="tile t-${t} elev-${TERRAIN[t].elev}${tx ? " tex" : ""}" data-cell="${i}" style="left:${x * c}px;top:${y * c}px${tx ? `;background-image:url('${tx}')` : ""}">${glyph[t] ? `<span>${glyph[t]}</span>` : ""}</div>`;
+  },
   renderTiles() {
-    const b = this.b, c = this.cell, board = document.getElementById("bfBoard");
-    const glyph = { forest: "🌲", mountain: "⛰️", hill: "", swamp: "", bridge: "", wall: "", rubble: "" };
+    const b = this.b, board = document.getElementById("bfBoard");
     let h = "";
-    for (let y = 0; y < b.h; y++) for (let x = 0; x < b.w; x++) {
-      const i = y * b.w + x, t = b.tiles[i];
-      h += `<div class="tile t-${t}" data-cell="${i}" style="left:${x * c}px;top:${y * c}px">${glyph[t] ? `<span>${glyph[t]}</span>` : ""}</div>`;
-    }
-    h += `<div id="bfMarks"></div><div id="bfUnits"></div><div id="bfFx"></div>`;
+    for (let i = 0; i < b.w * b.h; i++) h += this.tileHtml(i);
+    h += `<div id="bfFog"></div><div id="bfMarks"></div><div id="bfUnits"></div><div id="bfFx"></div><div class="weather w-${b.weather || "clear"}" id="bfWeather"></div><div id="bfBanner"></div>`;
     board.innerHTML = h;
   },
   updateTile(i) {
     const el = document.querySelector(`#bfBoard .tile[data-cell="${i}"]`);
-    if (el) { el.className = `tile t-${this.b.tiles[i]}`; el.innerHTML = ""; }
+    if (el) el.outerHTML = this.tileHtml(i);
+  },
+  /** Big centred banner: battle start, whose turn it is, victory/defeat. */
+  banner(text, sub, cls = "") {
+    const el = document.getElementById("bfBanner");
+    if (!el) return;
+    el.className = "bbanner " + cls;
+    el.innerHTML = `<div><b>${esc(text)}</b>${sub ? `<small>${esc(sub)}</small>` : ""}</div>`;
+    void el.offsetWidth; el.classList.add("show");
+    clearTimeout(this._bannerT);
+    this._bannerT = setTimeout(() => el.classList.remove("show"), 1400 / Math.max(1, this.speed / 1.5));
   },
 
   render() {
@@ -1286,6 +1401,7 @@ const BattleUI = {
       const skBtn = `<button class="btn" data-bf="skill" ${my && sk && !skBlk ? "" : "disabled"} title="${sk ? esc(sk.name + ": " + sk.desc) : "Select one of your squads to use its skill"}${skBlk && sk ? " (" + esc(skBlk) + ")" : ""}">${sk ? sk.icon + " " + sk.name : "✦ Skill"}${sqs && sqs.skillCd > 0 ? ` <small>${sqs.skillCd}</small>` : ""}</button>`;
       btns = `<span class="abilities" title="Lord Commander abilities">${ab}</span>${skBtn}<button class="btn" data-bf="brace" ${my && this.sel && !this.selSquad()?.acted ? "" : "disabled"} title="Skip this squad's attack: +50% defense until your next turn">🛡 Brace</button>
         <button class="btn" data-bf="auto" ${my ? "" : "disabled"} title="Let your captains finish the battle">Auto-battle</button>
+        <button class="btn" data-bf="stance" ${my && this.selSquad() && this.selSquad().side === "player" ? "" : "disabled"} title="Cycle the selected squad's stance: Normal → Aggressive → Defensive">${this.selSquad() ? STANCES[this.selSquad().stance || "normal"].icon + " " + STANCES[this.selSquad().stance || "normal"].name : "⚖️ Stance"}</button>
         <button class="btn" data-bf="callres" ${my && Battle.reserves(b, "player").length ? "" : "disabled"} title="Your reserves march in at your edge (they can act next turn)">📯 Reserves (${Battle.reserves(b, "player").length})</button>
         <button class="btn" data-bf="undo" ${my && this.canUndo() ? "" : "disabled"} title="Take back your last move (if that squad hasn't attacked)">↶ Undo</button>
         <button class="btn" data-bf="speed" title="Enemy turn animation speed">⏩ ${this.speed}×</button>
@@ -1298,8 +1414,19 @@ const BattleUI = {
     const ts = document.getElementById("bfTactic");
     if (ts) ts.onchange = () => { b.tactic = ts.value; if (TACTICS[b.tactic].deploy) Battle.autoDeploy(b, "player"); this.render(); };
 
+    // fog of war
+    const vis = Battle.visibility(b, "player");
+    this.vis = vis;
+    let fogH = "";
+    if (b.fog && b.phase !== "over") for (let i = 0; i < b.w * b.h; i++) if (!vis[i]) fogH += `<div class="fogt" style="left:${(i % b.w) * c}px;top:${((i / b.w) | 0) * c}px"></div>`;
+    document.getElementById("bfFog").innerHTML = fogH;
+
     // marks (deploy zone, reachable, targets)
     let marks = "";
+    if (b.objective) {
+      const o = b.objective;
+      marks += `<div class="mark m-obj" style="left:${o.x * c}px;top:${o.y * c}px"><span>🚩</span>${o.hold ? `<b>${o.hold}/${o.need}</b>` : ""}</div>`;
+    }
     const sq = this.selSquad();
     if (b.phase === "deploy") {
       for (let y = 0; y < b.h; y++) for (let x = 0; x < b.w; x++)
@@ -1309,7 +1436,12 @@ const BattleUI = {
         if (i === sq.y * b.w + sq.x) continue;
         marks += `<div class="mark m-move" data-cell="${i}" style="left:${(i % b.w) * c}px;top:${((i / b.w) | 0) * c}px"></div>`;
       }
-      for (const t of Battle.targets(b, sq)) marks += `<div class="mark m-attack" data-cell="${t.y * b.w + t.x}" style="left:${t.x * c}px;top:${t.y * c}px"></div>`;
+      if (udef(sq.type).rng > 1 && !sq.acted) {
+        const r = Battle.range(b, sq);
+        for (let y = Math.max(0, sq.y - r); y <= Math.min(b.h - 1, sq.y + r); y++) for (let x = Math.max(0, sq.x - r); x <= Math.min(b.w - 1, sq.x + r); x++)
+          if ((x !== sq.x || y !== sq.y) && Battle.canHit(b, sq, sq.x, sq.y, x, y)) marks += `<div class="mark m-range" style="left:${x * c}px;top:${y * c}px"></div>`;
+      }
+      for (const t of Battle.targets(b, sq).filter((o) => Battle.canSee(b, vis, o))) marks += `<div class="mark m-attack" data-cell="${t.y * b.w + t.x}" style="left:${t.x * c}px;top:${t.y * c}px"></div>`;
       for (const i of Battle.wallTargets(b, sq)) marks += `<div class="mark m-attack" data-cell="${i}" style="left:${(i % b.w) * c}px;top:${((i / b.w) | 0) * c}px"></div>`;
     }
     for (const k of Object.keys(b.fire || {})) {
@@ -1340,7 +1472,9 @@ const BattleUI = {
         if (typeof AssetPipeline !== "undefined") AssetPipeline.applyAll(el);
       }
       el.dataset.cell = s.y * b.w + s.x;
-      el.className = `unit side-${s.side}${d.hero ? " hero" : ""}${d.general ? " general" : ""}${s.broken ? " broken" : ""}${s.aimed ? " aimed" : ""}${sq === s ? " sel" : ""}${s.acted && b.phase === "battle" && s.side === b.active ? " done" : ""}${s.braced ? " braced" : ""}${d.boss ? " boss" : ""}`;
+      el.style.display = s.side === "enemy" && b.phase !== "deploy" && !Battle.canSee(b, vis, s) ? "none" : "";
+      if (b.phase === "deploy" && s.side === "enemy" && !Battle.canSee(b, vis, s)) el.style.display = "none";
+      el.className = `unit side-${s.side} st-${s.stance || "normal"}${d.hero ? " hero" : ""}${d.general ? " general" : ""}${s.broken ? " broken" : ""}${s.aimed ? " aimed" : ""}${sq === s ? " sel" : ""}${s.acted && b.phase === "battle" && s.side === b.active ? " done" : ""}${s.braced ? " braced" : ""}${d.boss ? " boss" : ""}`;
       el.style.left = s.x * c + "px"; el.style.top = s.y * c + "px";
       el.title = `${d.name} ×${Battle.count(s)}`;
       el.querySelector(".cnt").textContent = Battle.count(s);
@@ -1355,7 +1489,7 @@ const BattleUI = {
     // log
     document.getElementById("bfLog").innerHTML = b.log.slice().reverse().map((l) => `<div>${esc(l)}</div>`).join("");
 
-    if (b.phase === "over" && !this._shownEnd) { this._shownEnd = true; this.showEnd(); }
+    if (b.phase === "over" && !this._shownEnd) { this._shownEnd = true; this.banner(b.result.winner === "player" ? "Victory!" : "Defeat", "", b.result.winner === "player" ? "win" : "lose"); setTimeout(() => this.showEnd(), 900); }
   },
   armySummary(side) {
     const b = this.b, tot = {};
@@ -1371,6 +1505,7 @@ const BattleUI = {
       ${traits.length ? `<div class="dim" style="font-size:11.5px;margin-top:4px">${traits.join(" · ")}</div>` : ""}
       ${s.side === "player" && b.vet && b.vet[s.type] ? `<div style="font-size:11.5px;color:var(--accent-2)">${"★".repeat(b.vet[s.type])} Veteran rank ${b.vet[s.type]} (+${b.vet[s.type] * 6}% attack/defense)</div>` : ""}
       ${this.skillLine(s)}
+      <div style="font-size:11.5px;margin-top:3px">${STANCES[s.stance || "normal"].icon} <b>${STANCES[s.stance || "normal"].name} stance</b> <span class="dim">${STANCES[s.stance || "normal"].desc} · Sight ${Battle.sight(b, s)}</span></div>
       <div style="font-size:11.5px;margin-top:4px">On <b>${t.name}</b>${s.braced ? " · <b class='good'>Braced</b>" : ""}${s.broken ? " · <b class='bad'>Routed (can't attack)</b>" : ""}${s.aimed ? " · <b class='good'>Aiming (+50%)</b>" : ""}${mine && b.phase === "battle" ? ` · ${s.acted ? "done" : s.moved ? "moved, can still attack" : "ready"}` : ""}</div>`;
   },
   skillLine(s) {
@@ -1388,7 +1523,10 @@ const BattleUI = {
       aim.style.width = aim.style.height = 3 * c + "px";
       document.getElementById("bfFx").appendChild(aim);
     }
-    const s = Battle.at(b, x, y);
+    let s = Battle.at(b, x, y);
+    const seen = !this.vis || this.vis[i];
+    if (s && s.side === "enemy" && !Battle.canSee(b, this.vis || Battle.visibility(b), s)) s = null;
+    if (!seen) { document.getElementById("bfHover").innerHTML = `<div class="bf-h">Unscouted</div><div style="font-size:12px" class="muted">Your squads can't see this far. Move closer, climb a hill, or send cavalry and flyers to scout. Enemies hiding in forests are only spotted within 2 tiles.</div>`; return; }
     let h = `<div class="bf-h">${t.name}${b.wallHp[i] ? ` <span class="dim">(${Math.ceil(b.wallHp[i])} HP)</span>` : ""}</div><div style="font-size:12px" class="muted">${t.desc}</div>`;
     const sq = this.selSquad();
     if (s && s.side === "enemy") {
@@ -1447,7 +1585,7 @@ const BattleUI = {
     }
     // attack?
     if (sel && !sel.acted) {
-      if (s && s.side === "enemy" && Battle.canHit(b, sel, sel.x, sel.y, x, y)) {
+      if (s && s.side === "enemy" && Battle.canHit(b, sel, sel.x, sel.y, x, y) && Battle.canSee(b, this.vis || Battle.visibility(b), s)) {
         const ev = Battle.attack(b, sel, s);
         this.fx(ev); this.afterPlayerAction(); return;
       }
@@ -1479,10 +1617,34 @@ const BattleUI = {
     const layer = document.getElementById("bfFx");
     if (!layer) return;
     const c = this.cell;
+    let delay = 0;
+    for (const e of events) {
+      if (!e.proj) continue;
+      const p = document.createElement("div");
+      const [fx0, fy0] = e.from, [tx0, ty0] = e.to;
+      if (e.proj === "slash") {
+        p.className = "slash";
+        p.style.left = tx0 * c + "px"; p.style.top = ty0 * c + "px";
+        layer.appendChild(p); setTimeout(() => p.remove(), 450);
+        delay = Math.max(delay, 120);
+        continue;
+      }
+      p.className = "proj p-" + e.proj;
+      const ang = Math.atan2(ty0 - fy0, tx0 - fx0) * 180 / Math.PI;
+      p.style.left = (fx0 + 0.5) * c + "px"; p.style.top = (fy0 + 0.5) * c + "px";
+      p.style.setProperty("--ang", ang + "deg");
+      layer.appendChild(p);
+      const dur = Math.min(520, 160 + 45 * Math.hypot(tx0 - fx0, ty0 - fy0)) / Math.max(1, this.speed / 1.5);
+      p.style.transition = `transform ${dur}ms ${e.proj === "boulder" ? "cubic-bezier(.3,-0.4,.7,1)" : "linear"}`;
+      requestAnimationFrame(() => { p.style.transform = `translate(${(tx0 - fx0) * c}px, ${(ty0 - fy0) * c}px) rotate(var(--ang))`; });
+      setTimeout(() => { p.classList.add("hit"); setTimeout(() => p.remove(), 260); }, dur);
+      delay = Math.max(delay, dur);
+    }
     for (const e of events) {
       if (!e.text) continue;
       const d = document.createElement("div");
       d.className = "fx " + (e.cls || "");
+      if (delay) { d.style.animationDelay = delay + "ms"; d.style.opacity = "0"; }
       d.textContent = e.text;
       d.style.left = e.x * c + "px"; d.style.top = e.y * c + "px";
       layer.appendChild(d);
@@ -1498,6 +1660,7 @@ const BattleUI = {
     this.busy = true; this.sel = null;
     Battle.endTurn(b); // -> enemy
     this.render();
+    if (b.phase === "battle") this.banner("Enemy Turn", `Turn ${b.turn}`, "enemy");
     await this.sleep(300);
     for (const s of Battle.aiOrder(b, "enemy")) {
       if (!this.b || b.phase === "over") break;
@@ -1518,7 +1681,7 @@ const BattleUI = {
     }
     if (this.b && b.phase !== "over") Battle.endTurn(b); // -> player
     this.busy = false;
-    if (this.b) { this.render(); this.save(); }
+    if (this.b) { this.render(); this.save(); if (b.phase === "battle") this.banner("Your Turn", `Turn ${b.turn}`, "player"); }
   },
   save() { if (typeof GameState !== "undefined" && GameState.current) GameState.save(); },
 
@@ -1526,7 +1689,7 @@ const BattleUI = {
     const b = this.b;
     switch (a) {
       case "autodeploy": Battle.autoDeploy(b, "player"); this.sel = null; this.render(); break;
-      case "begin": Battle.begin(b); this.sel = null; this.render(); this.save(); break;
+      case "begin": Battle.begin(b); this.sel = null; this.render(); this.save(); this.banner("To Battle!", b.objective ? "Plant your banner on the 🚩 and hold it" : "Destroy or rout the enemy", "player"); break;
       case "ability": {
         const id = data && data.id;
         if (!id || this.busy || this.abilityBlocker(id)) break;
@@ -1556,6 +1719,14 @@ const BattleUI = {
       case "speed": {
         this.speed = this.speed >= 4 ? 1 : this.speed * 2;
         try { localStorage.setItem("ironhold_battle_speed", this.speed); } catch {}
+        this.render();
+        break;
+      }
+      case "stance": {
+        const s = this.selSquad();
+        if (!s || s.side !== "player" || this.busy) break;
+        const order = ["normal", "aggressive", "defensive"];
+        s.stance = order[(order.indexOf(s.stance || "normal") + 1) % 3];
         this.render();
         break;
       }

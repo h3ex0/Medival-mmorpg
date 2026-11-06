@@ -27,7 +27,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = path.join(ROOT, "assets", "generated");
 const MANIFEST = path.join(ROOT, "assets", "manifest.json");
-const SIZES = { icon: [256, 256], portrait: [384, 384], banner: [960, 540], backdrop: [1600, 900] };
+const SIZES = { icon: [256, 256], portrait: [384, 384], banner: [960, 540], backdrop: [1600, 900], tile: [128, 128] };
 
 // ---------- args ----------
 const args = process.argv.slice(2);

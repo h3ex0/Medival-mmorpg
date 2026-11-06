@@ -587,6 +587,67 @@ input[type=text], input[type=password], input[type=number], select, textarea { b
 .mbar i { display: block; height: 100%; transition: width 0.4s; }
 .mbar.p i { background: linear-gradient(90deg, #2f8d3c, #8de38a); } .mbar.e i { background: linear-gradient(90deg, #a3271d, #ff8a7a); }
 .res-chip-b { cursor: pointer; text-decoration: underline dotted; }
+/* textured, shaded terrain */
+.tile.tex { background-size: cover; background-position: center; }
+.tile.tex span { display: none; }
+.tile.elev-0 { box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.3), inset 0 4px 10px rgba(0,0,0,0.45); filter: brightness(0.88); }
+.tile.elev-2 { box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.25), inset 3px 3px 6px rgba(255,240,200,0.18), inset -3px -3px 8px rgba(0,0,0,0.35); filter: brightness(1.06); }
+.tile.elev-3 { box-shadow: inset 4px 4px 8px rgba(255,255,255,0.22), inset -5px -5px 10px rgba(0,0,0,0.55), 0 3px 6px rgba(0,0,0,0.5); filter: brightness(1.04) contrast(1.05); z-index: 0; }
+/* fog of war */
+#bfFog { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.fogt { position: absolute; width: var(--cell); height: var(--cell); background: rgba(8,10,14,0.62); backdrop-filter: grayscale(0.7); }
+/* range preview, objective */
+.mark.m-range { background: rgba(255,200,80,0.05); box-shadow: inset 0 0 0 1px rgba(255,200,80,0.18); }
+.mark.m-obj { display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 2px #ffd94a, 0 0 14px rgba(255,217,74,0.6); background: rgba(255,217,74,0.15); z-index: 1; }
+.mark.m-obj span { font-size: calc(var(--cell) * 0.55); filter: drop-shadow(0 2px 2px #000); }
+.mark.m-obj b { position: absolute; bottom: 1px; right: 2px; font-size: 11px; color: #ffd94a; text-shadow: 0 1px 2px #000; }
+/* stances on tokens */
+.unit.st-aggressive .cnt { background: #8a1f17; } .unit.st-defensive .cnt { background: #1f4f8a; }
+/* projectiles */
+.proj { position: absolute; z-index: 6; pointer-events: none; transform: translate(0, 0) rotate(var(--ang)); margin: -3px 0 0 -14px; }
+.proj.p-arrow, .proj.p-bolt { width: 28px; height: 3px; background: linear-gradient(90deg, transparent, #d8c08a 30%, #fff8e0); border-radius: 2px; box-shadow: 0 0 6px rgba(255,240,200,0.8); }
+.proj.p-bolt { height: 5px; width: 36px; background: linear-gradient(90deg, transparent, #9a9a9a 30%, #ffffff); }
+.proj.p-fireball { width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: radial-gradient(circle, #fff6b0, #ff9a1a 45%, #d62a00 75%, transparent); box-shadow: 0 0 18px 6px rgba(255,120,0,0.75); }
+.proj.p-boulder { width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 45%; background: radial-gradient(circle at 35% 35%, #b5ab9a, #5d554a); box-shadow: 0 4px 6px rgba(0,0,0,0.6); }
+.proj.hit { opacity: 0; transition: opacity 0.25s !important; }
+.proj.p-fireball.hit { transform-origin: center; filter: brightness(2); }
+.slash { position: absolute; width: var(--cell); height: var(--cell); z-index: 6; pointer-events: none; background: linear-gradient(135deg, transparent 42%, rgba(255,255,255,0.95) 48%, rgba(255,255,255,0.95) 52%, transparent 58%); animation: slash 0.4s ease-out forwards; }
+@keyframes slash { from { opacity: 0; transform: scale(0.4) rotate(-20deg); } 30% { opacity: 1; } to { opacity: 0; transform: scale(1.3) rotate(10deg); } }
+.fx { animation-fill-mode: both; }
+.fx[style*="animation-delay"] { animation-name: floatup2; }
+@keyframes floatup2 { 0% { opacity: 0; transform: translateY(0); } 8% { opacity: 1; } 100% { opacity: 0; transform: translateY(-34px); } }
+/* weather overlays */
+.weather { position: absolute; inset: 0; pointer-events: none; z-index: 7; }
+.w-rain { background-image: repeating-linear-gradient(105deg, rgba(180,200,255,0.0) 0 14px, rgba(180,200,255,0.28) 14px 15px); background-size: 60px 60px; animation: rain 0.45s linear infinite; }
+@keyframes rain { to { background-position: -18px 60px; } }
+.w-fog { background: radial-gradient(ellipse at 30% 40%, rgba(220,225,230,0.28), transparent 60%), radial-gradient(ellipse at 75% 65%, rgba(220,225,230,0.25), transparent 55%); animation: fogdrift 12s ease-in-out infinite alternate; }
+@keyframes fogdrift { to { background-position: 80px 20px, -60px -10px; } }
+.w-snow { background-image: radial-gradient(circle, rgba(255,255,255,0.9) 0 1.5px, transparent 2px), radial-gradient(circle, rgba(255,255,255,0.7) 0 1px, transparent 1.5px); background-size: 46px 46px, 31px 31px; animation: snow 5s linear infinite; }
+@keyframes snow { to { background-position: 20px 230px, -15px 155px; } }
+.w-wind { background-image: repeating-linear-gradient(0deg, transparent 0 40px, rgba(255,255,255,0.07) 40px 41px); background-size: 200px 82px; animation: wind 1.2s linear infinite; }
+@keyframes wind { to { background-position: -200px 0; } }
+/* banners */
+.bbanner { position: absolute; left: 0; right: 0; top: 38%; z-index: 9; display: flex; justify-content: center; pointer-events: none; opacity: 0; transform: scale(0.9); transition: opacity 0.35s, transform 0.35s; }
+.bbanner.show { opacity: 1; transform: scale(1); }
+.bbanner > div { background: linear-gradient(90deg, transparent, rgba(20,12,6,0.92) 15%, rgba(20,12,6,0.92) 85%, transparent); padding: 14px 120px; text-align: center; border-top: 2px solid var(--gold-3); border-bottom: 2px solid var(--gold-3); }
+.bbanner b { display: block; font-family: var(--font-display); font-size: 34px; color: var(--gold-1); text-shadow: 0 3px 8px #000; letter-spacing: 0.06em; }
+.bbanner small { color: var(--muted); font-size: 13px; }
+.bbanner.enemy b { color: #ff8a7a; } .bbanner.win b { color: #ffd94a; font-size: 44px; } .bbanner.lose b { color: #ff6b5e; font-size: 44px; }
+/* armory */
+.armory { display: grid; grid-template-columns: 300px 1fr; gap: 18px; }
+.arm-hero { width: 120px; height: 120px; margin: 0 auto 10px; border-radius: 50%; overflow: hidden; border: 3px solid var(--gold-2); box-shadow: 0 0 0 3px #120d07, 0 0 22px rgba(214,166,69,0.35); }
+.arm-hero img { width: 100%; height: 100%; object-fit: cover; }
+.arm-slot { margin-bottom: 6px; }
+.arm-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 7px; background: rgba(0,0,0,0.35); border: 1px solid var(--rc, #4c3a20); box-shadow: inset 0 0 12px color-mix(in srgb, var(--rc, #000) 18%, transparent); cursor: pointer; font-size: 12.5px; }
+.arm-item.empty { cursor: default; border-style: dashed; border-color: #4c3a20; }
+.arm-item small { display: block; color: var(--muted); font-size: 11px; }
+.arm-item .ai-ic { font-size: 22px; width: 30px; text-align: center; filter: drop-shadow(0 0 4px var(--rc, transparent)); }
+.arm-item.r-legendary { animation: legend 2.2s ease-in-out infinite; }
+@keyframes legend { 50% { box-shadow: inset 0 0 18px rgba(255,154,46,0.35), 0 0 12px rgba(255,154,46,0.45); } }
+.arm-bag { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; max-height: 300px; overflow-y: auto; margin-bottom: 10px; }
+.arm-bag .sel .arm-item { outline: 2px solid var(--gold-1); }
+.arm-detail { border: 1px solid var(--rc); border-radius: 8px; padding: 10px 12px; background: rgba(0,0,0,0.4); }
+@media (max-width: 820px) { .armory { grid-template-columns: 1fr; } }
 .t-ashes { background: radial-gradient(circle at 40% 40%, #3b3530, #23201d); }
 
 /* ---------- campaign quest log ---------- */
@@ -730,6 +791,13 @@ input[type=text], input[type=password], input[type=number], select, textarea { b
     <div id="marketBox"></div>
   </section>
 
+  <section class="win hidden" id="win-armory" data-title="🎒 Lord Commander's Armory">
+    <div class="armory">
+      <div class="arm-doll"><div class="arm-hero"><img data-asset="commander" alt=""></div><div id="armSlots"></div><div id="armTotals"></div></div>
+      <div><div class="section-title">Bag <span class="dim" id="armCount"></span></div><div class="arm-bag" id="armBag"></div><div id="armDetail"></div></div>
+    </div>
+  </section>
+
   <section class="win hidden" id="win-building" data-title="Building">
     <div id="buildingDetail"></div>
   </section>
@@ -794,7 +862,8 @@ input[type=text], input[type=password], input[type=number], select, textarea { b
   "icon": "Square game UI icon. One clear subject centered, filling most of the frame, on a dark slate-blue vignette background.",
   "portrait": "Square character portrait, chest-up, facing slightly toward the viewer, dark moody background.",
   "banner": "Wide cinematic establishing shot, 16:9 composition, atmospheric depth.",
-  "backdrop": "Wide panoramic 16:9 landscape, darker toward the bottom so UI text stays readable."
+  "backdrop": "Wide panoramic 16:9 landscape, darker toward the bottom so UI text stays readable.",
+  "tile": "Seamless square top-down terrain texture for a tactics game board, viewed from directly above with no perspective and no horizon, evenly lit, edges that tile cleanly."
  },
  "assets": [
   {
@@ -1510,6 +1579,125 @@ input[type=text], input[type=password], input[type=number], select, textarea { b
    "emoji": "🏰",
    "hue": 0,
    "prompt": "A dark warlord's capital city with massive black walls, banners and siege towers"
+  },
+  {
+   "key": "t_plains",
+   "kind": "tile",
+   "emoji": "",
+   "hue": 100,
+   "prompt": "Lush green grass meadow with a few tiny wildflowers"
+  },
+  {
+   "key": "t_forest",
+   "kind": "tile",
+   "emoji": "🌲",
+   "hue": 120,
+   "prompt": "Dense dark green pine forest canopy seen from directly above"
+  },
+  {
+   "key": "t_hill",
+   "kind": "tile",
+   "emoji": "",
+   "hue": 40,
+   "prompt": "Grassy hilltop with patches of brown earth and small rocks, soft highlight on top"
+  },
+  {
+   "key": "t_mountain",
+   "kind": "tile",
+   "emoji": "⛰️",
+   "hue": 220,
+   "prompt": "Jagged grey rocky mountain peaks with snow caps seen from directly above"
+  },
+  {
+   "key": "t_valley",
+   "kind": "tile",
+   "emoji": "",
+   "hue": 110,
+   "prompt": "Low damp valley floor of dark green grass and moss"
+  },
+  {
+   "key": "t_river",
+   "kind": "tile",
+   "emoji": "",
+   "hue": 205,
+   "prompt": "Flowing clear blue river water with gentle ripples"
+  },
+  {
+   "key": "t_bridge",
+   "kind": "tile",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "Wooden plank bridge running left to right over blue water"
+  },
+  {
+   "key": "t_swamp",
+   "kind": "tile",
+   "emoji": "",
+   "hue": 90,
+   "prompt": "Murky green swamp with lily pads, reeds and dark water pools"
+  },
+  {
+   "key": "t_wall",
+   "kind": "tile",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "Grey stone castle wall walkway with crenellations seen from above"
+  },
+  {
+   "key": "t_rubble",
+   "kind": "tile",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "Broken stone rubble and debris scattered on trampled grass"
+  },
+  {
+   "key": "t_ashes",
+   "kind": "tile",
+   "emoji": "",
+   "hue": 15,
+   "prompt": "Scorched black burnt earth with glowing embers and ash"
+  },
+  {
+   "key": "g_bandit_chief",
+   "kind": "portrait",
+   "emoji": "🗡️",
+   "hue": 20,
+   "prompt": "A scarred bandit chieftain with an eyepatch, fur mantle and twin daggers"
+  },
+  {
+   "key": "g_goblin_king",
+   "kind": "portrait",
+   "emoji": "👑",
+   "hue": 100,
+   "prompt": "A cunning goblin king with a crooked crown riding a huge warg"
+  },
+  {
+   "key": "g_orc_warlord",
+   "kind": "portrait",
+   "emoji": "🪓",
+   "hue": 10,
+   "prompt": "A massive orc warlord in spiked iron armor with a great axe and tusks"
+  },
+  {
+   "key": "g_lich",
+   "kind": "portrait",
+   "emoji": "💀",
+   "hue": 270,
+   "prompt": "A skeletal lich king in tattered royal robes with a glowing green crown"
+  },
+  {
+   "key": "g_giant_jarl",
+   "kind": "portrait",
+   "emoji": "❄️",
+   "hue": 200,
+   "prompt": "A frost giant jarl with an icy crown, braided white beard and huge hammer"
+  },
+  {
+   "key": "g_dark_lord",
+   "kind": "portrait",
+   "emoji": "🖤",
+   "hue": 280,
+   "prompt": "A terrifying dark lord in black spiked plate armor with glowing red eyes"
   }
  ]
 }
@@ -1542,6 +1730,7 @@ function fmt(n) {
   return (neg ? "-" : "") + out;
 }
 const fmtInt = (n) => Math.floor(n).toLocaleString("en-US");
+const anA = (w, cap) => (/^[aeiou]/i.test(w) ? (cap ? "An " : "an ") : (cap ? "A " : "a ")) + w;
 /** "1 Relic", "3 Relics", "2 Footmen", "1 Footman" */
 function plural(name, n) {
   if (Math.round(n) === 1) return name.replace(/s$/, "");
@@ -1822,6 +2011,35 @@ const CAMPAIGN = {
                 objective: "Topple the Storm Titan", reward: { gold: 60000, steel: 10000 }, bonus: { relics: 10 } },
 };
 
+/*
+ * The Armory: gear for your Lord Commander, dropped as loot. Rarity decides how many bonuses an item rolls
+ * and how strong they are. Equip one item per slot.
+ */
+const GEAR_SLOTS = {
+  weapon: { name: "Weapon", icon: "⚔️", bases: ["Longsword", "Warhammer", "Greatsword", "Battleaxe", "Lance", "Morningstar"] },
+  armor:  { name: "Armor",  icon: "🛡️", bases: ["Hauberk", "Plate Cuirass", "Brigandine", "Scale Mail", "Gilded Plate"] },
+  helm:   { name: "Helm",   icon: "⛑️", bases: ["Great Helm", "Barbute", "Crowned Helm", "Visored Sallet"] },
+  banner: { name: "Banner", icon: "🚩", bases: ["War Banner", "Standard", "Battle Flag", "Gonfalon"] },
+  relic:  { name: "Relic",  icon: "💍", bases: ["Signet Ring", "Amulet", "Talisman", "Reliquary"] },
+};
+const GEAR_RARITY = {
+  common:    { name: "Common",    color: "#c9c3b5", stats: 1, mult: 1,   weight: 60, salvage: 150 },
+  rare:      { name: "Rare",      color: "#4fa3ff", stats: 2, mult: 1.5, weight: 28, salvage: 600 },
+  epic:      { name: "Epic",      color: "#c27bff", stats: 3, mult: 2.2, weight: 10, salvage: 2500 },
+  legendary: { name: "Legendary", color: "#ff9a2e", stats: 4, mult: 3.2, weight: 2,  salvage: 10000 },
+};
+// stat id -> [label, base value per item level, which slots favour it]
+const GEAR_STATS = {
+  heroAtk: { label: "Hero attack",      unit: "%", base: 4,   slots: ["weapon", "relic"] },
+  heroHp:  { label: "Hero health",      unit: "%", base: 5,   slots: ["armor", "helm"] },
+  armyAtk: { label: "Army attack",      unit: "%", base: 1.2, slots: ["weapon", "banner"] },
+  armyDef: { label: "Army defense",     unit: "%", base: 1.2, slots: ["armor", "helm", "banner"] },
+  morale:  { label: "Starting morale",  unit: "",  base: 2,   slots: ["banner", "helm"] },
+  loot:    { label: "Battle loot",      unit: "%", base: 2.5, slots: ["relic", "banner"] },
+  xp:      { label: "Commander XP",     unit: "%", base: 3,   slots: ["relic", "helm"] },
+};
+const GEAR_PREFIX = { common: ["Iron", "Sturdy", "Worn", "Soldier's"], rare: ["Runed", "Knight's", "Tempered", "Silvered"], epic: ["Dragonbone", "Starforged", "Warlord's", "Abyssal"], legendary: ["Ironhold's", "Titanslayer", "Eternal", "Kingmaker"] };
+
 /* Temple blessings: spend Faith on timed buffs. */
 const BLESSINGS = {
   harvest:     { buff: "harvest",     cost: 60,  dur: 600, name: "Blessing of Plenty",  icon: "🌽" },
@@ -1884,6 +2102,7 @@ const GameState = {
       nextEventAt: 600,
       world: null,                   // the world map (generated on first visit)
       campaign: { done: {}, led: {}, turned: {} },   // story quest progress
+      gear: { equipped: { weapon: null, armor: null, helm: null, banner: null, relic: null }, bag: [] },
       veterancy: {},                 // unit type -> battle experience (veteran ranks)
       nextId: 1,
       log: [],                       // [{id, t, msg, type}]
@@ -1903,6 +2122,8 @@ const GameState = {
     out.veterancy = { ...(raw.veterancy || {}) };
     const rc = raw.campaign || {};
     out.campaign = { done: { ...(rc.done || {}) }, led: { ...(rc.led || {}) }, turned: { ...(rc.turned || {}) } };
+    const rg = raw.gear || {};
+    out.gear = { equipped: { weapon: null, armor: null, helm: null, banner: null, relic: null, ...(rg.equipped || {}) }, bag: Array.isArray(rg.bag) ? rg.bag.filter((x) => x && GEAR_SLOTS[x.slot] && GEAR_RARITY[x.rarity]) : [] };
     // players who already beat a mission before the campaign existed can turn it in now
     // beating a later mission counts every earlier story quest as done (so veterans needn't replay the start)
     let last = -1;
@@ -2169,6 +2390,8 @@ const Economy = {
    4. MILITARY MODULE (training, upkeep, desertion, raids, expeditions)
       Combat itself lives in js/battle.js (Battle + BattleUI).
    ===================================================================== */
+function opts_led(ctx) { return !!(ctx && ctx.led); }
+
 const Military = {
   sum(units) { return Object.values(units || {}).reduce((a, b) => a + b, 0); },
   homeCount(s) { return this.sum(s.army); },
@@ -2196,8 +2419,8 @@ const Military = {
   expeditionSlots(s) { return s.buildings.barracks > 0 ? 1 + Math.floor(s.buildings.barracks / 3) : 0; },
   xpForLevel(lvl) { return Math.floor(40 * Math.pow(lvl, 1.6)); },
   /** Attack bonus for your side in battle: commander level and morale. */
-  battleBonus(s) { return (1 + 0.03 * (s.commander.level - 1)) * (0.7 + 0.3 * s.morale / 100) * (1 + 0.05 * Research.lvl(s, "drill")) * (s.resources.ale >= 1 ? 1.05 : 1) * (Events.active(s, "holywar") ? 1.15 : 1); },
-  defenseBonus(s) { return (1 + 0.05 * Research.lvl(s, "plate")) * (Events.active(s, "aegis") ? 1.2 : 1); },
+  battleBonus(s) { return (1 + Armory.b(s, "armyAtk") / 100) * (1 + 0.03 * (s.commander.level - 1)) * (0.7 + 0.3 * s.morale / 100) * (1 + 0.05 * Research.lvl(s, "drill")) * (s.resources.ale >= 1 ? 1.05 : 1) * (Events.active(s, "holywar") ? 1.15 : 1); },
+  defenseBonus(s) { return (1 + Armory.b(s, "armyDef") / 100) * (1 + 0.05 * Research.lvl(s, "plate")) * (Events.active(s, "aegis") ? 1.2 : 1); },
   power(s, units) { return armyPower(units) * this.battleBonus(s); },
 
   reqText(u) {
@@ -2263,7 +2486,8 @@ const Military = {
       attacker: "player", tactic: tactic || s.doctrine, enemyTactic: m.enemyTactic,
       walls: m.fortified ? { side: "enemy", level: m.fortified } : null,
       context: { kind, mission: id, stage: m.endless ? s.conquest : undefined, cmdLevel: s.commander.level, led: kind === "assault" },
-      bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) }, vet: this.vetRanks(s), morale: s.morale,
+      objective: !!(m.node || m.endless),
+      bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) }, vet: this.vetRanks(s), morale: Math.min(100, s.morale + Armory.b(s, "morale")),
     };
   },
   /** Veteran ranks: each unit type earns experience from the enemies it kills (+6% attack & defense per rank, max 5). */
@@ -2305,7 +2529,7 @@ const Military = {
   assault(s, id, units, tactic) {
     if (this.deployBlocker(s, id, units, true)) return null;
     const clean = this.take(s, units);
-    s.battle = Battle.create({ ...this.battleOpts(s, id, clean, "assault", tactic), hero: s.commander.level });
+    s.battle = Battle.create({ ...this.battleOpts(s, id, clean, "assault", tactic), hero: s.commander.level, heroHp: Armory.b(s, "heroHp"), heroAtk: Armory.b(s, "heroAtk") });
     s.stats.battlesLed++;
     addLog(s, `You ride out at the head of ${this.sum(clean)} soldiers to assault ${this.mission(s, id).name}.`, "war");
     return s.battle;
@@ -2340,7 +2564,7 @@ const Military = {
       const army = composeArmy(faction, power);
       s.raidCount++;
       s.raid = { id: s.nextId++, faction, army, power: armyPower(army), mapType: World.mapType(s, n), arriveAt: s.time + BALANCE.raidWarning, deadline: 0, phase: "approaching", target: n.id };
-      addLog(s, `⚠ A ${FACTIONS[faction].name} (power ${fmt(s.raid.power)}) is marching to retake your ${NODE_TYPES[n.type].name}! They arrive in ${fmtTime(BALANCE.raidWarning)}.`, "bad");
+      addLog(s, `⚠ ${anA(FACTIONS[faction].name, true)} (power ${fmt(s.raid.power)}) is marching to retake your ${NODE_TYPES[n.type].name}! They arrive in ${fmtTime(BALANCE.raidWarning)}.`, "bad");
       return;
     }
     const power = this.raidPower(s);
@@ -2350,7 +2574,7 @@ const Military = {
     const maps = ["plains", "forest", "hills", "river", "valley", "mountain"];
     s.raidCount++;
     s.raid = { id: s.nextId++, faction, army, power: armyPower(army), mapType: maps[Math.floor(Math.random() * maps.length)], arriveAt: s.time + BALANCE.raidWarning, deadline: 0, phase: "approaching" };
-    addLog(s, `⚠ Scouts report: a ${FACTIONS[faction].name} (power ${fmt(s.raid.power)}) is marching on the city! They arrive in ${fmtTime(BALANCE.raidWarning)}.`, "bad");
+    addLog(s, `⚠ Scouts report: ${anA(FACTIONS[faction].name)} (power ${fmt(s.raid.power)}) is marching on the city! They arrive in ${fmtTime(BALANCE.raidWarning)}.`, "bad");
   },
   raidOpts(s) {
     const r = s.raid, f = FACTIONS[r.faction];
@@ -2362,7 +2586,8 @@ const Military = {
         attacker: "enemy", tactic: s.doctrine, enemyTactic: f.tactic,
         walls: n.fort ? { side: "player", level: n.fort * 2 } : null,
         context: { kind: "raid", raid: r.id, target: n.id, cmdLevel: s.commander.level },
-        bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) }, vet: this.vetRanks(s), morale: s.morale,
+        objective: true,
+        bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) }, vet: this.vetRanks(s), morale: Math.min(100, s.morale + Armory.b(s, "morale")),
       };
     }
     return {
@@ -2371,7 +2596,7 @@ const Military = {
       attacker: "enemy", tactic: s.doctrine, enemyTactic: f.tactic,
       walls: s.buildings.walls > 0 ? { side: "player", level: s.buildings.walls, hpMult: 1 + 0.25 * Research.lvl(s, "fortification") } : null,
       context: { kind: "raid", raid: r.id, cmdLevel: s.commander.level },
-      bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) }, vet: this.vetRanks(s), morale: s.morale,
+      bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) }, vet: this.vetRanks(s), morale: Math.min(100, s.morale + Armory.b(s, "morale")),
     };
   },
   raidEstimate(s) { return s.raid ? Battle.estimate({ ...this.raidOpts(s), context: { kind: "estimate" } }, 6) : null; },
@@ -2380,7 +2605,7 @@ const Military = {
     if (!s.raid || s.raid.phase === "fighting" || s.battle) return null;
     const opts = this.raidOpts(s);
     opts.context.led = true;
-    opts.hero = s.commander.level;
+    opts.hero = s.commander.level; opts.heroHp = Armory.b(s, "heroHp"); opts.heroAtk = Armory.b(s, "heroAtk");
     this.take(s, s.army);
     s.raid.phase = "fighting";
     s.battle = Battle.create(opts);
@@ -2447,6 +2672,8 @@ const Military = {
         const got = Economy.grant(s, { gold: bounty, steel: Math.round(bounty / 10) });
         for (const [k, v] of Object.entries(got)) if (v >= 1) rep.parts.push(`${fmtInt(v)} ${RESOURCES[k].name}`);
         if (r && r.power > 800 && Math.random() < 0.5) { s.resources.relics++; s.stats.relicsFound++; rep.parts.push("1 Relic"); }
+        const it = Armory.drop(s, s.buildings.townhall, opts_led(ctx) ? 0.35 : 0.15);
+        if (it) rep.parts.push(`🎁 ${GEAR_RARITY[it.rarity].name} ${it.name}`);
         addLog(s, `The ${f} has been driven off! Bounty: ${rep.parts.join(", ")}. Soldiers lost: ${lost}, enemies slain: ${slain}.`, "good");
         this.addXp(s, Math.round((r ? r.power : 50) / 4));
       } else {
@@ -2480,7 +2707,7 @@ const Military = {
         addLog(s, `📖 Quest objective complete: ${CAMPAIGN[ctx.mission].objective}. Return to ${CAMPAIGN[ctx.mission].giver} to turn it in.`, "war");
       }
       if (CAMPAIGN[ctx.mission] && ctx.led) s.campaign.led[ctx.mission] = true;
-      const lm = (1 + 0.05 * (s.commander.level - 1)) * (ctx.kind === "assault" ? BALANCE.manualLootBonus : 1);
+      const lm = (1 + 0.05 * (s.commander.level - 1)) * (ctx.kind === "assault" ? BALANCE.manualLootBonus : 1) * (1 + Armory.b(s, "loot") / 100);
       const bundle = {};
       for (const [r, [lo, hi]] of Object.entries(m.loot)) bundle[r] = randInt(lo, hi);
       const got = Economy.grant(s, bundle, lm);
@@ -2502,7 +2729,14 @@ const Military = {
       s.stats.lost++;
       addLog(s, `Defeat at ${m.name}. ${lost} soldiers fell${b.result && b.result.reason === "retreat" ? " before the retreat" : ""}. The survivors return home.`, "bad");
     }
-    this.addXp(s, Math.round(m.xp * (win ? 1 : 0.3)));
+    this.addXp(s, Math.round(m.xp * (win ? 1 : 0.3) * (1 + Armory.b(s, "xp") / 100)));
+    if (win) {
+      // gear drops: better targets drop better gear; leading in person improves the odds
+      const ilvl = m.node ? (World.node(s, m.node) || { level: 1 }).level : m.endless ? 5 + Math.floor(s.conquest / 2) : m.level;
+      const first = CAMPAIGN[ctx.mission] && (s.stats.missionWins[ctx.mission] || 0) === 1;
+      const it = Armory.drop(s, ilvl, first ? 1 : (ctx.led ? 0.45 : 0.25) + (b.generalFell ? 0.2 : 0), first && m.level >= 8 ? "epic" : first ? "rare" : null);
+      if (it) rep.parts.push(`🎁 ${GEAR_RARITY[it.rarity].name} ${it.name}`);
+    }
     return rep;
   },
   addXp(s, xp) {
@@ -2676,6 +2910,74 @@ const Campaign = {
     if (next) addLog(s, `📖 New quest from ${CAMPAIGN[next].giver}: "${CAMPAIGN[next].title}"`, "war");
     return true;
   },
+};
+
+const Armory = {
+  BAG: 30,
+  roll(ilvl, minRarity) {
+    const order = ["common", "rare", "epic", "legendary"];
+    let r = Math.random() * 100, rarity = "common";
+    // better sources shift the odds upward
+    const boost = Math.min(30, ilvl * 1.5);
+    const w = { common: Math.max(10, 60 - boost * 1.5), rare: 28 + boost * 0.6, epic: 10 + boost * 0.6, legendary: 2 + boost * 0.3 };
+    const tot = Object.values(w).reduce((a, c) => a + c, 0);
+    r = Math.random() * tot;
+    for (const k of order) { r -= w[k]; if (r <= 0) { rarity = k; break; } }
+    if (minRarity && order.indexOf(rarity) < order.indexOf(minRarity)) rarity = minRarity;
+    const slot = Object.keys(GEAR_SLOTS)[Math.floor(Math.random() * 5)];
+    const R = GEAR_RARITY[rarity];
+    const favoured = Object.keys(GEAR_STATS).filter((k) => GEAR_STATS[k].slots.includes(slot));
+    const others = Object.keys(GEAR_STATS).filter((k) => !favoured.includes(k));
+    const pool = [...favoured.sort(() => Math.random() - 0.5), ...others.sort(() => Math.random() - 0.5)];
+    const stats = {};
+    for (const k of pool.slice(0, R.stats)) stats[k] = Math.round(GEAR_STATS[k].base * R.mult * (1 + ilvl * 0.12) * (0.85 + Math.random() * 0.3) * 10) / 10;
+    const pre = GEAR_PREFIX[rarity][Math.floor(Math.random() * GEAR_PREFIX[rarity].length)];
+    const base = GEAR_SLOTS[slot].bases[Math.floor(Math.random() * GEAR_SLOTS[slot].bases.length)];
+    return { id: Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36), slot, rarity, ilvl, name: `${pre} ${base}`, stats };
+  },
+  /** Chance-based drop after a victory. Returns the item (or null). */
+  drop(s, ilvl, chance, minRarity) {
+    if (Math.random() > chance) return null;
+    const it = this.roll(ilvl, minRarity);
+    if (s.gear.bag.length >= this.BAG) { const v = GEAR_RARITY[it.rarity].salvage; Economy.grant(s, { gold: v }); addLog(s, `🎒 Your armory is full: the ${it.name} was sold for ${fmt(v)} Gold.`, "info"); return it; }
+    s.gear.bag.push(it);
+    addLog(s, `🎁 Loot! ${GEAR_RARITY[it.rarity].name} ${GEAR_SLOTS[it.slot].name}: ${it.name} (${this.statText(it)})`, "good");
+    return it;
+  },
+  statText(it) { return Object.entries(it.stats).map(([k, v]) => `+${v}${GEAR_STATS[k].unit} ${GEAR_STATS[k].label}`).join(", "); },
+  /** Sum of every equipped item's bonuses. */
+  bonus(s) {
+    const out = {};
+    for (const it of Object.values(s.gear.equipped)) if (it) for (const [k, v] of Object.entries(it.stats)) out[k] = (out[k] || 0) + v;
+    return out;
+  },
+  b(s, k) { return (this.bonus(s)[k] || 0); },
+  equip(s, id) {
+    const i = s.gear.bag.findIndex((x) => x.id === id);
+    if (i < 0) return false;
+    const it = s.gear.bag.splice(i, 1)[0];
+    const old = s.gear.equipped[it.slot];
+    if (old) s.gear.bag.push(old);
+    s.gear.equipped[it.slot] = it;
+    addLog(s, `⚔ Your Lord Commander equips the ${it.name}.`, "info");
+    return true;
+  },
+  unequip(s, slot) {
+    const it = s.gear.equipped[slot];
+    if (!it || s.gear.bag.length >= this.BAG) return false;
+    s.gear.equipped[slot] = null; s.gear.bag.push(it);
+    return true;
+  },
+  salvage(s, id) {
+    const i = s.gear.bag.findIndex((x) => x.id === id);
+    if (i < 0) return false;
+    const it = s.gear.bag.splice(i, 1)[0];
+    const got = Economy.grant(s, { gold: GEAR_RARITY[it.rarity].salvage * (1 + it.ilvl * 0.1) });
+    if (it.rarity === "legendary") { s.resources.relics += 1; }
+    addLog(s, `🔨 Salvaged the ${it.name} for ${fmtInt(got.gold)} Gold${it.rarity === "legendary" ? " and a Relic" : ""}.`, "info");
+    return true;
+  },
+  score(it) { return Object.values(it.stats).reduce((a, c) => a + c, 0); },
 };
 
 const Temple = {
@@ -2905,7 +3207,7 @@ const AssetPipeline = {
   staticManifest: {},     // key -> relative path
   db: null,
   busy: false,
-  SIZES: { icon: [256, 256], portrait: [384, 384], banner: [960, 540], backdrop: [1600, 900] },
+  SIZES: { icon: [256, 256], portrait: [384, 384], banner: [960, 540], backdrop: [1600, 900], tile: [128, 128] },
   DEFAULT_BASE: "https://api.code.signor.ai/api-2/v1",
   KEY_STORAGE: "ironhold_api_key",
   CFG_STORAGE: "ironhold_api_cfg",
@@ -3155,6 +3457,7 @@ const HUD_ACTIONS = [
   { id: "world",    icon: "🗺️", lbl: "World",    key: "7" },
   { id: "realm",    icon: "⚖️", lbl: "Realm",    key: "8" },
   { id: "settings", icon: "⚙️", lbl: "Settings", key: "9" },
+  { id: "armory",   icon: "🎒", lbl: "Armory",   key: "0" },
 ];
 const QUEST_MARK = { available: "!", ready: "?", marching: "⚔", complete: "✓", locked: "🔒" };
 
@@ -3227,6 +3530,7 @@ const HUD = {
       quests: Quests.ready(s),
       citizens: Economy.unemployed(s) > 0 ? 1 : 0,
       realm: s.offer ? 1 : 0,
+      armory: s.gear.bag.filter((x) => !s.gear.equipped[x.slot] || Armory.score(x) > Armory.score(s.gear.equipped[x.slot])).length,
       army: s.raid ? 1 : 0,
     };
     for (const a of HUD_ACTIONS) {
@@ -3239,6 +3543,7 @@ const HUD = {
     this.renderTracker(s);
     if (this.open === "building" && this.building) this.renderBuilding(s);
     if (this.open === "campaign") this.renderCampaign(s);
+    if (this.open === "armory") this.renderArmory(s);
   },
 
   renderTracker(s) {
@@ -3299,6 +3604,34 @@ const HUD = {
     AssetPipeline.applyAll($("#buildingDetail"));
   },
 
+  itemCard(it, slotLabel) {
+    if (!it) return `<div class="arm-item empty"><span class="ai-ic">${GEAR_SLOTS[slotLabel].icon}</span><span class="dim">Empty ${GEAR_SLOTS[slotLabel].name}</span></div>`;
+    const R = GEAR_RARITY[it.rarity];
+    return `<div class="arm-item r-${it.rarity}" style="--rc:${R.color}" data-action="gearSel" data-id="${it.id}" title="${esc(it.name)}: ${esc(Armory.statText(it))}"><span class="ai-ic">${GEAR_SLOTS[it.slot].icon}</span><span><b style="color:${R.color}">${esc(it.name)}</b><small>${R.name} ${GEAR_SLOTS[it.slot].name} · ilvl ${it.ilvl}</small></span></div>`;
+  },
+  renderArmory(s) {
+    const g = s.gear;
+    const sig = JSON.stringify(Object.values(g.equipped).map((x) => x && x.id)) + g.bag.map((x) => x.id).join() + this.gsel;
+    if (sig === this.sig.armory) return;
+    this.sig.armory = sig;
+    $("#armSlots").innerHTML = Object.keys(GEAR_SLOTS).map((sl) => `<div class="arm-slot"><div class="dim" style="font-size:11px;margin-bottom:2px">${GEAR_SLOTS[sl].name}</div>${this.itemCard(g.equipped[sl], sl)}</div>`).join("");
+    const tot = Armory.bonus(s);
+    $("#armTotals").innerHTML = `<div class="section-title" style="margin-top:10px">Total bonuses</div>` + (Object.keys(tot).length ? Object.entries(tot).map(([k, v]) => `<div class="stat-row"><span>${GEAR_STATS[k].label}</span><b class="good">+${Math.round(v * 10) / 10}${GEAR_STATS[k].unit}</b></div>`).join("") : `<div class="dim">Equip gear to empower your Lord Commander and army.</div>`);
+    $("#armCount").textContent = `(${g.bag.length}/${Armory.BAG})`;
+    const bag = g.bag.slice().sort((a, c) => ["legendary", "epic", "rare", "common"].indexOf(a.rarity) - ["legendary", "epic", "rare", "common"].indexOf(c.rarity) || Armory.score(c) - Armory.score(a));
+    $("#armBag").innerHTML = bag.length ? bag.map((it) => `<div class="${this.gsel === it.id ? "sel" : ""}">${this.itemCard(it)}</div>`).join("") : `<div class="dim">Your bag is empty. Gear drops from victories: campaign quests (a guaranteed drop the first time), world map raids, the Endless Conquest and repelled raids. Leading in person and slaying generals improve the odds.</div>`;
+    const it = this.gsel && (g.bag.find((x) => x.id === this.gsel) || Object.values(g.equipped).find((x) => x && x.id === this.gsel));
+    if (it) {
+      const R = GEAR_RARITY[it.rarity], cur = g.equipped[it.slot], equipped = cur && cur.id === it.id;
+      const cmp = (k) => { const nv = it.stats[k] || 0, ov = cur && !equipped ? cur.stats[k] || 0 : nv; const d = Math.round((nv - ov) * 10) / 10; return d ? ` <span class="${d > 0 ? "good" : "bad"}">(${d > 0 ? "+" : ""}${d})</span>` : ""; };
+      const keys = [...new Set([...Object.keys(it.stats), ...(cur && !equipped ? Object.keys(cur.stats) : [])])];
+      $("#armDetail").innerHTML = `<div class="arm-detail" style="--rc:${R.color}"><div style="font-family:var(--font-display);font-size:16px;color:${R.color}">${GEAR_SLOTS[it.slot].icon} ${esc(it.name)}</div>
+        <div class="dim" style="font-size:12px">${R.name} ${GEAR_SLOTS[it.slot].name} · item level ${it.ilvl}${equipped ? " · <b class='good'>equipped</b>" : ""}</div>
+        ${keys.map((k) => `<div class="stat-row"><span>${GEAR_STATS[k].label}</span><b>+${it.stats[k] || 0}${GEAR_STATS[k].unit}${cmp(k)}</b></div>`).join("")}
+        <div class="btn-row" style="margin-top:8px">${equipped ? `<button class="btn" data-action="gearUnequip" data-id="${it.slot}">Unequip</button>` : `<button class="btn primary" data-action="gearEquip" data-id="${it.id}">Equip</button><button class="btn danger" data-action="gearSalvage" data-id="${it.id}">Salvage (${fmt(R.salvage * (1 + it.ilvl * 0.1))} Gold${it.rarity === "legendary" ? " + Relic" : ""})</button>`}</div></div>`;
+    } else $("#armDetail").innerHTML = "";
+    AssetPipeline.applyAll($("#win-armory"));
+  },
   renderCampaign(s) {
     const sel = this.qsel || CAMPAIGN_ORDER[0];
     const sig = CAMPAIGN_ORDER.map((id) => Campaign.state(s, id) + !!s.campaign.led[id]).join() + sel + s.commander.level + s.conquest + s.army.militia + Military.homeCount(s);
@@ -4119,6 +4452,10 @@ const Actions = {
   },
   resumeBattle: () => UI.openBattle(),
   win: (d) => HUD.openWin(d.win),
+  gearSel: (d) => { HUD.gsel = d.id; HUD.sig.armory = ""; UI.update(); },
+  gearEquip: (d) => { if (Armory.equip(GameState.current, d.id)) { HUD.sig.armory = ""; UI.update(); } },
+  gearUnequip: (d) => { if (Armory.unequip(GameState.current, d.id)) { HUD.sig.armory = ""; UI.update(); } },
+  gearSalvage: (d) => { if (Armory.salvage(GameState.current, d.id)) { HUD.gsel = null; HUD.sig.armory = ""; UI.update(); } },
   closeWin: () => HUD.closeWin(),
   building: (d) => HUD.openBuilding(d.id),
   questOpen: (d) => { HUD.qsel = d.id; if (HUD.open !== "campaign") HUD.openWin("campaign"); else { HUD.sig.campaign = ""; UI.update(); } },

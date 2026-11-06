@@ -100,5 +100,22 @@
   "n_vineyard": "assets/generated/n_vineyard.webp",
   "n_ruins": "assets/generated/n_ruins.webp",
   "n_shrine": "assets/generated/n_shrine.webp",
-  "n_capital": "assets/generated/n_capital.webp"
+  "n_capital": "assets/generated/n_capital.webp",
+  "t_plains": "assets/generated/t_plains.webp",
+  "t_hill": "assets/generated/t_hill.webp",
+  "t_forest": "assets/generated/t_forest.webp",
+  "t_mountain": "assets/generated/t_mountain.webp",
+  "t_valley": "assets/generated/t_valley.webp",
+  "t_river": "assets/generated/t_river.webp",
+  "t_swamp": "assets/generated/t_swamp.webp",
+  "t_bridge": "assets/generated/t_bridge.webp",
+  "t_rubble": "assets/generated/t_rubble.webp",
+  "g_bandit_chief": "assets/generated/g_bandit_chief.webp",
+  "t_ashes": "assets/generated/t_ashes.webp",
+  "t_wall": "assets/generated/t_wall.webp",
+  "g_orc_warlord": "assets/generated/g_orc_warlord.webp",
+  "g_goblin_king": "assets/generated/g_goblin_king.webp",
+  "g_giant_jarl": "assets/generated/g_giant_jarl.webp",
+  "g_lich": "assets/generated/g_lich.webp",
+  "g_dark_lord": "assets/generated/g_dark_lord.webp"
 }

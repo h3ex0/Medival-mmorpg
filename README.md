@@ -40,6 +40,20 @@ When you lead a battle in person, your **Lord Commander rides onto the field** a
 
 **Army morale**: each side has a morale bar that drops as it takes losses (and sharply when a general or your hero falls). At 0 the army flees the field, so most battles end in a rout rather than a massacre. Undead are partly fearless, and armies led by a boss monster never break. **Reserves & reinforcements**: during deployment you can hold squads in reserve and call them onto the field later. Large enemy armies hold back a second wave that arrives on turn 3–4. **Parting blows**: pulling a squad out of melee contact gives each adjacent enemy melee squad a free strike, and a move that cost blood can't be undone. **Smarter AI**: it focuses fire on wounded squads, hunts generals, heroes, healers and siege, keeps fragile units out of danger zones, holds its general behind the line until the fight comes to it, sends badly hurt squads back to its healers, and uses reserves and abilities when you let your captains fight. Every battle ends with a summary: turns, damage dealt and taken, final morale and your MVP unit. The engine has been stress-tested with 2,000 random battles (all maps, weathers, tactics, walls, heroes and generals) with no errors and no rule violations.
 
+## Battlefield visuals & design (latest)
+
+- **AI-painted terrain textures** for every tile type, with elevation shading (raised hills and mountains, sunken valleys and rivers), and **AI portraits for the six enemy generals**.
+- **Animated attacks**: arrows and ballista bolts fly, fireballs streak and glow, catapult boulders arc, and melee hits flash a sword slash. Damage numbers wait for the projectile to land.
+- **Weather you can see**: rain streaks, drifting fog, falling snow, gusts of wind. **Battle banners** for the opening, each turn, and victory or defeat.
+- **Fog of war**: you only see what your squads can see (4 tiles, +1 on hills, cavalry +1, flyers +2, −2 in fog weather). Mountains block sight, and enemies hidden in forests are only spotted within 2 tiles. Unscouted enemies can't be targeted.
+- **Squad stances**: Normal, Aggressive (+15% attack, −15% defense) or Defensive (+20% defense, −15% attack, stronger counterattacks). The enemy picks stances by role.
+- **Objective battles**: world-map site raids, the Endless Conquest and territory defenses have a 🚩 banner. The attacker wins by holding it for 3 turns in a row. The AI marches on it or guards it.
+- **Range preview** when you select a missile unit.
+
+## Armory (hotkey 0)
+
+Gear for your Lord Commander in 5 slots (weapon, armor, helm, banner, relic) and 4 rarities (Common, Rare, Epic, Legendary). Items roll bonuses to hero attack and health, army attack and defense, starting morale, battle loot and commander XP. Gear drops from victories: every campaign quest guarantees a drop the first time you win it (Epic from chapter III on), and world raids, the Endless Conquest and repelled raids can drop gear, with better odds when you lead in person or slay a general. Compare items before equipping them, and salvage spares for gold (Legendary gear also gives a Relic).
+
 ## Code layout (inside `index.html`)
 
 1. **`GameState`**: save schema, hydrate/migrate, load/save/export/import
