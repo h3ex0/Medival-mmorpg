@@ -62,5 +62,9 @@
   "e_demon": "assets/generated/e_demon.webp",
   "e_drake": "assets/generated/e_drake.webp",
   "e_dragon": "assets/generated/e_dragon.webp",
-  "e_titan": "assets/generated/e_titan.webp"
+  "e_titan": "assets/generated/e_titan.webp",
+  "m_trolls": "assets/generated/m_trolls.webp",
+  "m_giants": "assets/generated/m_giants.webp",
+  "m_necropolis": "assets/generated/m_necropolis.webp",
+  "m_abyss": "assets/generated/m_abyss.webp"
 }
