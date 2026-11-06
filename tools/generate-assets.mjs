@@ -13,7 +13,8 @@
  *   SIGNOR_API_KEY=sk-... node tools/generate-assets.mjs                # only missing images
  *   SIGNOR_API_KEY=sk-... node tools/generate-assets.mjs --force        # regenerate everything
  *   SIGNOR_API_KEY=sk-... node tools/generate-assets.mjs --only res_gold,b_farm
- *   Options: --model <id> (default gemini-3.1-flash-image), --concurrency <n> (default 2)
+ *   Options: --model <id> (default gemini-nano-banana-2.1, the cheapest), --concurrency <n> (default 2)
+ *   Behind an HTTPS proxy (corporate networks, cloud sandboxes) on Node >= 22.21, add NODE_USE_ENV_PROXY=1
  *   Env:     SIGNOR_API_BASE (default https://api.code.signor.ai/api-2/v1)
  *
  * Optional: `npm i sharp` to crop/resize to game sizes and save as WebP (much smaller files).
@@ -34,7 +35,7 @@ const flag = (name) => args.includes(`--${name}`);
 const opt = (name, def) => { const i = args.indexOf(`--${name}`); return i >= 0 && args[i + 1] ? args[i + 1] : def; };
 const API_KEY = process.env.SIGNOR_API_KEY;
 const BASE = (process.env.SIGNOR_API_BASE || "https://api.code.signor.ai/api-2/v1").replace(/\/+$/, "");
-const MODEL = opt("model", process.env.SIGNOR_MODEL || "gemini-3.1-flash-image");
+const MODEL = opt("model", process.env.SIGNOR_MODEL || "gemini-nano-banana-2.1"); // ~$0.027 per image, ~20 s
 const CONCURRENCY = Math.max(1, Number(opt("concurrency", 2)));
 const FORCE = flag("force");
 const ONLY = opt("only", "").split(",").map((s) => s.trim()).filter(Boolean);
@@ -138,7 +139,7 @@ async function worker() {
       console.log(`  ✓ ${a.key.padEnd(16)} ${r.file} (${r.kb} KB, ${((Date.now() - t0) / 1000).toFixed(0)}s, $${r.cost.toFixed(4)})`);
     } catch (e) {
       failed++;
-      console.log(`  ✗ ${a.key.padEnd(16)} ${e.message}`);
+      console.log(`  ✗ ${a.key.padEnd(16)} ${e.message}${e.message === "fetch failed" ? " (network: if you are behind a proxy, run with NODE_USE_ENV_PROXY=1)" : ""}`);
     }
   }
 }

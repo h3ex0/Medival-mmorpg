@@ -82,6 +82,30 @@ const ABILITIES = {
   march:   { name: "Forced March",  icon: "🥾", lvl: 7, cd: 5, desc: "Squads that haven't moved yet get +2 movement this turn." },
 };
 
+/* ---------- weather (rolled for every battle) ---------- */
+const WEATHER = {
+  clear: { name: "Clear Skies", icon: "☀️", weight: 4, desc: "No effects." },
+  rain:  { name: "Heavy Rain",  icon: "🌧️", weight: 2, rangedAtk: 0.75, riverExtra: 1, desc: "Missiles deal −25% damage. Rivers cost +1 move." },
+  fog:   { name: "Thick Fog",   icon: "🌫️", weight: 2, range: -1, desc: "Missile range −1 (minimum 2). Good for closing in on archers." },
+  snow:  { name: "Snowstorm",   icon: "❄️", weight: 1, move: -1, desc: "All units −1 movement." },
+  wind:  { name: "Strong Tailwind", icon: "🌬️", weight: 1, range: 1, desc: "Missile range +1 for both sides." },
+};
+function rollWeather(rand = Math.random) {
+  const list = Object.entries(WEATHER), tot = list.reduce((a, [, w]) => a + w.weight, 0);
+  let r = rand() * tot;
+  for (const [k, w] of list) { r -= w.weight; if (r <= 0) return k; }
+  return "clear";
+}
+
+/* ---------- squad skills: one active skill per unit class (cooldown in turns) ---------- */
+const SKILLS = {
+  ranged:  { id: "aimed",      name: "Aimed Volley", icon: "🎯", cd: 3, desc: "This squad's next attack this turn deals +50% damage." },
+  siege:   { id: "aimed",      name: "Heavy Shot",   icon: "💥", cd: 3, desc: "This squad's next attack this turn deals +50% damage." },
+  inf:     { id: "secondwind", name: "Second Wind",  icon: "💪", cd: 4, desc: "Recover 20% of the squad's full strength and shake off panic." },
+  cav:     { id: "sprint",     name: "Sprint",       icon: "💨", cd: 3, desc: "+3 movement this turn (use it before moving)." },
+  support: { id: "massheal",   name: "Mass Heal",    icon: "✨", cd: 4, desc: "Heal every friendly squad within 2 tiles by 10% of its strength." },
+};
+
 /* ---------- enemy factions (for raids and the endless conquest) ---------- */
 const FACTIONS = {
   bandits: { name: "Bandit Raiders",   minPower: 0,     tactic: "balanced",  roster: { bandit: 3, bandit_archer: 1 } },
@@ -266,6 +290,7 @@ const Battle = {
       context: opts.context || {},
       bonus: { player: 1, enemy: 1, ...(opts.bonus || {}) },
       defBonus: { player: 1, enemy: 1, ...(opts.defBonus || {}) },
+      weather: opts.weather && WEATHER[opts.weather] ? opts.weather : rollWeather(),
       vet: { ...(opts.vet || {}) },       // player unit type -> veteran rank (each rank: +6% attack and defense)
       vetXp: {},                          // player unit type -> enemy power destroyed in this battle
       cmd: { level: (opts.context && opts.context.cmdLevel) || 1, power: armyPower(opts.playerUnits), cd: { rally: 0, barrage: 0, warcry: 0, march: 0 }, warcry: 0, march: 0 },
@@ -277,6 +302,7 @@ const Battle = {
     this.addSquads(b, "enemy", opts.enemyUnits);
     this.autoDeploy(b, "player");
     this.autoDeploy(b, "enemy");
+    this.addLog(b, `${WEATHER[b.weather].icon} ${WEATHER[b.weather].name}: ${WEATHER[b.weather].desc}`);
     this.addLog(b, `${MAP_TYPES[b.mapType] || "Battlefield"}. ${b.attacker === "player" ? "You are attacking." : "You are defending."} Win before turn ${b.maxTurns} ends, or the defender holds.`);
     return b;
   },
@@ -296,7 +322,7 @@ const Battle = {
         const cnt = Math.floor(n / parts) + (p < n % parts ? 1 : 0);
         if (cnt <= 0) continue;
         const hp = cnt * udef(t).hp;
-        b.squads.push({ id: b.nextId++, side, type: t, hp, maxHp: hp, start: cnt, x: -1, y: -1, moved: false, acted: false, braced: false, movedDist: 0 });
+        b.squads.push({ id: b.nextId++, side, type: t, hp, maxHp: hp, start: cnt, x: -1, y: -1, moved: false, acted: false, braced: false, movedDist: 0, skillCd: 0, broken: 0 });
       }
     });
   },
@@ -360,13 +386,16 @@ const Battle = {
     if (t === "wall") return b.wallSide === s.side ? 1 : Infinity;
     let c = TERRAIN[t].move;
     if ((d.cls === "cav" || d.mounted) && TERRAIN[t].cavExtra) c += 1;
+    if (t === "river" && b.weather && WEATHER[b.weather].riverExtra) c += WEATHER[b.weather].riverExtra;
     if (d.cls === "siege" && t !== "plains" && t !== "bridge") c += 1;
     return c;
   },
   canStand(b, s, x, y) { return isFinite(this.moveCost(b, s, x, y)); },
   moveRange(b, s) {
     const march = s.side === "player" && b.cmd && b.cmd.march === b.turn && b.active === "player" ? 2 : 0;
-    return Math.max(1, udef(s.type).mv + (this.tac(b, s.side).move || 0) + march);
+    const sprint = s.sprint === b.turn && b.active === s.side ? 3 : 0;
+    const w = (b.weather && WEATHER[b.weather].move) || 0;
+    return Math.max(1, udef(s.type).mv + (this.tac(b, s.side).move || 0) + march + sprint + w);
   },
 
   /** Tiles a squad can reach this turn: Map(index -> path cost). Enemies block; zone of control stops movement. */
@@ -454,7 +483,8 @@ const Battle = {
   range(b, s, x = s.x, y = s.y) {
     const d = udef(s.type);
     if (d.rng <= 1) return 1;
-    return d.rng + (TERRAIN[this.tile(b, x, y)].rangeBonus || 0) + (this.tac(b, s.side).range || 0);
+    const r = d.rng + (TERRAIN[this.tile(b, x, y)].rangeBonus || 0) + (this.tac(b, s.side).range || 0) + ((b.weather && WEATHER[b.weather].range) || 0);
+    return Math.max(2, r);
   },
   canHit(b, s, x, y, tx, ty) {
     const d = udef(s.type);
@@ -465,11 +495,11 @@ const Battle = {
     return true;
   },
   targets(b, s) {
-    if (s.acted) return [];
+    if (s.acted || s.broken) return [];
     return this.alive(b, this.opp(s.side)).filter((o) => this.canHit(b, s, s.x, s.y, o.x, o.y));
   },
   wallTargets(b, s) {
-    if (s.acted || !b.wallSide || b.wallSide === s.side) return [];
+    if (s.acted || s.broken || !b.wallSide || b.wallSide === s.side) return [];
     const out = [];
     for (const k of Object.keys(b.wallHp)) {
       const i = +k, x = i % b.w, y = (i / b.w) | 0;
@@ -499,6 +529,14 @@ const Battle = {
     if (dist > 1 && TERRAIN[dt].cover) m *= TERRAIN[dt].cover;
     if (!retal && A.charge && att.movedDist >= 3) m *= ta.charge || 1.5;
     if ((A.cls === "ranged" || A.cls === "siege") && dist === 1 && A.rng > 1) m *= 0.6;
+    if (A.rng > 1 && dist > 1 && b.weather && WEATHER[b.weather].rangedAtk) m *= WEATHER[b.weather].rangedAtk;
+    if (att.aimed && !retal) m *= 1.5;
+    // flanking: every other squad already pressing the target adds +15% (max +45%)
+    if (!retal) {
+      let flank = 0;
+      for (const o of b.squads) if (o !== att && o.hp > 0 && o.side === att.side && this.dist(o, def) === 1) flank++;
+      m *= 1 + 0.15 * Math.min(3, flank);
+    }
     let defense = D.def * TERRAIN[dt].def;
     if (def.braced) defense *= 1.5;
     defense *= (td.def && td.def[D.cls]) || 1;
@@ -506,6 +544,7 @@ const Battle = {
     defense *= (b.defBonus && b.defBonus[def.side]) || 1;
     if (def.side === "player" && b.vet) defense *= 1 + 0.06 * (b.vet[def.type] || 0);
     if (td.hold && !def.moved) defense *= td.hold;
+    if (def.broken) defense *= 0.75;
     if (A.armorPierce) defense *= 0.6;
     return this.count(att) * A.atk * m * 8 / (8 + defense);
   },
@@ -529,6 +568,13 @@ const Battle = {
     let msg = `${att.side === "player" ? "Your" : "Enemy"} ${an} hit ${dn}: ${killed} killed`;
     if (def.hp <= 0) msg += ` (squad destroyed)`;
     if (att.side === "player" && killed > 0) b.vetXp[att.type] = (b.vetXp[att.type] || 0) + killed * unitPower(udef(def.type));
+    att.aimed = false;
+    // a squad that loses 30%+ in one blow while below 40% strength breaks and flees
+    if (def.hp > 0 && !udef(def.type).boss && !def.broken && before > 0 && killed / before >= 0.3 && def.hp / def.maxHp < 0.4) {
+      def.broken = 2;
+      events.push({ x: def.x, y: def.y, text: "ROUT!", cls: "rout" });
+      this.addLog(b, `💔 The ${def.side === "player" ? "your" : "enemy"} ${udef(def.type).name} squad breaks and flees!`);
+    }
     // splash damage (battle mages): nearby enemy squads take part of the blast
     const A0 = udef(att.type);
     if (A0.splash) {
@@ -584,7 +630,9 @@ const Battle = {
     b.active = side;
     if (side === "player" && b.cmd && b.phase === "battle") for (const k of Object.keys(b.cmd.cd)) b.cmd.cd[k] = Math.max(0, b.cmd.cd[k] - 1);
     for (const s of this.alive(b, side)) {
-      s.moved = false; s.acted = false; s.braced = false; s.movedDist = 0;
+      s.moved = false; s.acted = false; s.braced = false; s.movedDist = 0; s.aimed = false;
+      if (s.skillCd > 0) s.skillCd--;
+      if (s.broken > 0) { s.broken--; if (!s.broken) this.addLog(b, `The ${side === "player" ? "your" : "enemy"} ${udef(s.type).name} squad has regrouped.`); }
       const d = udef(s.type);
       if (d.regen) s.hp = Math.min(s.maxHp, s.hp + s.maxHp * d.regen);
     }
@@ -646,6 +694,14 @@ const Battle = {
       const near = this.alive(b, side).some((m) => opp.some((o) => this.dist(m, o) <= 6));
       if (near) b.engaged = true;
       else return { move: s.y * W + s.x, cost: 0, brace: true };
+    }
+    this.aiSkill(b, s);
+    if (s.broken) {
+      // flee: the reachable tile farthest from the enemy
+      const f = this.distanceField(b, s);
+      let best = s.y * W + s.x, bv = f[best];
+      for (const [idx] of this.reachable(b, s)) if (f[idx] > bv && isFinite(f[idx])) { bv = f[idx]; best = idx; }
+      return { move: best, cost: this.reachable(b, s).get(best) || 0, brace: true };
     }
     const reach = this.reachable(b, s);
     const ox = s.x, oy = s.y, om = s.movedDist;
@@ -726,6 +782,45 @@ const Battle = {
     s.acted = true; s.moved = true;
     return events;
   },
+  /* ===================== squad skills ===================== */
+  skillOf(s) { return SKILLS[udef(s.type).cls] || null; },
+  skillBlocker(b, s) {
+    const k = this.skillOf(s);
+    if (!k) return "No skill";
+    if (b.phase !== "battle" || b.active !== s.side) return "Not your turn";
+    if (s.acted) return "Already acted";
+    if (s.skillCd > 0) return `Ready in ${s.skillCd} turn${s.skillCd > 1 ? "s" : ""}`;
+    if (k.id === "sprint" && s.moved) return "Use before moving";
+    return null;
+  },
+  useSkill(b, s, events = []) {
+    if (this.skillBlocker(b, s)) return false;
+    const k = this.skillOf(s), d = udef(s.type);
+    s.skillCd = k.cd + 1;
+    const who = `${s.side === "player" ? "Your" : "Enemy"} ${d.name}`;
+    if (k.id === "aimed") { s.aimed = true; this.addLog(b, `${k.icon} ${who} takes careful aim.`); }
+    else if (k.id === "sprint") { s.sprint = b.turn; this.addLog(b, `${k.icon} ${who} sprints ahead.`); }
+    else if (k.id === "secondwind") {
+      const b4 = this.count(s);
+      s.hp = Math.min(s.maxHp, s.hp + s.maxHp * 0.2); s.broken = 0;
+      events.push({ x: s.x, y: s.y, text: `+${this.count(s) - b4}`, cls: "heal", id: s.id });
+      this.addLog(b, `${k.icon} ${who} catches a second wind (+${this.count(s) - b4}).`);
+    } else if (k.id === "massheal") {
+      for (const o of this.alive(b, s.side)) if (this.dist(o, s) <= 2) { o.hp = Math.min(o.maxHp, o.hp + o.maxHp * 0.1); events.push({ x: o.x, y: o.y, text: "+", cls: "heal", id: o.id }); }
+      this.addLog(b, `${k.icon} ${who} channels a mass heal.`);
+    }
+    return events;
+  },
+  /** AI decides whether a squad should use its skill before acting. */
+  aiSkill(b, s) {
+    if (this.skillBlocker(b, s)) return;
+    const k = this.skillOf(s), foes = this.alive(b, this.opp(s.side));
+    if (k.id === "aimed" && foes.some((o) => this.canHit(b, s, s.x, s.y, o.x, o.y))) this.useSkill(b, s);
+    else if (k.id === "secondwind" && s.hp < s.maxHp * 0.6) this.useSkill(b, s);
+    else if (k.id === "massheal" && this.alive(b, s.side).some((o) => this.dist(o, s) <= 2 && o.hp < o.maxHp * 0.8)) this.useSkill(b, s);
+    else if (k.id === "sprint" && !s.moved && !foes.some((o) => this.dist(o, s) <= udef(s.type).mv + 1)) this.useSkill(b, s);
+  },
+
   /* ===================== commander abilities ===================== */
   abilityBlocker(b, id) {
     const a = ABILITIES[id];
@@ -742,6 +837,7 @@ const Battle = {
       let healed = 0;
       for (const s of this.alive(b, "player")) {
         const before = this.count(s);
+        s.broken = 0;
         s.hp = Math.min(s.maxHp, s.hp + s.maxHp * 0.15);
         healed += this.count(s) - before;
         events.push({ x: s.x, y: s.y, text: "+", cls: "heal", id: s.id });
@@ -947,7 +1043,7 @@ const BattleUI = {
       : b.phase === "over" ? (b.result.winner === "player" ? "Victory!" : "Defeat")
       : this.targeting ? "Arrow Barrage: click the centre of the 3×3 area to hit (Esc to cancel)."
       : b.active === "player" ? "Your turn. Select a squad, move it (blue), attack (red), or Brace. Commander abilities are on the left of the buttons." : "The enemy is moving…";
-    document.getElementById("bfSub").innerHTML = `${esc(MAP_TYPES[b.mapType] || "")} · Turn <b>${Math.min(b.turn, b.maxTurns)}</b>/${b.maxTurns} · ${TACTICS[b.tactic].icon} ${TACTICS[b.tactic].name} · <span class="dim">${esc(phaseTxt)}</span>`;
+    document.getElementById("bfSub").innerHTML = `${WEATHER[b.weather || "clear"].icon} ${WEATHER[b.weather || "clear"].name} · ${esc(MAP_TYPES[b.mapType] || "")} · Turn <b>${Math.min(b.turn, b.maxTurns)}</b>/${b.maxTurns} · ${TACTICS[b.tactic].icon} ${TACTICS[b.tactic].name} · <span class="dim">${esc(phaseTxt)}</span>`;
 
     // buttons
     let btns = "";
@@ -962,7 +1058,10 @@ const BattleUI = {
         const cd = b.cmd ? b.cmd.cd[k] : 0;
         return `<button class="btn ability ${this.targeting === k ? "armed" : ""}" data-bf="ability" data-id="${k}" ${my && !blk ? "" : "disabled"} title="${esc(a.name)}: ${esc(a.desc)}${blk ? " (" + esc(blk) + ")" : ""}">${a.icon}${cd > 0 ? `<small>${cd}</small>` : ""}</button>`;
       }).join("");
-      btns = `<span class="abilities" title="Lord Commander abilities">${ab}</span><button class="btn" data-bf="brace" ${my && this.sel && !this.selSquad()?.acted ? "" : "disabled"} title="Skip this squad's attack: +50% defense until your next turn">🛡 Brace</button>
+      const sqs = this.selSquad(), sk = sqs ? Battle.skillOf(sqs) : null;
+      const skBlk = sqs && sk ? Battle.skillBlocker(b, sqs) : "Select a squad";
+      const skBtn = `<button class="btn" data-bf="skill" ${my && sk && !skBlk ? "" : "disabled"} title="${sk ? esc(sk.name + ": " + sk.desc) : "Select one of your squads to use its skill"}${skBlk && sk ? " (" + esc(skBlk) + ")" : ""}">${sk ? sk.icon + " " + sk.name : "✦ Skill"}${sqs && sqs.skillCd > 0 ? ` <small>${sqs.skillCd}</small>` : ""}</button>`;
+      btns = `<span class="abilities" title="Lord Commander abilities">${ab}</span>${skBtn}<button class="btn" data-bf="brace" ${my && this.sel && !this.selSquad()?.acted ? "" : "disabled"} title="Skip this squad's attack: +50% defense until your next turn">🛡 Brace</button>
         <button class="btn" data-bf="auto" ${my ? "" : "disabled"} title="Let your captains finish the battle">Auto-battle</button>
         <button class="btn danger" data-bf="retreat" ${my ? "" : "disabled"}>Retreat</button>
         <button class="btn primary" data-bf="end" ${my ? "" : "disabled"}>End turn ⏎</button>`;
@@ -1009,7 +1108,7 @@ const BattleUI = {
         if (typeof AssetPipeline !== "undefined") AssetPipeline.applyAll(el);
       }
       el.dataset.cell = s.y * b.w + s.x;
-      el.className = `unit side-${s.side}${sq === s ? " sel" : ""}${s.acted && b.phase === "battle" && s.side === b.active ? " done" : ""}${s.braced ? " braced" : ""}${d.boss ? " boss" : ""}`;
+      el.className = `unit side-${s.side}${s.broken ? " broken" : ""}${s.aimed ? " aimed" : ""}${sq === s ? " sel" : ""}${s.acted && b.phase === "battle" && s.side === b.active ? " done" : ""}${s.braced ? " braced" : ""}${d.boss ? " boss" : ""}`;
       el.style.left = s.x * c + "px"; el.style.top = s.y * c + "px";
       el.title = `${d.name} ×${Battle.count(s)}`;
       el.querySelector(".cnt").textContent = Battle.count(s);
@@ -1037,7 +1136,12 @@ const BattleUI = {
       <div class="bf-stats"><span>HP <b>${Math.ceil(s.hp)}/${s.maxHp}</b></span><span>ATK <b>${d.atk}</b></span><span>DEF <b>${d.def}</b></span><span>RNG <b>${Battle.range(b, s)}</b></span><span>MOVE <b>${Battle.moveRange(b, s)}</b></span><span>Power <b>${fmt(unitPower(d) * Battle.count(s))}</b></span></div>
       ${traits.length ? `<div class="dim" style="font-size:11.5px;margin-top:4px">${traits.join(" · ")}</div>` : ""}
       ${s.side === "player" && b.vet && b.vet[s.type] ? `<div style="font-size:11.5px;color:var(--accent-2)">${"★".repeat(b.vet[s.type])} Veteran rank ${b.vet[s.type]} (+${b.vet[s.type] * 6}% attack/defense)</div>` : ""}
-      <div style="font-size:11.5px;margin-top:4px">On <b>${t.name}</b>${s.braced ? " · <b class='good'>Braced</b>" : ""}${mine && b.phase === "battle" ? ` · ${s.acted ? "done" : s.moved ? "moved, can still attack" : "ready"}` : ""}</div>`;
+      ${this.skillLine(s)}
+      <div style="font-size:11.5px;margin-top:4px">On <b>${t.name}</b>${s.braced ? " · <b class='good'>Braced</b>" : ""}${s.broken ? " · <b class='bad'>Routed (can't attack)</b>" : ""}${s.aimed ? " · <b class='good'>Aiming (+50%)</b>" : ""}${mine && b.phase === "battle" ? ` · ${s.acted ? "done" : s.moved ? "moved, can still attack" : "ready"}` : ""}</div>`;
+  },
+  skillLine(s) {
+    const k = Battle.skillOf(s);
+    return k ? `<div style="font-size:11.5px;margin-top:3px">${k.icon} <b>${k.name}</b>${s.skillCd > 0 ? ` <span class="dim">(ready in ${s.skillCd})</span>` : " <span class='good'>ready</span>"}<span class="dim">: ${esc(k.desc)}</span></div>` : "";
   },
   hover(i) {
     const b = this.b, x = i % b.w, y = (i / b.w) | 0, t = TERRAIN[b.tiles[i]];
@@ -1179,6 +1283,14 @@ const BattleUI = {
         if (!id || this.busy || this.abilityBlocker(id)) break;
         if (ABILITIES[id].target) { this.targeting = this.targeting === id ? null : id; this.sel = null; this.render(); break; }
         const ev = Battle.useAbility(b, id);
+        if (ev) this.fx(ev);
+        this.render(); this.save();
+        break;
+      }
+      case "skill": {
+        const s = this.selSquad();
+        if (!s || this.busy) break;
+        const ev = Battle.useSkill(b, s);
         if (ev) this.fx(ev);
         this.render(); this.save();
         break;

@@ -323,6 +323,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid rgba(227,176,75,0
 .tech { grid-template-columns: 48px 1fr; }
 .tech-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 26px; background: radial-gradient(circle at 40% 35%, #33415f, #1a2131); border: 1px solid var(--border-hi); }
 .alert.good-box { background: rgba(91,209,127,0.08); border-color: rgba(91,209,127,0.4); }
+.trade { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12px; }
+.trade select { width: auto; }
 .quest { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 9px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--border); margin-bottom: 6px; font-size: 12.5px; }
 .quest.done { border-color: rgba(91,209,127,0.55); background: rgba(91,209,127,0.08); }
 .abilities { display: inline-flex; gap: 4px; margin-right: 6px; padding-right: 8px; border-right: 1px solid var(--border-hi); }
@@ -340,6 +342,11 @@ input:focus, select:focus, textarea:focus { outline: 2px solid rgba(227,176,75,0
 .wm-node.mine span { border-color: #5fa8ff; background: rgba(30,60,110,0.9); }
 .wm-node.cleared span { border-color: #777; filter: grayscale(1); opacity: 0.7; }
 .wm-node.marching span { border-color: var(--war); animation: blink 1s ease-in-out infinite; }
+.wm-node.hidden-site span { border-color: #555; background: rgba(20,22,28,0.6); opacity: 0.6; filter: grayscale(1); }
+.unit.broken img { filter: grayscale(0.6) sepia(0.4); }
+.unit.broken::before { content: "💔"; position: absolute; top: -2px; right: -2px; font-size: calc(var(--cell) * 0.3); z-index: 3; }
+.unit.aimed img { box-shadow: 0 0 0 2px #ffcf4d, 0 0 10px rgba(255,200,60,0.8); }
+.fx.rout { color: #ffb3b3; font-size: calc(var(--cell) * 0.28); }
 .wm-node.sel span { box-shadow: 0 0 0 3px #fff, 0 0 12px rgba(255,255,255,0.6); }
 
 /* =====================================================================
@@ -504,6 +511,8 @@ body.in-battle { overflow: hidden; }
       <div class="panel-head"><h2>Realm Affairs</h2><span class="badge" id="questBadge">Quests</span></div>
       <div class="panel-body">
         <div id="eventBox"></div>
+        <div id="templeBox"></div>
+        <div id="marketBox"></div>
         <div class="section-title">Quests</div>
         <div id="questList"></div>
       </div>
@@ -1234,6 +1243,69 @@ body.in-battle { overflow: hidden; }
    "emoji": "🦅",
    "hue": 260,
    "prompt": "A wyvern roost on a mountain peak with nests on treasure"
+  },
+  {
+   "key": "res_ale",
+   "kind": "icon",
+   "emoji": "🍺",
+   "hue": 40,
+   "prompt": "A foaming wooden tankard of ale next to a small oak barrel"
+  },
+  {
+   "key": "res_faith",
+   "kind": "icon",
+   "emoji": "🕯️",
+   "hue": 50,
+   "prompt": "A glowing golden holy symbol surrounded by candles and soft light"
+  },
+  {
+   "key": "b_brewery",
+   "kind": "icon",
+   "emoji": "🍺",
+   "hue": 35,
+   "prompt": "Isometric medieval brewery with copper kettles, barrels and a hop garden"
+  },
+  {
+   "key": "job_brewer",
+   "kind": "portrait",
+   "emoji": "🍺",
+   "hue": 35,
+   "prompt": "A jolly medieval brewer with a ladle and apron next to a barrel"
+  },
+  {
+   "key": "job_monk",
+   "kind": "portrait",
+   "emoji": "📿",
+   "hue": 45,
+   "prompt": "A serene medieval monk in brown robes holding a prayer book"
+  },
+  {
+   "key": "n_vineyard",
+   "kind": "banner",
+   "emoji": "🍇",
+   "hue": 300,
+   "prompt": "A hillside medieval vineyard with grapevines and a stone winery"
+  },
+  {
+   "key": "n_shrine",
+   "kind": "banner",
+   "emoji": "⛩️",
+   "hue": 50,
+   "prompt": "An ancient holy shrine on a hill with glowing runes and pilgrims"
+  },
+  {
+   "key": "n_ruins",
+   "kind": "banner",
+   "emoji": "🏛️",
+   "hue": 220,
+   "prompt": "Overgrown ancient elven ruins with broken columns and glowing crystals"
+  },
+  {
+   "key": "n_capital",
+   "kind": "banner",
+   "emoji": "🏰",
+   "hue": 0,
+   "prompt": "A dark warlord's capital city with massive black walls, banners and siege towers"
   }
  ]
 }
@@ -1297,9 +1369,11 @@ const RESOURCES = {
   wood:   { name: "Wood",   asset: "res_wood",   color: "#c58b4f" },
   horses: { name: "Horses", asset: "res_horses", color: "#d9a066" },
   crystals: { name: "Crystals", asset: "res_crystals", color: "#5fd4f0" },
+  ale:    { name: "Ale",    asset: "res_ale",    color: "#e8b04a" },
+  faith:  { name: "Faith",  asset: "res_faith",  color: "#f3e6a0" },
   relics: { name: "Relics", asset: "res_relics", color: "var(--relics)" },
 };
-const STORABLE = ["gold", "food", "stone", "steel", "wood", "horses", "crystals"];
+const STORABLE = ["gold", "food", "stone", "steel", "wood", "horses", "crystals", "ale", "faith"];
 
 /*
  * Cost formula: Cost = BaseCost * mult ^ Level (Level = current level; the Town Hall starts at 1, so it uses Level-1).
@@ -1317,13 +1391,14 @@ const BUILDINGS = {
   house:      { name: "House",          asset: "b_house",      base: { gold: 30, wood: 25 },   mult: 1.08, maxPerTH: 8, desc: "Shelter for 5 more people." },
   warehouse:  { name: "Warehouse",      asset: "b_warehouse",  base: { gold: 80, stone: 60 },   mult: 1.15, maxPerTH: 5, desc: "+600 Gold, +600 Stone and +300 Steel base storage (×Town Hall storage bonus)." },
   granary:    { name: "Granary",        asset: "b_granary",    base: { gold: 60, stone: 40 },   mult: 1.15, maxPerTH: 5, desc: "+700 Food base storage (×Town Hall storage bonus)." },
+  brewery:    { name: "Brewery",        asset: "b_brewery",    base: { gold: 150, wood: 120, food: 100 }, mult: 1.2, maxPerTH: 2, desc: "Adds 2 Brewer jobs that turn food into Ale. Well-supplied soldiers fight +5% harder and recover morale 50% faster.", popReq: () => 20 },
   market:     { name: "Market",         asset: "b_market",     base: { gold: 150, stone: 100 }, mult: 1.2,  maxPerTH: 2, desc: "+3 Gold/s and +5% Gold income per level.", popReq: () => 20 },
   barracks:   { name: "Barracks",       asset: "b_barracks",   base: { gold: 150, wood: 100, stone: 60, steel: 15 }, mult: 1.22, maxPerTH: 2, desc: "+10 Recruit jobs, +8 housing, +10% training speed. Unlocks infantry & archers, and more expedition slots.", popReq: () => 12 },
   stables:    { name: "Stables",        asset: "b_stables",    base: { gold: 250, food: 200, wood: 150 }, mult: 1.3, maxPerTH: 1, desc: "Unlocks Light Cavalry (Lv 1), Horse Archers (Lv 2) and Knights (Lv 3). Cavalry needs Horses.", popReq: () => 30 },
   ranch:      { name: "Horse Ranch",    asset: "b_ranch",      base: { gold: 200, wood: 150, food: 200 }, mult: 1.25, maxPerTH: 2, desc: "Adds 2 Rancher jobs. Ranchers breed horses for your cavalry (they eat extra food).", popReq: () => 30 },
   workshop:   { name: "Siege Workshop", asset: "b_workshop",   base: { gold: 300, wood: 300, steel: 60 }, mult: 1.3, maxPerTH: 1, desc: "Unlocks Siege Engineers (Lv 1), Ballistae (Lv 2) and Catapults (Lv 3).", popReq: () => 40 },
   magetower:  { name: "Mage Tower",     asset: "b_magetower",  base: { gold: 500, stone: 400, wood: 200 }, mult: 1.3, maxPerTH: 1, desc: "Adds 2 Arcanist jobs that distill Mana Crystals (they cost gold). Unlocks Battle Mages (Lv 1) and Griffon Riders (Lv 3).", popReq: () => 60 },
-  temple:     { name: "Temple",         asset: "b_temple",     base: { gold: 400, stone: 350 }, mult: 1.3, maxPerTH: 1, desc: "Unlocks Battle Priests (Lv 1) and Paladins (Lv 3). +0.2 morale/s per level.", popReq: () => 50 },
+  temple:     { name: "Temple",         asset: "b_temple",     base: { gold: 400, stone: 350 }, mult: 1.3, maxPerTH: 1, desc: "Unlocks Battle Priests (Lv 1) and Paladins (Lv 3). +0.2 morale/s and +0.15 Faith/s per level, plus 2 Monk jobs. Spend Faith on Blessings.", popReq: () => 50 },
   academy:    { name: "Academy",        asset: "b_academy",    base: { gold: 300, stone: 250 }, mult: 1.3, maxPerTH: 1, desc: "Unlocks Research. Higher levels unlock advanced techs and research 15% faster per level.", popReq: () => 25 },
   walls:      { name: "City Walls",     asset: "b_walls",      base: { gold: 100, stone: 200, wood: 50 }, mult: 1.25, maxPerTH: 1, desc: "Stone walls on the battlefield when raiders attack. Higher levels mean stronger walls with fewer gaps.", popReq: () => 15 },
 };
@@ -1334,6 +1409,8 @@ const JOBS = {
   lumberjack: { name: "Lumberjacks", asset: "job_lumberjack", building: "lumbercamp", slots: 3, desc: "+0.8 Wood/s each" },
   rancher:    { name: "Ranchers",    asset: "job_rancher",    building: "ranch",      slots: 2, desc: "+0.08 Horses/s each (eats 0.3 extra Food/s)" },
   arcanist:   { name: "Arcanists",   asset: "job_arcanist",   building: "magetower",  slots: 2, desc: "+0.03 Crystals/s each (costs 0.5 Gold/s)" },
+  brewer:     { name: "Brewers",     asset: "job_brewer",     building: "brewery",    slots: 2, desc: "−0.4 Food → +0.25 Ale/s each" },
+  monk:       { name: "Monks",       asset: "job_monk",       building: "temple",     slots: 2, desc: "+0.06 Faith/s each" },
   blacksmith: { name: "Blacksmiths", asset: "job_blacksmith", building: "steelworks", slots: 2,  desc: "−0.5 Stone → +0.35 Steel/s each" },
   recruit:    { name: "Recruits",    asset: "job_recruit",    building: "barracks",   slots: 10, desc: "Drilled citizens. Each unit you train uses up one Recruit." },
 };
@@ -1465,6 +1542,11 @@ const QUESTS = [
   { id: "ranch",      text: "Build a Horse Ranch",                    check: (s) => s.buildings.ranch >= 1,              reward: { horses: 10 } },
   { id: "orcs",       text: "Conquer the Orc Stronghold",             check: (s) => (s.stats.missionWins.orcs || 0) >= 1, reward: { relics: 2 } },
   { id: "raid5",      text: "Repel 5 raids",                          check: (s) => s.stats.raidsWon >= 5,               reward: { gold: 5000, steel: 800 } },
+  { id: "brewery",    text: "Build a Brewery and brew 50 Ale",        check: (s) => s.buildings.brewery >= 1 && s.resources.ale >= 50, reward: { gold: 1500 } },
+  { id: "bless1",     text: "Invoke a Temple Blessing",               check: (s) => s.stats.blessings >= 1,              reward: { faith: 100 } },
+  { id: "trade5",     text: "Make 5 trades at the Market",            check: (s) => s.stats.trades >= 5,                 reward: { gold: 2000 } },
+  { id: "fort1",      text: "Fortify a territory",                    check: (s) => World.territories(s).some((n) => (n.fort || 0) >= 1), reward: { stone: 2000 } },
+  { id: "defend1",    text: "Defend a territory from a counterattack",check: (s) => s.stats.territoriesDefended >= 1,   reward: { relics: 2 } },
   { id: "sites3",     text: "Hold 3 territories at once",             check: (s) => World.territories(s).length >= 3,    reward: { relics: 2 } },
   { id: "magetower",  text: "Build a Mage Tower",                     check: (s) => s.buildings.magetower >= 1,          reward: { crystals: 20 } },
   { id: "lead10",     text: "Win 10 battles you lead in person",      check: (s) => s.stats.battlesLedWon >= 10,         reward: { relics: 3 } },
@@ -1473,6 +1555,7 @@ const QUESTS = [
   { id: "research25", text: "Complete 25 research levels",            check: (s) => Research.total(s) >= 25,             reward: { relics: 3 } },
   { id: "vet5",       text: "Raise any unit type to veteran rank 5",  check: (s) => Object.values(s.veterancy).some((x) => Military.vetRank(x) >= 5), reward: { relics: 5 } },
   { id: "sites6",     text: "Hold 6 territories at once",             check: (s) => World.territories(s).length >= 6,    reward: { relics: 6 } },
+  { id: "capital",    text: "Storm the Warlord's Capital on the World Map", check: (s) => World.territories(s).some((n) => n.type === "capital") || (s.stats.capitalsTaken || 0) >= 1, reward: { relics: 10 } },
   { id: "dragon",     text: "Slay the Elder Dragon",                  check: (s) => (s.stats.missionWins.dragon || 0) >= 1, reward: { relics: 5 } },
   { id: "pop500",     text: "Reach 500 population",                   check: (s) => Economy.totalPop(s) >= 500,          reward: { relics: 5 } },
   { id: "citadel",    text: "Conquer the Shadow Citadel",             check: (s) => (s.stats.missionWins.citadel || 0) >= 1, reward: { relics: 8 } },
@@ -1481,6 +1564,17 @@ const QUESTS = [
   { id: "titan",      text: "Topple the Storm Titan",                 check: (s) => (s.stats.missionWins.titan || 0) >= 1, reward: { relics: 25 } },
   { id: "th15",       text: "Raise the Town Hall to level 15",        check: (s) => s.buildings.townhall >= 15,          reward: { relics: 25 } },
 ];
+
+/* Temple blessings: spend Faith on timed buffs. */
+const BLESSINGS = {
+  harvest:     { buff: "harvest",     cost: 60,  dur: 600, name: "Blessing of Plenty",  icon: "🌽" },
+  fair:        { buff: "fair",        cost: 80,  dur: 600, name: "Blessing of Fortune", icon: "🪙" },
+  inspiration: { buff: "inspiration", cost: 100, dur: 600, name: "Blessing of Wisdom",  icon: "💡" },
+  holywar:     { buff: "holywar",     cost: 120, dur: 600, name: "Blessing of War",     icon: "⚔️" },
+  aegis:       { buff: "aegis",       cost: 120, dur: 600, name: "Blessing of the Aegis", icon: "🛡️" },
+};
+/* Market trade values in gold per unit (you sell for less and buy for more). */
+const TRADE_VALUE = { food: 0.5, stone: 0.6, wood: 0.6, steel: 3, ale: 1.5, horses: 25, crystals: 40 };
 
 /* Random realm events. buff = timed bonus, instant = happens at once, offer = you choose (it expires). */
 const EVENTS = {
@@ -1492,6 +1586,8 @@ const EVENTS = {
   plague:      { name: "Plague",              icon: "🦠", kind: "instant", weight: 1, desc: "Sickness sweeps the streets. Temples and Medicine reduce the toll." },
   mercenaries: { name: "Mercenary Company",   icon: "🗡️", kind: "offer",   weight: 2, desc: "Sellswords offer their service. No Recruits needed." },
   caravan:     { name: "Merchant Caravan",    icon: "🐫", kind: "offer",   weight: 2, desc: "Traders offer to swap your Stone for Steel." },
+  holywar:     { name: "Blessing of War",     icon: "⚔️", kind: "buff", dur: 600, weight: 0, desc: "+15% attack in every battle for 10 minutes." },
+  aegis:       { name: "Blessing of the Aegis",icon: "🛡️", kind: "buff", dur: 600, weight: 0, desc: "+20% defense in every battle for 10 minutes." },
   relicseller: { name: "Mysterious Peddler",  icon: "🧙", kind: "offer",   weight: 1, desc: "A hooded stranger sells an ancient Relic." },
 };
 
@@ -1507,10 +1603,10 @@ const GameState = {
       createdAt: Date.now(),
       lastTick: Date.now(),          // real-time timestamp used for offline progress
       time: 0,                       // game clock (seconds), advances in both online & offline ticks
-      resources: { gold: 200, food: 150, stone: 100, steel: 0, wood: 150, horses: 0, crystals: 0, relics: 0 },
-      buildings: { townhall: 1, farm: 1, quarry: 1, lumbercamp: 1, ranch: 0, magetower: 0, steelworks: 0, house: 1, warehouse: 0, granary: 0, market: 0, barracks: 0, stables: 0, workshop: 0, temple: 0, academy: 0, walls: 0 },
+      resources: { gold: 200, food: 150, stone: 100, steel: 0, wood: 150, horses: 0, crystals: 0, ale: 0, faith: 0, relics: 0 },
+      buildings: { townhall: 1, farm: 1, quarry: 1, lumbercamp: 1, ranch: 0, magetower: 0, brewery: 0, steelworks: 0, house: 1, warehouse: 0, granary: 0, market: 0, barracks: 0, stables: 0, workshop: 0, temple: 0, academy: 0, walls: 0 },
       population: { citizens: 6, growth: 0, starve: 0 },
-      jobs: { farmer: 3, miner: 1, lumberjack: 1, rancher: 0, arcanist: 0, blacksmith: 0, recruit: 0 },
+      jobs: { farmer: 3, miner: 1, lumberjack: 1, rancher: 0, arcanist: 0, brewer: 0, monk: 0, blacksmith: 0, recruit: 0 },
       army: Object.fromEntries(Object.keys(UNITS).map((k) => [k, 0])),
       queue: [],                     // [{unit, remaining, total}]
       expeditions: [],               // [{id, mission, units, startAt, endAt, tactic}]
@@ -1533,7 +1629,7 @@ const GameState = {
       veterancy: {},                 // unit type -> battle experience (veteran ranks)
       nextId: 1,
       log: [],                       // [{id, t, msg, type}]
-      stats: { goldEarned: 0, built: 0, trained: 0, won: 0, lost: 0, fallen: 0, deserted: 0, starved: 0, relicsFound: 0, playSeconds: 0, peakPop: 6, raidsWon: 0, raidsLost: 0, enemiesSlain: 0, battlesLed: 0, battlesLedWon: 0, missionWins: {}, sitesRaided: 0, sitesCaptured: 0 },
+      stats: { goldEarned: 0, built: 0, trained: 0, won: 0, lost: 0, fallen: 0, deserted: 0, starved: 0, relicsFound: 0, playSeconds: 0, peakPop: 6, raidsWon: 0, raidsLost: 0, enemiesSlain: 0, battlesLed: 0, battlesLedWon: 0, missionWins: {}, sitesRaided: 0, sitesCaptured: 0, blessings: 0, trades: 0, territoriesDefended: 0, territoriesLost: 0 },
     };
   },
   /** Merge a loaded save onto a fresh template so older saves gain new fields. */
@@ -1613,6 +1709,8 @@ const Economy = {
       wood:  Math.floor((1000 + b.warehouse * 600) * m),
       horses: Math.floor((40 + b.ranch * 60 + b.stables * 40) * m),
       crystals: Math.floor((30 + b.magetower * 60) * m),
+      ale: Math.floor((200 + b.brewery * 300) * m),
+      faith: Math.floor((100 + b.temple * 200) * m),
       relics: Infinity,
     };
   },
@@ -1637,11 +1735,14 @@ const Economy = {
       wood: (j.lumberjack || 0) * 0.8 * m,
       horses: (j.rancher || 0) * 0.08 * m,
       crystals: (j.arcanist || 0) * 0.03 * m,
+      ale: (j.brewer || 0) * 0.25 * m,
+      faith: (b.temple * 0.15 + (j.monk || 0) * 0.06) * m,
       relics: 0,
     };
     // territories on the world map pay out every second
     for (const [r, v] of Object.entries(World.income(s))) prod[r] = (prod[r] || 0) + v;
-    const cons = { wood: 0, horses: 0, crystals: 0, gold: up.gold + (j.arcanist || 0) * 0.5, food: cit * BALANCE.foodPerCitizen * (1 - 0.05 * Research.lvl(s, "medicine")) + up.food + (j.rancher || 0) * 0.3, stone: j.blacksmith * 0.5, steel: 0, relics: 0 };
+    const soldiers = Military.soldierCount(s);
+    const cons = { wood: 0, horses: 0, crystals: 0, faith: 0, ale: s.resources.ale > 0 || (j.brewer || 0) > 0 ? soldiers * 0.005 : 0, gold: up.gold + (j.arcanist || 0) * 0.5, food: cit * BALANCE.foodPerCitizen * (1 - 0.05 * Research.lvl(s, "medicine")) + up.food + (j.rancher || 0) * 0.3 + (j.brewer || 0) * 0.4, stone: j.blacksmith * 0.5, steel: 0, relics: 0 };
     // Blacksmiths can only smelt the stone that exists.
     let smeltEff = 1;
     if (cons.stone > 0) {
@@ -1829,8 +1930,8 @@ const Military = {
   expeditionSlots(s) { return s.buildings.barracks > 0 ? 1 + Math.floor(s.buildings.barracks / 3) : 0; },
   xpForLevel(lvl) { return Math.floor(40 * Math.pow(lvl, 1.6)); },
   /** Attack bonus for your side in battle: commander level and morale. */
-  battleBonus(s) { return (1 + 0.03 * (s.commander.level - 1)) * (0.7 + 0.3 * s.morale / 100) * (1 + 0.05 * Research.lvl(s, "drill")); },
-  defenseBonus(s) { return 1 + 0.05 * Research.lvl(s, "plate"); },
+  battleBonus(s) { return (1 + 0.03 * (s.commander.level - 1)) * (0.7 + 0.3 * s.morale / 100) * (1 + 0.05 * Research.lvl(s, "drill")) * (s.resources.ale >= 1 ? 1.05 : 1) * (Events.active(s, "holywar") ? 1.15 : 1); },
+  defenseBonus(s) { return (1 + 0.05 * Research.lvl(s, "plate")) * (Events.active(s, "aegis") ? 1.2 : 1); },
   power(s, units) { return armyPower(units) * this.battleBonus(s); },
 
   reqText(u) {
@@ -1959,6 +2060,18 @@ const Military = {
     return Math.round(Math.max(base, 0.5 * this.power(s, s.army)));
   },
   spawnRaid(s) {
+    // sometimes the enemy goes after one of your territories instead of the city
+    const terr = World.territories(s);
+    if (terr.length && Math.random() < 0.4) {
+      const n = terr[Math.floor(Math.random() * terr.length)];
+      const power = Math.round(World.power(s, n) * 1.2);
+      const faction = pickFaction(power);
+      const army = composeArmy(faction, power);
+      s.raidCount++;
+      s.raid = { id: s.nextId++, faction, army, power: armyPower(army), mapType: World.mapType(s, n), arriveAt: s.time + BALANCE.raidWarning, deadline: 0, phase: "approaching", target: n.id };
+      addLog(s, `⚠ A ${FACTIONS[faction].name} (power ${fmt(s.raid.power)}) is marching to retake your ${NODE_TYPES[n.type].name}! They arrive in ${fmtTime(BALANCE.raidWarning)}.`, "bad");
+      return;
+    }
     const power = this.raidPower(s);
     const faction = pickFaction(power);
     const army = composeArmy(faction, power);
@@ -1969,6 +2082,17 @@ const Military = {
   },
   raidOpts(s) {
     const r = s.raid, f = FACTIONS[r.faction];
+    if (r.target) {
+      const n = World.node(s, r.target), T = NODE_TYPES[n.type];
+      return {
+        title: `Defense of the ${T.name} vs the ${f.name}`, mapType: r.mapType,
+        playerUnits: { ...s.army }, guards: 4 + (n.fort || 0) * 6, enemyUnits: { ...r.army },
+        attacker: "enemy", tactic: s.doctrine, enemyTactic: f.tactic,
+        walls: n.fort ? { side: "player", level: n.fort * 2 } : null,
+        context: { kind: "raid", raid: r.id, target: n.id, cmdLevel: s.commander.level },
+        bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) }, vet: this.vetRanks(s),
+      };
+    }
     return {
       title: `Defense of Ironhold vs the ${f.name}`, mapType: r.mapType,
       playerUnits: { ...s.army }, guards: s.buildings.townhall * 4, enemyUnits: { ...r.army },
@@ -2021,6 +2145,24 @@ const Military = {
       if (after > before) addLog(s, `★ Your ${plural(UNITS[t].name, 2)} reached veteran rank ${after} (+${after * 6}% attack and defense)!`, "war");
     }
 
+    if (ctx.kind === "raid" && s.raid && s.raid.target) {
+      const r = s.raid, n = World.node(s, r.target), name = n ? NODE_TYPES[n.type].name : "territory";
+      if (win) {
+        s.stats.territoriesDefended++;
+        const got = Economy.grant(s, { gold: Math.round(r.power * 3) });
+        rep.parts.push(`${fmtInt(got.gold)} Gold`);
+        addLog(s, `Your ${name} held against the ${FACTIONS[r.faction].name}! Bounty: ${fmtInt(got.gold)} Gold.`, "good");
+        this.addXp(s, Math.round(r.power / 5));
+      } else {
+        s.stats.territoriesLost++;
+        if (n) { n.owner = "enemy"; n.garrison = null; n.fort = 0; n.clearedUntil = s.time + 60; }
+        rep.parts.push(`${name} lost`);
+        addLog(s, `The ${FACTIONS[r.faction].name} retook your ${name}.`, "bad");
+      }
+      s.raid = null;
+      s.nextRaidAt = s.time + randInt(600, 1080);
+      return rep;
+    }
     if (ctx.kind === "raid") {
       const r = s.raid;
       const f = r ? FACTIONS[r.faction].name : "raiders";
@@ -2028,7 +2170,7 @@ const Military = {
         s.stats.raidsWon++;
         const bounty = Math.round((r ? r.power : 50) * 5);
         const got = Economy.grant(s, { gold: bounty, steel: Math.round(bounty / 10) });
-        for (const [k, v] of Object.entries(got)) if (v >= 1) rep.parts.push(`${fmt(v)} ${RESOURCES[k].name}`);
+        for (const [k, v] of Object.entries(got)) if (v >= 1) rep.parts.push(`${fmtInt(v)} ${RESOURCES[k].name}`);
         if (r && r.power > 800 && Math.random() < 0.5) { s.resources.relics++; s.stats.relicsFound++; rep.parts.push("1 Relic"); }
         addLog(s, `The ${f} has been driven off! Bounty: ${rep.parts.join(", ")}. Soldiers lost: ${lost}, enemies slain: ${slain}.`, "good");
         this.addXp(s, Math.round((r ? r.power : 50) / 4));
@@ -2060,7 +2202,7 @@ const Military = {
       const bundle = {};
       for (const [r, [lo, hi]] of Object.entries(m.loot)) bundle[r] = randInt(lo, hi);
       const got = Economy.grant(s, bundle, lm);
-      for (const [r, v] of Object.entries(got)) if (v > 0) rep.parts.push(`${fmt(v)} ${RESOURCES[r].name}`);
+      for (const [r, v] of Object.entries(got)) if (v >= 1) rep.parts.push(`${fmtInt(v)} ${RESOURCES[r].name}`);
       const wasted = Object.entries(bundle).some(([r, v]) => got[r] + 0.5 < v * lm);
       if (m.relic && Math.random() < m.relic.chance) {
         const n = randInt(m.relic.n[0], m.relic.n[1]);
@@ -2128,7 +2270,7 @@ const Military = {
       }
     } else {
       s.desert = 0;
-      s.morale = clamp(s.morale + (0.5 + 0.2 * s.buildings.temple) * dt, 0, 100);
+      s.morale = clamp(s.morale + (0.5 + 0.2 * s.buildings.temple) * (s.resources.ale >= 1 ? 1.5 : 1) * dt, 0, 100);
     }
 
     // ---- expeditions return automatically
@@ -2224,6 +2366,52 @@ const Quests = {
   },
   rewardText(r) { return Object.entries(r).map(([k, v]) => amount(k, v)).join(", "); },
   ready(s) { return this.open(s, 4).filter((q) => q.check(s)).length; },
+};
+
+const Temple = {
+  blocker(s, id) {
+    const bl = BLESSINGS[id];
+    if (s.buildings.temple < 1) return "Build a Temple first";
+    if (Events.active(s, bl.buff)) return "Already active";
+    if (s.resources.faith < bl.cost) return `Needs ${bl.cost} Faith`;
+    return null;
+  },
+  bless(s, id) {
+    if (this.blocker(s, id)) return false;
+    const bl = BLESSINGS[id];
+    s.resources.faith -= bl.cost;
+    s.buffs = s.buffs.filter((b) => b.id !== bl.buff);
+    s.buffs.push({ id: bl.buff, until: s.time + bl.dur });
+    s.stats.blessings++;
+    addLog(s, `${bl.icon} The priests invoke the ${bl.name}: ${EVENTS[bl.buff].desc.replace(/for \d+ minutes\.?/, "for 10 minutes.")}`, "good");
+    return true;
+  },
+};
+
+const Market = {
+  sellPrice(s, r) { return TRADE_VALUE[r] * Math.min(1, 0.7 + 0.03 * s.buildings.market); },
+  buyPrice(s, r) { return TRADE_VALUE[r] * Math.max(1.1, 1.5 - 0.03 * s.buildings.market); },
+  sell(s, r, n) {
+    if (s.buildings.market < 1) return false;
+    n = Math.floor(Math.min(n, s.resources[r]));
+    if (n <= 0) return false;
+    const got = Economy.grant(s, { gold: n * this.sellPrice(s, r) });
+    if (got.gold <= 0) return false;
+    const used = Math.ceil(got.gold / this.sellPrice(s, r));
+    s.resources[r] -= Math.min(n, used);
+    s.stats.trades++;
+    return true;
+  },
+  buy(s, r, n) {
+    if (s.buildings.market < 1) return false;
+    const room = Economy.caps(s)[r] - s.resources[r];
+    n = Math.floor(Math.min(n, room, s.resources.gold / this.buyPrice(s, r)));
+    if (n <= 0) return false;
+    s.resources.gold -= n * this.buyPrice(s, r);
+    s.resources[r] += n;
+    s.stats.trades++;
+    return true;
+  },
 };
 
 const Events = {
@@ -3018,8 +3206,10 @@ const UI = {
       }
       if (r) {
         const f = FACTIONS[r.faction];
+        const tgt = r.target && World.node(s, r.target);
+        const where = tgt ? `your ${NODE_TYPES[tgt.type].name} (Lv ${tgt.level})` : "the city";
         h += `<div class="alert ${r.phase === "approaching" ? "warnbox" : "bad"}">
-          <div style="flex:1;min-width:200px"><b>${r.phase === "approaching" ? "⚠ Raid approaching" : r.phase === "gates" ? "🔥 Raiders at the gates!" : "⚔ Defending the city"}:</b> ${esc(f.name)} · power ⚔ ${fmt(r.power)} · ${MAP_TYPES[r.mapType]}
+          <div style="flex:1;min-width:200px"><b>${r.phase === "approaching" ? `⚠ Raid on ${where}` : r.phase === "gates" ? `🔥 Raiders at ${where}!` : `⚔ Defending ${where}`}:</b> ${esc(f.name)} · power ⚔ ${fmt(r.power)} · ${MAP_TYPES[r.mapType]}
             <div class="chips">${this.armyChips(r.army)}</div>
             <div class="dim" style="font-size:12px" data-raid="t"></div></div>
           ${r.phase !== "fighting" ? `<div class="btn-row"><button class="btn primary" data-action="leadDefense" ${s.battle ? "disabled" : ""}>⚔ Lead the defense</button>
@@ -3031,7 +3221,9 @@ const UI = {
     }
     if (r) {
       const t = $('[data-raid="t"]', box);
-      const def = `Defenders: your home army + ${s.buildings.townhall * 4} Town Guards${s.buildings.walls ? ` behind level ${s.buildings.walls} walls` : " (no walls yet)"}.`;
+      const tn = r.target && World.node(s, r.target);
+      const def = tn ? `Defenders: your home army + ${4 + (tn.fort || 0) * 6} militia guards${tn.fort ? ` behind level ${tn.fort * 2} palisades` : " (fortify it on the World Map)"}. Lose and the territory falls.`
+        : `Defenders: your home army + ${s.buildings.townhall * 4} Town Guards${s.buildings.walls ? ` behind level ${s.buildings.walls} walls` : " (no walls yet)"}.`;
       if (t) t.textContent = r.phase === "approaching" ? `Arrives in ${fmtTime(r.arriveAt - s.time)}. ${def}` : r.phase === "gates" ? `Your captains fight on their own in ${fmtTime(r.deadline - s.time)}. ${def}` : "The battle is under way.";
       if (r.phase === "gates" && this.raidPrompted !== r.id && !BattleUI.b && !$("#modalRoot .modal")) {
         this.raidPrompted = r.id;
@@ -3098,6 +3290,27 @@ const UI = {
       const btn = $('[data-r="offerBtn"]'); if (btn) btn.disabled = !Economy.canAfford(s, o.cost);
     }
 
+    // temple blessings
+    const tSig = s.buildings.temple + ":" + Math.floor(s.resources.faith / 10) + ":" + s.buffs.map((b) => b.id).join();
+    if (tSig !== this.templeSig) {
+      this.templeSig = tSig;
+      $("#templeBox").innerHTML = s.buildings.temple < 1 ? "" : `<div class="section-title">Temple Blessings <span class="dim" style="text-transform:none;letter-spacing:0">(${fmt(s.resources.faith)} Faith)</span></div>
+        <div class="btn-row" style="margin-bottom:6px">${Object.entries(BLESSINGS).map(([k, bl]) => { const blk = Temple.blocker(s, k); return `<button class="btn sm" data-action="bless" data-id="${k}" ${blk ? "disabled" : ""} title="${esc(EVENTS[bl.buff].desc)} (${bl.cost} Faith, 10 min)${blk ? " · " + esc(blk) : ""}">${bl.icon} ${bl.cost}</button>`; }).join("")}</div>`;
+    }
+    // market trading
+    if (s.buildings.market >= 1 && !$("#tradeRes")) {
+      $("#marketBox").innerHTML = `<div class="section-title">Market Trading</div>
+        <div class="trade"><select id="tradeRes">${Object.keys(TRADE_VALUE).map((r) => `<option value="${r}">${RESOURCES[r].name}</option>`).join("")}</select>
+        <span class="dim" id="tradeRates"></span></div>
+        <div class="btn-row" style="margin:6px 0 8px"><button class="btn sm" data-action="trade" data-op="sell" data-n="100">Sell 100</button><button class="btn sm" data-action="trade" data-op="sell" data-n="1000">Sell 1K</button><button class="btn sm" data-action="trade" data-op="sell" data-n="half">Sell half</button>
+        <button class="btn sm" data-action="trade" data-op="buy" data-n="100">Buy 100</button><button class="btn sm" data-action="trade" data-op="buy" data-n="1000">Buy 1K</button></div>`;
+    }
+    if ($("#tradeRes")) {
+      const r = $("#tradeRes").value;
+      $("#tradeRates").textContent = `sell ${Market.sellPrice(s, r).toFixed(2)} · buy ${Market.buyPrice(s, r).toFixed(2)} Gold each · you have ${fmt(s.resources[r])}`;
+    }
+
+    // quests
     const open = Quests.open(s, 4);
     const qSig = open.map((q) => q.id + (q.check(s) ? "!" : "")).join();
     if (qSig !== this.questSig) {
@@ -3142,6 +3355,7 @@ const UI = {
       case "lumbercamp": return `${b.lumbercamp * 3} Lumberjack slots`;
       case "ranch": return `${b.ranch * 2} Rancher slots · Horse storage ${fmt(Economy.caps(s).horses)}`;
       case "magetower": return `${b.magetower * 2} Arcanist slots · Crystal storage ${fmt(Economy.caps(s).crystals)}`;
+      case "brewery": return `${b.brewery * 2} Brewer slots · Ale storage ${fmt(Economy.caps(s).ale)}${s.resources.ale >= 1 ? " · troops well supplied 🍺" : ""}`;
       case "academy": return b.academy ? `Research ${Math.round(15 * (b.academy - 1))}% faster · techs up to tier ${b.academy}` : "Unlocks Research";
       case "walls": return b.walls ? `Wall HP ${Math.round(120 * (1 + 0.5 * b.walls) * (1 + 0.25 * Research.lvl(s, "fortification")))} · ${Math.max(1, 4 - Math.floor(b.walls / 2))} gap(s) · plunder −${Math.round(Math.min(0.5, b.walls * 0.04) * 100)}%` : "No walls: raiders walk straight in";
     }
@@ -3338,6 +3552,14 @@ const Actions = {
   research: (d) => { if (Research.start(GameState.current, d.id)) UI.update(); },
   cancelResearch: () => { Research.cancel(GameState.current); UI.update(); },
   claimQuest: (d) => { if (Quests.claim(GameState.current, d.id)) { UI.toast("Quest reward claimed!"); UI.update(); } },
+  bless: (d) => { if (Temple.bless(GameState.current, d.id)) { UI.templeSig = ""; UI.update(); } },
+  trade: (d) => {
+    const s = GameState.current, r = $("#tradeRes").value;
+    const n = d.n === "half" ? s.resources[r] / 2 : Number(d.n);
+    const ok = d.op === "sell" ? Market.sell(s, r, n) : Market.buy(s, r, n);
+    UI.toast(ok ? `${d.op === "sell" ? "Sold" : "Bought"} ${RESOURCES[r].name}.` : "That trade isn't possible right now (check stock, storage and gold).");
+    UI.update();
+  },
   acceptOffer: () => { if (Events.accept(GameState.current)) UI.update(); },
   declineOffer: () => { Events.decline(GameState.current); UI.update(); },
   doctrine: (d) => { GameState.current.doctrine = d.id; UI.update(); UI.toast(`Doctrine: ${TACTICS[d.id].name}`); },

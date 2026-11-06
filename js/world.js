@@ -20,6 +20,10 @@ const NODE_TYPES = {
   village:  { name: "Rebel Village",     icon: "🏘️", res: { food: 500, gold: 150 },            weight: 3, desc: "Granaries and coin, held by rebels." },
   fort:     { name: "Bandit Fortress",   icon: "🏯", res: { gold: 600, steel: 120, wood: 200 }, weight: 2, fortified: 2, power: 1.6, desc: "Walled stronghold full of plunder. Bring siege." },
   roost:    { name: "Wyvern Roost",      icon: "🦅", res: { gold: 800, relics: 1 },            weight: 1, power: 2, far: true, desc: "Monsters nest on ancient treasure." },
+  vineyard: { name: "Vineyard",          icon: "🍇", res: { ale: 250, food: 200 },             weight: 2, desc: "Vines and a winery. Keeps your soldiers' cups full." },
+  shrine:   { name: "Holy Shrine",       icon: "⛩️", res: { faith: 120 },                      weight: 2, desc: "Pilgrims' offerings and holy relics." },
+  ruins:    { name: "Ancient Ruins",     icon: "🏛️", res: { crystals: 12, gold: 400, relics: 1 }, weight: 1, power: 1.5, far: true, desc: "Elven ruins humming with old magic." },
+  capital:  { name: "Warlord's Capital", icon: "👑", res: { gold: 4000, steel: 800, relics: 3 }, weight: 0, power: 3.5, fortified: 4, far: true, desc: "The seat of the enemy warlord. Take it and the land is yours." },
 };
 
 const World = {
@@ -81,12 +85,42 @@ const World = {
       const level = Math.min(10, 1 + Math.floor(dist / 1.6));
       nodes.push({ id: id++, x, y, type, level, owner: "enemy", garrison: null, stockMult: 1, clearedUntil: 0 });
     }
-    return { seed, w: W, h: H, tiles: t, city: [cx, cy], nodes };
+    const world = { seed, w: W, h: H, tiles: t, city: [cx, cy], nodes };
+    this.addNewSites(world, R);
+    return world;
+  },
+  /** Adds vineyards, shrines, ruins and the warlord's capital (also used to upgrade worlds from older saves). */
+  addNewSites(world, R = Math.random) {
+    const W = world.w, H = world.h, [cx, cy] = world.city, t = world.tiles;
+    let id = world.nodes.reduce((a, n) => Math.max(a, n.id), 0) + 1;
+    const free = (x, y) => !["mountain", "river", "bridge"].includes(t[y * W + x]) && Math.hypot(x - cx, y - cy) >= 2.5 && !world.nodes.some((n) => Math.abs(n.x - x) <= 1 && Math.abs(n.y - y) <= 1);
+    const place = (type, minD, maxD) => {
+      for (let g = 0; g < 600; g++) {
+        const x = Math.floor(R() * W), y = Math.floor(R() * H), d = Math.hypot(x - cx, y - cy);
+        if (d < minD || d > maxD || !free(x, y)) continue;
+        world.nodes.push({ id: id++, x, y, type, level: Math.min(10, 1 + Math.floor(d / 1.6)), owner: "enemy", garrison: null, clearedUntil: 0, fort: 0 });
+        return true;
+      }
+      return false;
+    };
+    if (!world.nodes.some((n) => n.type === "vineyard")) { place("vineyard", 3, 7); place("vineyard", 6, 12); }
+    if (!world.nodes.some((n) => n.type === "shrine")) { place("shrine", 4, 8); place("shrine", 7, 13); }
+    if (!world.nodes.some((n) => n.type === "ruins")) { place("ruins", 8, 15); place("ruins", 9, 15); }
+    if (!world.nodes.some((n) => n.type === "capital")) {
+      // the capital sits in the farthest free corner
+      let best = null, bd = 0;
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        const d = Math.hypot(x - cx, y - cy);
+        if (d > bd && free(x, y)) { bd = d; best = [x, y]; }
+      }
+      if (best) world.nodes.push({ id: id++, x: best[0], y: best[1], type: "capital", level: 10, owner: "enemy", garrison: null, clearedUntil: 0, fort: 0 });
+    }
   },
 
   /* ---------- helpers ---------- */
   ensure(s) {
     if (!s.world || !s.world.nodes) s.world = this.generate();
+    if (!s.world.nodes.some((n) => n.type === "capital")) this.addNewSites(s.world);
     for (const n of s.world.nodes) if (!n.garrison && n.owner !== "player") this.regarrison(s, n);
     return s.world;
   },
@@ -118,6 +152,13 @@ const World = {
     return { forest: "forest", hill: "hills", valley: "valley", swamp: "swamp", rubble: "plains", wall: "plains" }[t] || (mountains >= 2 ? "valley" : "plains");
   },
   travel(s, n) { return Math.round(60 + this.dist(s, n) * 25); },
+  /** Fog of war: sites near your city or your territories are scouted (Cartography widens the range). */
+  visible(s, n) {
+    if (n.owner === "player") return true;
+    const r = 6 + (s.research && s.research.levels ? (s.research.levels.cartography || 0) * 0.75 : 0);
+    if (Math.hypot(n.x - s.world.city[0], n.y - s.world.city[1]) <= r) return true;
+    return this.territories(s).some((t) => Math.hypot(n.x - t.x, n.y - t.y) <= 4);
+  },
   territories(s) { return s.world ? s.world.nodes.filter((n) => n.owner === "player") : []; },
   maxTerritories(s) { return 1 + Math.floor(s.buildings.townhall / 2) + (s.research && s.research.levels ? (s.research.levels.cartography || 0) >= 4 ? 1 : 0 : 0); },
   /** Resources per second from all territories. */
@@ -141,6 +182,7 @@ const World = {
   },
   blocker(s, n) {
     if (n.owner === "player") return "This territory is already yours";
+    if (!this.visible(s, n)) return "Unexplored. Capture nearby sites or research Cartography to scout it";
     if (n.clearedUntil > s.time) return `Garrison regrouping (${fmtTime(n.clearedUntil - s.time)})`;
     if (s.expeditions.some((e) => e.mission === "node:" + n.id)) return "An army is already marching here";
     return null;
@@ -148,8 +190,10 @@ const World = {
   /** Called after you win against a site. */
   onWin(s, n) {
     const free = this.territories(s).length < this.maxTerritories(s);
+    if (n.type === "capital") s.stats.capitalsTaken = (s.stats.capitalsTaken || 0) + 1;
     if (free) {
       n.owner = "player";
+      n.fort = 0;
       n.garrison = null;
       addLog(s, `🚩 ${NODE_TYPES[n.type].name} (Lv ${n.level}) is now your territory! It pays ${Object.entries(this.stock(s, n)).map(([r, v]) => `${(v / this.INCOME_WINDOW).toFixed(2)} ${RESOURCES[r].name}`).join(", ")} per second.`, "good");
       return "captured";
@@ -158,6 +202,23 @@ const World = {
     n.garrison = null;
     addLog(s, `${NODE_TYPES[n.type].name} looted. You have no free territory slots, so the enemy will return in ${fmtTime(this.RESPAWN)}.`, "info");
     return "looted";
+  },
+  fortifyCost(n) { const f = n.fort || 0; return { stone: Math.round(300 * Math.pow(2.2, f)), wood: Math.round(200 * Math.pow(2.2, f)), gold: Math.round(150 * Math.pow(2.2, f)) }; },
+  fortifyBlocker(s, n) {
+    if (n.owner !== "player") return "Not your territory";
+    if ((n.fort || 0) >= 5) return "Fully fortified";
+    const c = this.fortifyCost(n);
+    const over = Economy.overCap(s, c);
+    if (over) return `${RESOURCES[over].name} storage too small`;
+    if (!Economy.canAfford(s, c)) return "Not enough resources";
+    return null;
+  },
+  fortify(s, n) {
+    if (this.fortifyBlocker(s, n)) return false;
+    Economy.pay(s, this.fortifyCost(n));
+    n.fort = (n.fort || 0) + 1;
+    addLog(s, `🧱 Your ${NODE_TYPES[n.type].name} is fortified to level ${n.fort}: palisades and ${4 + n.fort * 6} guards will defend it.`, "build");
+    return true;
   },
   abandon(s, n) {
     if (n.owner !== "player") return;
@@ -239,15 +300,21 @@ const WorldUI = {
     if (!this.open || !w) return;
     World.step(s);
     const terr = World.territories(s);
-    document.getElementById("wmSub").innerHTML = `Territories <b>${terr.length}/${World.maxTerritories(s)}</b> (more as the Town Hall grows) · Click a site to see its garrison and riches.`;
+    const seen = w.nodes.filter((n) => World.visible(s, n)).length;
+    document.getElementById("wmSub").innerHTML = `Territories <b>${terr.length}/${World.maxTerritories(s)}</b> (more as the Town Hall grows) · Explored <b>${seen}/${w.nodes.length}</b> sites · Click a site to see its garrison and riches.`;
     document.getElementById("wmNodes").innerHTML = w.nodes.map((n) => {
       const T = NODE_TYPES[n.type];
+      if (!World.visible(s, n)) return `<div class="wm-node hidden-site ${this.sel === n.id ? "sel" : ""}" data-node="${n.id}" style="left:${n.x * c}px;top:${n.y * c}px" title="Unexplored"><span>❔</span></div>`;
       const st = n.owner === "player" ? "mine" : n.clearedUntil > s.time ? "cleared" : s.expeditions.some((e) => e.mission === "node:" + n.id) ? "marching" : "enemy";
       return `<div class="wm-node ${st} ${this.sel === n.id ? "sel" : ""}" data-node="${n.id}" style="left:${n.x * c}px;top:${n.y * c}px" title="${esc(T.name)} Lv ${n.level}">
         <span>${T.icon}</span><b>${n.level}</b></div>`;
     }).join("");
     // selection
-    const n = this.sel && World.node(s, this.sel);
+    let n = this.sel && World.node(s, this.sel);
+    if (n && !World.visible(s, n)) {
+      document.getElementById("wmSel").innerHTML = `<div class="bf-h">❔ Unexplored land</div><div class="dim" style="font-size:12px">Your scouts haven't been here. Capture a site within 4 tiles of it, or research Cartography to see farther from the city.</div>`;
+      n = null;
+    }
     let h = `<div class="bf-h">Select a site</div><div class="dim" style="font-size:12px">Red sites are held by enemies, blue ones are yours, grey ones are recovering after a raid, and purple ones have your army marching on them.</div>`;
     if (n) {
       const T = NODE_TYPES[n.type], m = World.asMission(s, n), blk = World.blocker(s, n);
@@ -259,11 +326,16 @@ const WorldUI = {
       if (n.owner !== "player" && n.garrison) h += `<div style="font-size:12.5px;margin-top:6px"><b>Garrison</b> (${esc(FACTIONS[n.faction].name)}, power ⚔ ${fmt(armyPower(n.garrison))})</div><div class="chips">${UI.armyChips(n.garrison)}</div>`;
       if (blk) h += `<div class="req" style="margin-top:6px">${esc(blk)}</div>`;
       h += `<div class="btn-row" style="margin-top:8px">`;
-      if (n.owner === "player") h += `<button class="btn danger sm" data-wm="abandon" data-id="${n.id}">Abandon territory</button>`;
+      if (n.owner === "player") {
+        const fb = World.fortifyBlocker(s, n), fc = World.fortifyCost(n);
+        h += `<div style="font-size:12px;width:100%">Fortification <b>${n.fort || 0}/5</b> (raiders may try to retake it)</div>
+          <button class="btn sm" data-wm="fortify" data-id="${n.id}" ${fb ? "disabled" : ""} title="${esc(fb || "")}">🧱 Fortify (${Object.entries(fc).map(([r, v]) => fmt(v) + " " + RESOURCES[r].name).join(", ")})</button>
+          <button class="btn danger sm" data-wm="abandon" data-id="${n.id}">Abandon</button>`;
+      }
       else h += `<button class="btn teal" data-wm="raid" data-id="${n.id}" ${blk ? "disabled" : ""}>⚔ Raid this site</button>`;
       h += `</div>`;
     }
-    document.getElementById("wmSel").innerHTML = h;
+    if (!(this.sel && World.node(s, this.sel) && !World.visible(s, World.node(s, this.sel)))) document.getElementById("wmSel").innerHTML = h;
     AssetPipeline.applyAll(document.getElementById("wmSel"));
     const inc = World.income(s);
     document.getElementById("wmTerr").innerHTML = `<div class="bf-h">Your territories</div>${terr.length ? terr.map((t) => `<div style="font-size:12px">${NODE_TYPES[t.type].icon} ${NODE_TYPES[t.type].name} Lv ${t.level}</div>`).join("") : '<div class="dim" style="font-size:12px">None yet. Beat a garrison to claim a site.</div>'}
@@ -274,6 +346,7 @@ const WorldUI = {
     const s = GameState.current;
     if (a === "close") this.hide();
     else if (a === "raid") { this.hide(); UI.openDeploy("node:" + d.id); }
+    else if (a === "fortify") { const n = World.node(s, +d.id); World.fortify(s, n); this.render(); UI.update(); }
     else if (a === "abandon") { const n = World.node(s, +d.id); World.abandon(s, n); this.render(); UI.update(); }
   },
 };
