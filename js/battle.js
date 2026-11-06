@@ -52,7 +52,7 @@ const ENEMY_UNITS = {
   giant_jarl:    { name: "Giant Jarl",      asset: "e_frost_giant",  hp: 450,  atk: 80,  def: 9,  rng: 1, mv: 3, cls: "inf", general: true, big: true },
   dark_lord:     { name: "Dark Lord",       asset: "e_dark_knight",  hp: 600,  atk: 110, def: 12, rng: 1, mv: 5, cls: "cav", general: true, charge: true },
   dragon:        { name: "Elder Dragon",    asset: "e_dragon",       hp: 1400, atk: 160, def: 12, rng: 2, mv: 5, cls: "ranged", flying: true, big: true, boss: true },
-  titan:         { name: "Storm Titan",     asset: "e_titan",        hp: 6000, atk: 650, def: 16, rng: 3, mv: 3, cls: "inf", big: true, boss: true },
+  titan:         { name: "Storm Titan",     asset: "e_titan",        hp: 5000, atk: 500, def: 15, rng: 3, mv: 3, cls: "inf", big: true, boss: true },
 };
 /* Town guards appear only when defending the city. They're free, and they're never lost from your army. */
 const EXTRA_UNITS = {
@@ -310,6 +310,8 @@ const Battle = {
       vetXp: {},                          // player unit type -> enemy power destroyed in this battle
       fire: {},                           // tile index -> turns left burning
       heroFell: false, generalFell: false,
+      morale: { player: Math.max(40, Math.min(100, 60 + 0.4 * (opts.morale ?? 100))), enemy: 100 },
+      stats: { player: { dealt: 0, taken: 0 }, enemy: { dealt: 0, taken: 0 } },
       cmd: { level: (opts.context && opts.context.cmdLevel) || 1, power: armyPower(opts.playerUnits), cd: { rally: 0, barrage: 0, warcry: 0, march: 0 }, warcry: 0, march: 0 },
       initial: { player: { ...opts.playerUnits }, enemy: { ...opts.enemyUnits } },
       log: [], result: null,
@@ -318,8 +320,15 @@ const Battle = {
     if (opts.guards) this.addSquads(b, "player", { guard: opts.guards });
     if (opts.hero) this.addSquads(b, "player", { [heroType(opts.hero)]: 1 });
     this.addSquads(b, "enemy", opts.enemyUnits);
+    // big enemy armies hold a quarter of their squads back as a second wave
+    const foes = b.squads.filter((q) => q.side === "enemy" && !udef(q.type).general && !udef(q.type).boss);
+    if (!opts.noWaves && foes.length >= 8) {
+      const n = Math.floor(foes.length / 4);
+      for (const q of foes.slice(-n)) { q.reserve = true; q.arrive = 3 + Math.floor(Math.random() * 2); }
+    }
     this.autoDeploy(b, "player");
     this.autoDeploy(b, "enemy");
+    this.initMorale(b);
     this.addLog(b, `${WEATHER[b.weather].icon} ${WEATHER[b.weather].name}: ${WEATHER[b.weather].desc}`);
     this.addLog(b, `${MAP_TYPES[b.mapType] || "Battlefield"}. ${b.attacker === "player" ? "You are attacking." : "You are defending."} Win before turn ${b.maxTurns} ends, or the defender holds.`);
     return b;
@@ -357,7 +366,7 @@ const Battle = {
     return side === "player" ? x < d : x >= b.w - d;
   },
   autoDeploy(b, side) {
-    const sq = b.squads.filter((s) => s.side === side);
+    const sq = b.squads.filter((s) => s.side === side && !s.reserve);
     const tiles = [];
     for (let y = 0; y < b.h; y++) for (let x = 0; x < b.w; x++)
       if (this.inDeployZone(b, side, x, y) && this.canStand(b, { side, type: "militia" }, x, y)) tiles.push([x, y]);
@@ -384,14 +393,19 @@ const Battle = {
       taken.add(best[1] * b.w + best[0]);
       s.x = best[0]; s.y = best[1];
     }
-    b.squads = b.squads.filter((s) => s.hp > 0);
+    b.squads = b.squads.filter((s) => s.hp > 0 || s.reserve);
   },
 
   /* ===================== helpers ===================== */
   tile(b, x, y) { return b.tiles[y * b.w + x]; },
   terrainAt(b, s) { return TERRAIN[this.tile(b, s.x, s.y)]; },
   count(s) { return Math.max(0, Math.ceil(s.hp / udef(s.type).hp - 1e-9)); },
-  alive(b, side) { return b.squads.filter((s) => s.hp > 0 && (!side || s.side === side)); },
+  /** Squads on the field (reserves waiting off the map are not included). */
+  alive(b, side) { return b.squads.filter((s) => s.hp > 0 && !s.reserve && (!side || s.side === side)); },
+  /** Every living squad, including reserves. */
+  living(b, side) { return b.squads.filter((s) => s.hp > 0 && (!side || s.side === side)); },
+  reserves(b, side) { return b.squads.filter((s) => s.hp > 0 && s.reserve && s.side === side); },
+  sidePower(b, side) { return this.living(b, side).reduce((a, q) => a + unitPower(udef(q.type)) * this.count(q), 0); },
   at(b, x, y) { return b.squads.find((s) => s.hp > 0 && s.x === x && s.y === y); },
   dist(a, c) { return Math.max(Math.abs(a.x - c.x), Math.abs(a.y - c.y)); },
   tac(b, side) { return TACTICS[side === "player" ? b.tactic : b.enemyTactic] || TACTICS.balanced; },
@@ -642,14 +656,40 @@ const Battle = {
     att.acted = true; att.moved = true;
     return events;
   },
-  moveTo(b, s, idx, cost) {
-    s.x = idx % b.w; s.y = (idx / b.w) | 0;
+  /** Move a squad. Leaving melee contact gives each adjacent enemy melee squad a free parting blow. */
+  moveTo(b, s, idx, cost, events = []) {
+    const nx = idx % b.w, ny = (idx / b.w) | 0;
+    if (!udef(s.type).flying && (nx !== s.x || ny !== s.y)) {
+      for (const o of this.alive(b, this.opp(s.side))) {
+        const od = udef(o.type);
+        if (od.rng > 1 || o.broken || this.dist(o, s) !== 1) continue;
+        if (Math.max(Math.abs(o.x - nx), Math.abs(o.y - ny)) <= 1) continue; // still in contact
+        const b4 = this.count(s);
+        s.hp = Math.max(0, s.hp - this.damage(b, o, s, { retal: true }) * 0.35);
+        const k = b4 - this.count(s);
+        events.push({ x: s.x, y: s.y, text: `−${k}`, cls: "hit", id: s.id });
+        this.addLog(b, `⚔ ${s.side === "player" ? "Your" : "Enemy"} ${udef(s.type).name} takes a parting blow from the ${od.name} while disengaging (−${k}).`);
+        if (s.hp <= 0) { this.onDestroyed(b, s, events); this.checkEnd(b); return events; }
+      }
+    }
+    s.x = nx; s.y = ny;
     s.moved = true; s.movedDist = cost;
+    return events;
   },
   brace(b, s) { s.braced = true; s.acted = true; s.moved = true; },
 
   startTurn(b, side) {
     b.active = side;
+    if (b.phase === "battle") {
+      // scheduled waves, or reserves forced in when the field is empty
+      const waiting = this.reserves(b, side);
+      if (waiting.length) {
+        const due = waiting.filter((q) => q.arrive && b.turn >= q.arrive);
+        if (!this.alive(b, side).length) this.callReserves(b, side, false);
+        else if (due.length) { let n = 0; for (const q of due) if (this.deployReserve(b, q, false)) n++; if (n) this.addLog(b, side === "enemy" ? `🥁 Enemy reinforcements arrive (${n} squad${n > 1 ? "s" : ""})!` : `📯 Reinforcements arrive (${n}).`); }
+      }
+      if (b.morale) b.morale[side] = Math.min(100, b.morale[side] + 3);
+    }
     if (side === "player" && b.cmd && b.phase === "battle") for (const k of Object.keys(b.cmd.cd)) b.cmd.cd[k] = Math.max(0, b.cmd.cd[k] - 1);
     for (const s of this.alive(b, side)) {
       s.moved = false; s.acted = false; s.braced = false; s.movedDist = 0; s.aimed = false;
@@ -679,21 +719,28 @@ const Battle = {
   },
   checkEnd(b) {
     if (b.phase === "over") return true;
-    const p = this.alive(b, "player").length, e = this.alive(b, "enemy").length;
+    this.updateMorale(b);
+    const p = this.living(b, "player").length, e = this.living(b, "enemy").length;
     if (!e) this.finish(b, "player", "annihilation");
     else if (!p) this.finish(b, "enemy", "annihilation");
+    else if (b.morale && b.phase === "battle") {
+      if (b.morale.enemy <= 0 && !b.moraleImmune.enemy) this.finish(b, "player", "rout");
+      else if (b.morale.player <= 0 && !b.moraleImmune.player) this.finish(b, "enemy", "rout");
+    }
     return b.phase === "over";
   },
   finish(b, winner, reason) {
     b.phase = "over";
     b.result = { winner, reason };
-    const txt = { annihilation: "The enemy army has been destroyed.", timeout: "Time ran out. The defenders held.", retreat: "You sounded the retreat." };
+    const txt = { annihilation: "The enemy army has been destroyed.", timeout: "Time ran out. The defenders held.", retreat: "You sounded the retreat.",
+      rout: winner === "player" ? "The enemy's morale shattered and their army fled the field!" : "Your army's morale broke and it fled the field." };
     this.addLog(b, (winner === "player" ? "VICTORY! " : "DEFEAT. ") + (reason === "annihilation" && winner === "enemy" ? "Your army has been wiped out." : txt[reason]));
   },
   retreat(b) { if (b.phase !== "over") this.finish(b, "enemy", "retreat"); },
   /** Finish the current side's turn and start the next. */
   endTurn(b) {
     if (b.phase === "over") return;
+    if (this.checkEnd(b)) return;
     if (b.active === "player") this.startTurn(b, "enemy");
     else {
       b.turn++;
@@ -716,6 +763,7 @@ const Battle = {
     const W = b.w, side = s.side, opp = this.alive(b, this.opp(side));
     if (!opp.length) return null;
     const d = udef(s.type);
+    if (d.general) b.generalCharge = this.alive(b, side).length <= 2 || opp.some((o) => this.dist(o, s) <= 3);
     // the defender waits in position until the attacker gets close
     if (side === b.defender && !b.engaged) {
       const near = this.alive(b, side).some((m) => opp.some((o) => this.dist(m, o) <= 6));
@@ -734,11 +782,22 @@ const Battle = {
     const ox = s.x, oy = s.y, om = s.movedDist;
     let best = null, bestScore = 0;
     const meleeOpp = opp.filter((o) => udef(o.type).rng <= 1);
+    // danger: how much enemy power can reach each tile next turn (fragile units care more)
+    const threats = opp.filter((o) => !o.broken).map((o) => ({ o, r: this.moveRange(b, o) + this.range(b, o), p: unitPower(udef(o.type)) * this.count(o) }));
+    const fragile = d.rng > 1 || d.cls === "support" || d.general || d.cls === "siege";
+    const dangerAt = (x, y) => threats.reduce((a, t) => a + (Math.max(Math.abs(t.o.x - x), Math.abs(t.o.y - y)) <= t.r ? t.p : 0), 0) * (fragile ? 0.02 : 0.004);
+    // leaving melee contact costs a parting blow
+    const engagedWith = d.flying ? [] : meleeOpp.filter((o) => !o.broken && this.dist(o, s) === 1);
+    const priority = (o) => {
+      const D = udef(o.type);
+      return (1 + 0.5 * (1 - o.hp / o.maxHp)) * (D.general ? 1.6 : D.hero ? 1.5 : D.heal ? 1.3 : D.cls === "siege" ? 1.2 : 1);
+    };
     for (const [idx, cost] of reach) {
       const x = idx % W, y = (idx / W) | 0;
       s.x = x; s.y = y; s.movedDist = cost;
       const tr = TERRAIN[this.tile(b, x, y)];
-      let tileBonus = (tr.def - 1) * 4 + (d.rng > 1 && tr.rangeBonus ? 2 : 0) - (b.fire && b.fire[idx] ? 8 : 0);
+      let tileBonus = (tr.def - 1) * 4 + (d.rng > 1 && tr.rangeBonus ? 2 : 0) - (b.fire && b.fire[idx] ? 8 : 0) - dangerAt(x, y);
+      for (const o of engagedWith) if (Math.max(Math.abs(o.x - x), Math.abs(o.y - y)) > 1) tileBonus -= 3;
       if (d.rng > 1) {
         const threat = meleeOpp.some((o) => Math.max(Math.abs(o.x - x), Math.abs(o.y - y)) <= 2);
         if (threat) tileBonus -= 4;
@@ -747,7 +806,7 @@ const Battle = {
         if (!this.canHit(b, s, x, y, o.x, o.y)) continue;
         const D = udef(o.type);
         const dmg = Math.min(this.damage(b, s, o, { expected: true }), o.hp);
-        let value = (dmg / D.hp) * unitPower(D);
+        let value = (dmg / D.hp) * unitPower(D) * priority(o);
         if (dmg >= o.hp) value *= 1.5;
         const rf = this.retaliationFactor(b, s, o);
         if (rf) {
@@ -761,6 +820,20 @@ const Battle = {
     }
     s.x = ox; s.y = oy; s.movedDist = om;
     if (best) return best;
+
+    // generals hold their ground behind the line instead of charging in alone
+    if (d.general && !b.generalCharge) return { move: s.y * W + s.x, cost: 0, brace: true };
+    // badly hurt squads fall back toward a friendly healer
+    const healer = this.alive(b, side).find((h) => h !== s && udef(h.type).heal);
+    if (healer && s.hp < s.maxHp * 0.4) {
+      let hb = null, hd = Infinity;
+      for (const [idx, cost] of reach) {
+        const x = idx % W, y = (idx / W) | 0;
+        const dd = Math.max(Math.abs(x - healer.x), Math.abs(y - healer.y)) + dangerAt(x, y) * 0.2;
+        if (dd < hd) { hd = dd; hb = { move: idx, cost, brace: true }; }
+      }
+      if (hb) return hb;
+    }
 
     // siege: smash the enemy's walls if nothing else is in range
     if (d.breach && b.wallSide && b.wallSide !== side) {
@@ -789,6 +862,8 @@ const Battle = {
       if (!isFinite(v)) continue;
       if (d.rng > 1 && v < 2) v = 50;
       v -= TERRAIN[b.tiles[idx]].def * 0.3 - cost * 0.01;
+      if (fragile) v += dangerAt(idx % W, (idx / W) | 0) * 0.15;
+      for (const o of engagedWith) if (Math.max(Math.abs(o.x - (idx % W)), Math.abs(o.y - ((idx / W) | 0))) > 1) v += 2;
       if (v < mvScore) { mvScore = v; mv = { move: idx, cost }; }
     }
     if (!mv || mv.move === s.y * W + s.x) return { move: s.y * W + s.x, cost: 0, brace: true };
@@ -799,7 +874,8 @@ const Battle = {
     const here = s.y * b.w + s.x;
     if (dec.move !== undefined && dec.move !== here) {
       events.push({ move: s.id, from: [s.x, s.y] });
-      this.moveTo(b, s, dec.move, dec.cost);
+      this.moveTo(b, s, dec.move, dec.cost, events);
+      if (s.hp <= 0 || b.phase === "over") return events;
     }
     if (dec.target) {
       const t = b.squads.find((q) => q.id === dec.target && q.hp > 0);
@@ -809,6 +885,76 @@ const Battle = {
     s.acted = true; s.moved = true;
     return events;
   },
+  /* ===================== army morale ===================== */
+  initMorale(b) {
+    const fearlessTypes = new Set(["skeleton", "wraith", "necromancer", "lich", "demon"]);
+    b.startPower = { player: this.sidePower(b, "player"), enemy: this.sidePower(b, "enemy") };
+    b.lastPower = { ...b.startPower };
+    b.fearless = {}; b.moraleImmune = {};
+    for (const side of ["player", "enemy"]) {
+      const all = this.living(b, side);
+      const tot = all.reduce((a, q) => a + unitPower(udef(q.type)) * this.count(q), 0) || 1;
+      b.fearless[side] = all.filter((q) => fearlessTypes.has(q.type)).reduce((a, q) => a + unitPower(udef(q.type)) * this.count(q), 0) / tot;
+      b.moraleImmune[side] = all.some((q) => udef(q.type).boss && !udef(q.type).hero);
+    }
+  },
+  /** Losses since the last check drain morale; an army at 0 morale flees the field. */
+  updateMorale(b) {
+    if (!b.morale || !b.startPower) return;
+    for (const side of ["player", "enemy"]) {
+      const now = this.sidePower(b, side), lost = (b.lastPower[side] || 0) - now;
+      b.lastPower[side] = now;
+      if (lost <= 0 || b.moraleImmune[side]) continue;
+      b.stats[side].taken += lost;
+      b.stats[this.opp(side)].dealt += lost;
+      b.morale[side] = Math.max(0, b.morale[side] - (lost / (b.startPower[side] || 1)) * 120 * (1 - 0.5 * (b.fearless[side] || 0)));
+    }
+  },
+  shakeMorale(b, side, amount) { if (b.morale && !b.moraleImmune[side]) b.morale[side] = Math.max(0, b.morale[side] - amount); },
+
+  /* ===================== reserves & reinforcements ===================== */
+  /** Bring a reserve squad onto the field at its own edge. tired = it can't act this turn. */
+  deployReserve(b, q, tired) {
+    const cands = [];
+    for (let y = 0; y < b.h; y++) for (let x = 0; x < b.w; x++)
+      if (this.inDeployZone(b, q.side, x, y) && this.canStand(b, q, x, y) && !this.at(b, x, y)) cands.push([x, y]);
+    if (!cands.length) return false;
+    const cy = (b.h - 1) / 2;
+    cands.sort((a, c) => (q.side === "player" ? c[0] - a[0] : a[0] - c[0]) || Math.abs(a[1] - cy) - Math.abs(c[1] - cy));
+    q.reserve = false; q.arrive = 0;
+    q.x = cands[0][0]; q.y = cands[0][1];
+    q.moved = q.acted = !!tired; q.braced = false; q.movedDist = 0;
+    return true;
+  },
+  callReserves(b, side, tired = true) {
+    let n = 0;
+    for (const q of this.reserves(b, side)) if (this.deployReserve(b, q, tired)) n++;
+    if (n) this.addLog(b, side === "player" ? `📯 Your reserves march onto the field (${n} squad${n > 1 ? "s" : ""}).` : `🥁 Enemy reinforcements arrive (${n} squad${n > 1 ? "s" : ""})!`);
+    return n;
+  },
+
+  /** Make a saved (or older) battle safe to resume: fill missing fields and fix impossible positions. */
+  repair(b) {
+    if (!b || !b.squads) return b;
+    b.fire = b.fire || {}; b.vet = b.vet || {}; b.vetXp = b.vetXp || {};
+    b.bonus = { player: 1, enemy: 1, ...(b.bonus || {}) }; b.defBonus = { player: 1, enemy: 1, ...(b.defBonus || {}) };
+    b.cmd = b.cmd || { level: 1, power: 0, cd: { rally: 0, barrage: 0, warcry: 0, march: 0 }, warcry: 0, march: 0 };
+    b.weather = WEATHER[b.weather] ? b.weather : "clear";
+    b.stats = b.stats || { player: { dealt: 0, taken: 0 }, enemy: { dealt: 0, taken: 0 } };
+    b.squads = b.squads.filter((q) => udef(q.type));
+    for (const q of b.squads) { q.skillCd = q.skillCd || 0; q.broken = q.broken || 0; q.hp = Math.max(0, Math.min(q.hp, q.maxHp)); }
+    if (!b.morale) b.morale = { player: 100, enemy: 100 };
+    if (!b.startPower) this.initMorale(b);
+    const seen = new Set();
+    for (const q of b.squads) {
+      if (q.hp <= 0 || q.reserve) continue;
+      const k = q.y * b.w + q.x;
+      if (q.x < 0 || q.y < 0 || q.x >= b.w || q.y >= b.h || seen.has(k) || !this.canStand(b, q, q.x, q.y)) { q.reserve = true; this.deployReserve(b, q, false); }
+      if (!q.reserve) seen.add(q.y * b.w + q.x);
+    }
+    return b;
+  },
+
   /** A squad next to its own hero or general fights +10% better. */
   inAura(b, s) {
     for (const o of b.squads) {
@@ -825,12 +971,14 @@ const Battle = {
       b.generalFell = def.side === "enemy" || b.generalFell;
       for (const o of this.alive(b, def.side)) if (!udef(o.type).boss) { o.broken = 2; events.push({ x: o.x, y: o.y, text: "ROUT!", cls: "rout" }); }
       this.addLog(b, `👑 The ${D.name} has fallen! The whole ${def.side === "enemy" ? "enemy" : "allied"} army wavers and breaks!`);
+      this.shakeMorale(b, def.side, 25);
       return;
     }
     if (D.hero) {
       b.heroFell = true;
       b.bonus.player = (b.bonus.player || 1) * 0.85;
       this.addLog(b, "🩸 Your Lord Commander is struck down and carried from the field! Your army loses heart (−15% attack).");
+      this.shakeMorale(b, "player", 20);
       return;
     }
     // panic spreads to nearby, already-battered squads
@@ -948,6 +1096,7 @@ const Battle = {
   /** Your captains use the commander's abilities sensibly in auto battles. */
   aiAbilities(b) {
     if (!b.cmd || b.active !== "player") return;
+    if (this.reserves(b, "player").length && (b.turn >= 3 || this.alive(b, "player").length <= this.living(b, "player").length / 2)) this.callReserves(b, "player");
     const mine = this.alive(b, "player"), foes = this.alive(b, "enemy");
     const hp = mine.reduce((a, s) => a + s.hp, 0), max = mine.reduce((a, s) => a + s.maxHp, 0);
     if (!this.abilityBlocker(b, "rally") && hp < max * 0.75) this.useAbility(b, "rally");
@@ -1022,6 +1171,7 @@ const BattleUI = {
   lastMove: null,
 
   open(b, onDone) {
+    Battle.repair(b);
     this.b = b; this.onDone = onDone; this.sel = null; this.busy = false; this.targeting = null;
     let root = document.getElementById("battleRoot");
     if (!root) { root = document.createElement("div"); root.id = "battleRoot"; document.body.appendChild(root); }
@@ -1113,13 +1263,16 @@ const BattleUI = {
       : b.phase === "over" ? (b.result.winner === "player" ? "Victory!" : "Defeat")
       : this.targeting ? "Arrow Barrage: click the centre of the 3×3 area to hit (Esc to cancel)."
       : b.active === "player" ? "Your turn. Select a squad, move it (blue), attack (red), or Brace. Commander abilities are on the left of the buttons." : "The enemy is moving…";
-    document.getElementById("bfSub").innerHTML = `${WEATHER[b.weather || "clear"].icon} ${WEATHER[b.weather || "clear"].name} · ${esc(MAP_TYPES[b.mapType] || "")} · Turn <b>${Math.min(b.turn, b.maxTurns)}</b>/${b.maxTurns} · ${TACTICS[b.tactic].icon} ${TACTICS[b.tactic].name} · <span class="dim">${esc(phaseTxt)}</span>`;
+    const mor = b.morale ? `<span class="mor-wrap" title="Army morale: at 0 the army flees">You <span class="mbar p"><i style="width:${b.morale.player}%"></i></span> ${Math.round(b.morale.player)} · Foe <span class="mbar e"><i style="width:${b.moraleImmune && b.moraleImmune.enemy ? 100 : b.morale.enemy}%"></i></span> ${b.moraleImmune && b.moraleImmune.enemy ? "fearless" : Math.round(b.morale.enemy)}</span> · ` : "";
+    const waves = Battle.reserves(b, "enemy").length;
+    document.getElementById("bfSub").innerHTML = mor + (waves ? `🥁 ${waves} enemy squads in reserve · ` : "") + `${WEATHER[b.weather || "clear"].icon} ${WEATHER[b.weather || "clear"].name} · ${esc(MAP_TYPES[b.mapType] || "")} · Turn <b>${Math.min(b.turn, b.maxTurns)}</b>/${b.maxTurns} · ${TACTICS[b.tactic].icon} ${TACTICS[b.tactic].name} · <span class="dim">${esc(phaseTxt)}</span>`;
 
     // buttons
     let btns = "";
     if (b.phase === "deploy") {
       btns = `<select id="bfTactic" class="bf-select">${Object.entries(TACTICS).filter(([, t]) => t.lvl <= (ctx.cmdLevel || 1)).map(([k, t]) => `<option value="${k}" ${k === b.tactic ? "selected" : ""}>${t.icon} ${t.name}</option>`).join("")}</select>
         <button class="btn" data-bf="autodeploy">Auto-deploy</button>
+        <button class="btn" data-bf="reserve" ${this.selSquad() ? "" : "disabled"} title="Keep the selected squad off the field; call it in later">⛺ To reserve</button>
         <button class="btn primary" data-bf="begin">⚔ Begin battle</button>`;
     } else if (b.phase === "battle") {
       const my = b.active === "player" && !this.busy;
@@ -1133,6 +1286,7 @@ const BattleUI = {
       const skBtn = `<button class="btn" data-bf="skill" ${my && sk && !skBlk ? "" : "disabled"} title="${sk ? esc(sk.name + ": " + sk.desc) : "Select one of your squads to use its skill"}${skBlk && sk ? " (" + esc(skBlk) + ")" : ""}">${sk ? sk.icon + " " + sk.name : "✦ Skill"}${sqs && sqs.skillCd > 0 ? ` <small>${sqs.skillCd}</small>` : ""}</button>`;
       btns = `<span class="abilities" title="Lord Commander abilities">${ab}</span>${skBtn}<button class="btn" data-bf="brace" ${my && this.sel && !this.selSquad()?.acted ? "" : "disabled"} title="Skip this squad's attack: +50% defense until your next turn">🛡 Brace</button>
         <button class="btn" data-bf="auto" ${my ? "" : "disabled"} title="Let your captains finish the battle">Auto-battle</button>
+        <button class="btn" data-bf="callres" ${my && Battle.reserves(b, "player").length ? "" : "disabled"} title="Your reserves march in at your edge (they can act next turn)">📯 Reserves (${Battle.reserves(b, "player").length})</button>
         <button class="btn" data-bf="undo" ${my && this.canUndo() ? "" : "disabled"} title="Take back your last move (if that squad hasn't attacked)">↶ Undo</button>
         <button class="btn" data-bf="speed" title="Enemy turn animation speed">⏩ ${this.speed}×</button>
         <button class="btn danger" data-bf="retreat" ${my ? "" : "disabled"}>Retreat</button>
@@ -1195,7 +1349,9 @@ const BattleUI = {
     for (const el of [...layer.children]) if (!seen.has(el.dataset.sq) && !el.classList.contains("dead")) el.remove();
 
     // selected panel
-    document.getElementById("bfSel").innerHTML = sq ? this.squadCard(sq, true) : `<div class="bf-h">Your army</div>${this.armySummary("player")}<div class="bf-h" style="margin-top:8px">Enemy</div>${this.armySummary("enemy")}`;
+    const resv = Battle.reserves(b, "player");
+    const resHtml = resv.length ? `<div class="bf-h" style="margin-top:8px">⛺ Your reserves</div><div class="bf-army">${resv.map((q) => `<span ${b.phase === "deploy" ? `class="res-chip-b" data-bf="unreserve" data-id="${q.id}" title="Put back on the field"` : ""}>${udef(q.type).name} <b>${Battle.count(q)}</b></span>`).join("")}</div>` : "";
+    document.getElementById("bfSel").innerHTML = (sq ? this.squadCard(sq, true) : `<div class="bf-h">Your army</div>${this.armySummary("player")}<div class="bf-h" style="margin-top:8px">Enemy</div>${this.armySummary("enemy")}`) + resHtml;
     // log
     document.getElementById("bfLog").innerHTML = b.log.slice().reverse().map((l) => `<div>${esc(l)}</div>`).join("");
 
@@ -1304,7 +1460,12 @@ const BattleUI = {
     if (s && s.side === "player") { this.sel = s.id; this.render(); this.hover(i); return; }
     if (sel && !sel.moved && !s) {
       const r = Battle.reachable(b, sel);
-      if (r.has(i)) { this.lastMove = { id: sel.id, x: sel.x, y: sel.y, turn: b.turn }; Battle.moveTo(b, sel, i, r.get(i)); this.render(); this.hover(i); return; }
+      if (r.has(i)) {
+        this.lastMove = { id: sel.id, x: sel.x, y: sel.y, turn: b.turn };
+        const hp0 = sel.hp, ev = Battle.moveTo(b, sel, i, r.get(i));
+        if (sel.hp < hp0) this.lastMove = null; // no undoing a move that cost blood
+        this.fx(ev); this.render(); if (sel.hp > 0) this.hover(i); return;
+      }
     }
     this.sel = null; this.render();
   },
@@ -1344,7 +1505,11 @@ const BattleUI = {
       const dec = Battle.decide(b, s);
       const moving = dec && dec.move !== undefined && dec.move !== s.y * b.w + s.x;
       const evs = [];
-      if (moving) { Battle.moveTo(b, s, dec.move, dec.cost); this.render(); await this.sleep(260); }
+      if (moving) {
+        const ev = Battle.moveTo(b, s, dec.move, dec.cost);
+        this.render(); if (ev.length) this.fx(ev); await this.sleep(260);
+        if (s.hp <= 0 || b.phase === "over") { s.acted = true; continue; }
+      }
       if (dec && dec.target) { const t = b.squads.find((q) => q.id === dec.target && q.hp > 0); if (t) Battle.attack(b, s, t, evs); }
       else if (dec && dec.wall !== undefined) { Battle.attackWall(b, s, dec.wall, evs); if (b.tiles[dec.wall] === "rubble") this.updateTile(dec.wall); }
       else if (dec && dec.brace) Battle.brace(b, s);
@@ -1394,6 +1559,22 @@ const BattleUI = {
         this.render();
         break;
       }
+      case "reserve": {
+        const s = this.selSquad();
+        if (s && b.phase === "deploy") { s.reserve = true; s.x = -1; s.y = -1; this.sel = null; this.render(); }
+        break;
+      }
+      case "unreserve": {
+        const s = b.squads.find((q) => q.id === +data.id);
+        if (s && b.phase === "deploy" && Battle.deployReserve(b, s, false)) this.render();
+        break;
+      }
+      case "callres": {
+        if (this.busy || b.active !== "player") break;
+        Battle.callReserves(b, "player", true);
+        this.render(); this.save();
+        break;
+      }
       case "brace": { const s = this.selSquad(); if (s && !s.acted) { Battle.brace(b, s); this.afterPlayerAction(); } break; }
       case "end": if (!this.busy && b.phase === "battle" && b.active === "player") await this.enemyTurn(); break;
       case "auto":
@@ -1416,6 +1597,17 @@ const BattleUI = {
       }
     }
   },
+  summary(b) {
+    const mvp = Object.entries(b.vetXp || {}).sort((a, c) => c[1] - a[1])[0];
+    const st = b.stats || { player: { dealt: 0 }, enemy: { dealt: 0 } };
+    return `<div class="kv" style="margin:6px 0 10px;font-size:12.5px">
+      <span class="muted">Turns fought</span><b>${Math.min(b.turn, b.maxTurns)}</b>
+      <span class="muted">Damage dealt / taken (power)</span><b>${fmt(Math.round(st.player.dealt))} / ${fmt(Math.round(st.enemy.dealt))}</b>
+      <span class="muted">Final morale (you / foe)</span><b>${Math.round(b.morale ? b.morale.player : 0)} / ${b.moraleImmune && b.moraleImmune.enemy ? "fearless" : Math.round(b.morale ? b.morale.enemy : 0)}</b>
+      ${mvp ? `<span class="muted">⭐ MVP</span><b>${esc(udef(mvp[0]).name)}</b>` : ""}
+      ${b.generalFell ? `<span class="muted">Enemy general</span><b class="good">slain</b>` : ""}
+    </div>`;
+  },
   showEnd() {
     const b = this.b, win = b.result.winner === "player";
     const lost = Battle.losses(b, "player"), killed = Battle.losses(b, "enemy");
@@ -1425,6 +1617,7 @@ const BattleUI = {
     box.innerHTML = `<h2>${win ? "🏆 Victory!" : "💀 Defeat"}</h2>
       <p>${esc(b.log[b.log.length - 1] || "")}</p>
       <p><b>Your losses:</b> ${list(lost)}<br><b>Enemies slain:</b> ${list(killed)}</p>
+      ${this.summary(b)}
       <p class="dim">${b.context.kind === "raid" ? (win ? "The city is safe. A bounty will be paid." : "The raiders will plunder the city.") : win ? "Loot will be added to your stores (+25% for leading in person)." : "Survivors limp home."}</p>
       <button class="btn primary" data-bf="close">Return to the city</button>`;
     document.querySelector("#battleRoot .bf").appendChild(box);

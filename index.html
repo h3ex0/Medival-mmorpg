@@ -582,6 +582,11 @@ input[type=text], input[type=password], input[type=number], select, textarea { b
 .mark.m-fire { display: flex; align-items: center; justify-content: center; background: rgba(255,90,0,0.35); box-shadow: inset 0 0 12px rgba(255,140,0,0.9); animation: flicker 0.6s ease-in-out infinite alternate; z-index: 1; }
 .mark.m-fire span { font-size: calc(var(--cell) * 0.45); opacity: 0.9; }
 @keyframes flicker { from { opacity: 0.75; } to { opacity: 1; } }
+.mor-wrap { white-space: nowrap; }
+.mbar { display: inline-block; width: 70px; height: 8px; background: #0b0805; border: 1px solid #3a2a12; border-radius: 4px; overflow: hidden; vertical-align: middle; }
+.mbar i { display: block; height: 100%; transition: width 0.4s; }
+.mbar.p i { background: linear-gradient(90deg, #2f8d3c, #8de38a); } .mbar.e i { background: linear-gradient(90deg, #a3271d, #ff8a7a); }
+.res-chip-b { cursor: pointer; text-decoration: underline dotted; }
 .t-ashes { background: radial-gradient(circle at 40% 40%, #3b3530, #23201d); }
 
 /* ---------- campaign quest log ---------- */
@@ -1911,6 +1916,7 @@ const GameState = {
     if (out.offer && !EVENTS[out.offer.id]) out.offer = null;
     out.stats.missionWins = { ...((raw.stats && raw.stats.missionWins) || {}) };
     if (out.battle && (!out.battle.squads || !out.battle.tiles)) out.battle = null;
+    if (out.battle) { try { Battle.repair(out.battle); } catch (e) { console.warn("Saved battle could not be repaired", e); out.battle = null; } }
     for (const k of Object.keys(out.resources)) if (!isFinite(out.resources[k])) out.resources[k] = 0;
     out.version = 2;
     return out;
@@ -2257,7 +2263,7 @@ const Military = {
       attacker: "player", tactic: tactic || s.doctrine, enemyTactic: m.enemyTactic,
       walls: m.fortified ? { side: "enemy", level: m.fortified } : null,
       context: { kind, mission: id, stage: m.endless ? s.conquest : undefined, cmdLevel: s.commander.level, led: kind === "assault" },
-      bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) }, vet: this.vetRanks(s),
+      bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) }, vet: this.vetRanks(s), morale: s.morale,
     };
   },
   /** Veteran ranks: each unit type earns experience from the enemies it kills (+6% attack & defense per rank, max 5). */
@@ -2356,7 +2362,7 @@ const Military = {
         attacker: "enemy", tactic: s.doctrine, enemyTactic: f.tactic,
         walls: n.fort ? { side: "player", level: n.fort * 2 } : null,
         context: { kind: "raid", raid: r.id, target: n.id, cmdLevel: s.commander.level },
-        bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) }, vet: this.vetRanks(s),
+        bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) }, vet: this.vetRanks(s), morale: s.morale,
       };
     }
     return {
@@ -2365,7 +2371,7 @@ const Military = {
       attacker: "enemy", tactic: s.doctrine, enemyTactic: f.tactic,
       walls: s.buildings.walls > 0 ? { side: "player", level: s.buildings.walls, hpMult: 1 + 0.25 * Research.lvl(s, "fortification") } : null,
       context: { kind: "raid", raid: r.id, cmdLevel: s.commander.level },
-      bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) }, vet: this.vetRanks(s),
+      bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) }, vet: this.vetRanks(s), morale: s.morale,
     };
   },
   raidEstimate(s) { return s.raid ? Battle.estimate({ ...this.raidOpts(s), context: { kind: "estimate" } }, 6) : null; },
@@ -2735,7 +2741,7 @@ const Events = {
     } else if (e.kind === "instant") {
       if (id === "goldvein") {
         const got = Economy.grant(s, { gold: Economy.caps(s).gold * 0.15 });
-        addLog(s, `${e.icon} ${e.name}! +${fmt(got.gold)} Gold.`, "good");
+        addLog(s, got.gold >= 1 ? `${e.icon} ${e.name}! +${fmtInt(got.gold)} Gold.` : `${e.icon} ${e.name}, but your treasury is already full. Build Warehouses to hold more.`, got.gold >= 1 ? "good" : "info");
       } else if (id === "refugees") {
         const room = Math.max(0, Economy.housing(s) - Economy.totalPop(s));
         const n = Math.min(room, randInt(5, 10 + 2 * s.buildings.townhall));
