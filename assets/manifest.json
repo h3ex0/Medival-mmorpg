@@ -142,5 +142,12 @@
   "s_well": "assets/generated/s_well.webp",
   "s_hay": "assets/generated/s_hay.webp",
   "t_cobble": "assets/generated/t_cobble.webp",
-  "t_dirtplot": "assets/generated/t_dirtplot.webp"
+  "t_dirtplot": "assets/generated/t_dirtplot.webp",
+  "c_aldous": "assets/generated/c_aldous.webp",
+  "c_elara": "assets/generated/c_elara.webp",
+  "c_roland": "assets/generated/c_roland.webp",
+  "c_gorm": "assets/generated/c_gorm.webp",
+  "c_tobias": "assets/generated/c_tobias.webp",
+  "n_rival": "assets/generated/n_rival.webp",
+  "c_vex": "assets/generated/c_vex.webp"
 }

@@ -347,6 +347,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid rgba(227,176,75,0
 .unit.broken::before { content: "💔"; position: absolute; top: -2px; right: -2px; font-size: calc(var(--cell) * 0.3); z-index: 3; }
 .unit.aimed img { box-shadow: 0 0 0 2px #ffcf4d, 0 0 10px rgba(255,200,60,0.8); }
 .fx.rout { color: #ffb3b3; font-size: calc(var(--cell) * 0.28); }
+.wm-node.rivalnode span { border-color: var(--rc); background: color-mix(in srgb, var(--rc) 55%, #000); box-shadow: 0 0 12px var(--rc); }
+.wm-node.rivalnode.vassal span { border-color: #ffd94a; }
 .wm-node.sel span { box-shadow: 0 0 0 3px #fff, 0 0 12px rgba(255,255,255,0.6); }
 
 /* =====================================================================
@@ -681,7 +683,7 @@ input[type=text], input[type=password], input[type=number], select, textarea { b
 .g-l { display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 3px; }
 .g-b { height: 14px; background: #0b0805; border: 1px solid #3a2a12; border-radius: 7px; overflow: hidden; }
 .g-b i { display: block; height: 100%; transition: width 0.6s; }
-img.inl { width: 16px; height: 16px; vertical-align: -3px; border-radius: 3px; }
+img.inl { display: inline-block; width: 16px; height: 16px; vertical-align: -3px; border-radius: 3px; }
 .tcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; }
 .tcard { display: grid; grid-template-columns: 64px 1fr; gap: 10px; padding: 8px; border-radius: 9px; background: rgba(0,0,0,0.35); border: 1px solid var(--border); }
 .tc-img { width: 64px; height: 64px; border-radius: 8px; object-fit: cover; border: 2px solid var(--gold-3); }
@@ -713,6 +715,22 @@ img.inl { width: 16px; height: 16px; vertical-align: -3px; border-radius: 3px; }
 .bchoice.blocked { opacity: 0.6; }
 .bchoice.picked { border-color: var(--gold-1); box-shadow: 0 0 14px rgba(246,220,140,0.35); }
 @media (max-width: 820px) { .trade-box { grid-template-columns: 1fr; } .bhead { flex-direction: column; align-items: flex-start; } .locked-lot ~ .locked-lot ~ .locked-lot ~ .locked-lot { display: none; } }
+.captains { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 8px; margin-bottom: 8px; }
+.capcard { display: grid; grid-template-columns: 76px 1fr; gap: 10px; padding: 9px; border-radius: 10px; background: rgba(0,0,0,0.35); border: 1px solid var(--border); }
+.capcard > img { width: 76px; height: 76px; border-radius: 50%; object-fit: cover; border: 3px solid #5c4421; filter: grayscale(0.6) brightness(0.8); }
+.capcard.hired > img { filter: none; border-color: var(--gold-2); }
+.capcard.leading { border-color: var(--gold-2); box-shadow: 0 0 14px rgba(214,166,69,0.3); }
+.capcard.leading > img { box-shadow: 0 0 12px rgba(255,217,74,0.6); }
+.cc-h { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.cc-h b { color: var(--gold-1); font-family: var(--font-display); font-size: 13.5px; }
+.perks { display: flex; flex-wrap: wrap; gap: 3px; margin: 2px 0 6px; }
+.perk { font-size: 10.5px; padding: 1px 6px; border-radius: 6px; border: 1px solid #4c3a20; color: var(--dim); }
+.perk.on { color: #ffd94a; border-color: #8a6326; background: rgba(214,166,69,0.12); }
+.rivals { display: grid; gap: 8px; margin-bottom: 12px; }
+.rivalcard { display: flex; gap: 10px; padding: 9px 10px; border-radius: 10px; background: rgba(0,0,0,0.35); border: 1px solid var(--border); border-left: 4px solid var(--rc); }
+.rv-ban { width: 44px; height: 44px; flex: none; border-radius: 8px; background: var(--rc); display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: inset 0 0 12px rgba(0,0,0,0.5); }
+.tracker .climate { background: rgba(0,0,0,0.25); border-radius: 6px; padding: 4px 6px; }
+.unit.capt .cnt { box-shadow: 0 0 0 2px #ffd94a; }
 .mor-wrap { white-space: nowrap; }
 .mbar { display: inline-block; width: 70px; height: 8px; background: #0b0805; border: 1px solid #3a2a12; border-radius: 4px; overflow: hidden; vertical-align: middle; }
 .mbar i { display: block; height: 100%; transition: width 0.4s; }
@@ -892,6 +910,8 @@ img.inl { width: 16px; height: 16px; vertical-align: -3px; border-radius: 3px; }
   </section>
 
   <section class="win hidden" id="win-army" data-title="⚔ War Council">
+    <div class="section-title">🎖 Captains <span class="dim" id="capSlots" style="text-transform:none;letter-spacing:0"></span></div>
+    <div class="captains" id="captainList"></div>
     <div class="section-title">Battle Doctrine <span class="dim" style="text-transform:none;letter-spacing:0">(used by your captains in auto battles)</span></div>
     <div class="doctrines" id="doctrineList"></div>
     <div class="section-title">Barracks Training</div>
@@ -917,6 +937,8 @@ img.inl { width: 16px; height: 16px; vertical-align: -3px; border-radius: 3px; }
   </section>
 
   <section class="win hidden" id="win-realm" data-title="⚖ Realm Affairs">
+    <div class="section-title">🏰 Rival Lords</div>
+    <div class="rivals" id="rivalList"></div>
     <div id="eventBox"></div>
     <div id="templeBox"></div>
     <div id="marketBox"></div>
@@ -2005,6 +2027,55 @@ img.inl { width: 16px; height: 16px; vertical-align: -3px; border-radius: 3px; }
    "emoji": "",
    "hue": 30,
    "prompt": "Packed brown earth building plot with a few small stones, edged by a thin border of wooden stakes"
+  },
+  {
+   "key": "c_roland",
+   "kind": "portrait",
+   "emoji": "🐎",
+   "hue": 40,
+   "prompt": "Sir Roland the Bold, a dashing blond knight captain in polished plate armor holding a lance with a blue pennant"
+  },
+  {
+   "key": "c_elara",
+   "kind": "portrait",
+   "emoji": "🏹",
+   "hue": 120,
+   "prompt": "Elara Swiftbow, a keen-eyed female ranger captain with a hood, braided hair and an elegant longbow"
+  },
+  {
+   "key": "c_gorm",
+   "kind": "portrait",
+   "emoji": "🛡️",
+   "hue": 20,
+   "prompt": "Gorm Ironwall, a gruff bearded veteran infantry captain with a scarred face, tower shield and axe"
+  },
+  {
+   "key": "c_aldous",
+   "kind": "portrait",
+   "emoji": "✨",
+   "hue": 50,
+   "prompt": "Brother Aldous, an old kindly war priest captain with a white beard, holy symbol and glowing hands"
+  },
+  {
+   "key": "c_vex",
+   "kind": "portrait",
+   "emoji": "🔥",
+   "hue": 280,
+   "prompt": "Magistra Vex, a fierce battle sorceress captain with silver hair, crackling purple fire in her hands"
+  },
+  {
+   "key": "c_tobias",
+   "kind": "portrait",
+   "emoji": "⚙️",
+   "hue": 35,
+   "prompt": "Master Tobias, a clever siege engineer captain with goggles, leather apron, tools and blueprints"
+  },
+  {
+   "key": "n_rival",
+   "kind": "banner",
+   "emoji": "🏰",
+   "hue": 0,
+   "prompt": "A rival lord's dark stone castle on a hill with red banners, soldiers on the walls, storm clouds"
   }
  ]
 }
@@ -2255,6 +2326,10 @@ const QUESTS = [
   { id: "research25", text: "Complete 25 research levels",            check: (s) => Research.total(s) >= 25,             reward: { relics: 3 } },
   { id: "vet5",       text: "Raise any unit type to veteran rank 5",  check: (s) => Object.values(s.veterancy).some((x) => Military.vetRank(x) >= 5), reward: { relics: 5 } },
   { id: "sites6",     text: "Hold 6 territories at once",             check: (s) => World.territories(s).length >= 6,    reward: { relics: 6 } },
+  { id: "captain1",   text: "Hire a Captain",                         check: (s) => Captains.hiredCount(s) >= 1,          reward: { gold: 2500 } },
+  { id: "rivalwin",   text: "Sack a rival lord's castle",             check: (s) => Object.values(s.rivals || {}).some((r) => r.defeats >= 1), reward: { relics: 2 } },
+  { id: "captain5",   text: "Raise a Captain to level 5",             check: (s) => Object.values(s.captains).some((c) => c.level >= 5), reward: { relics: 3 } },
+  { id: "vassal",     text: "Make a rival lord your vassal",          check: (s) => Object.values(s.rivals || {}).some((r) => r.vassal), reward: { relics: 5 } },
   { id: "capital",    text: "Storm the Warlord's Capital on the World Map", check: (s) => World.territories(s).some((n) => n.type === "capital") || (s.stats.capitalsTaken || 0) >= 1, reward: { relics: 10 } },
   { id: "dragon",     text: "Slay the Elder Dragon",                  check: (s) => (s.stats.missionWins.dragon || 0) >= 1, reward: { relics: 5 } },
   { id: "pop500",     text: "Reach 500 population",                   check: (s) => Economy.totalPop(s) >= 500,          reward: { relics: 5 } },
@@ -2368,6 +2443,10 @@ const EVENTS = {
   plague:      { name: "Plague",              icon: "🦠", kind: "instant", weight: 1, desc: "Sickness sweeps the streets. Temples and Medicine reduce the toll." },
   mercenaries: { name: "Mercenary Company",   icon: "🗡️", kind: "offer",   weight: 2, desc: "Sellswords offer their service. No Recruits needed." },
   caravan:     { name: "Merchant Caravan",    icon: "🐫", kind: "offer",   weight: 2, desc: "Traders offer to swap your Stone for Steel." },
+  flood:       { name: "Great Flood",         icon: "🌊", kind: "buff", dur: 240, weight: 0, bad: true, desc: "Farms produce 60% less food." },
+  drought:     { name: "Drought",             icon: "🏜️", kind: "buff", dur: 300, weight: 0, bad: true, desc: "Farms produce half as much food." },
+  wildfire:    { name: "Wildfire",            icon: "🔥", kind: "buff", dur: 180, weight: 0, bad: true, desc: "Lumber camps produce 70% less wood." },
+  blizzard:    { name: "Blizzard",            icon: "🌨️", kind: "buff", dur: 240, weight: 0, bad: true, desc: "Construction is 60% slower and soldiers eat 50% more." },
   holywar:     { name: "Blessing of War",     icon: "⚔️", kind: "buff", dur: 600, weight: 0, desc: "+15% attack in every battle for 10 minutes." },
   aegis:       { name: "Blessing of the Aegis",icon: "🛡️", kind: "buff", dur: 600, weight: 0, desc: "+20% defense in every battle for 10 minutes." },
   relicseller: { name: "Mysterious Peddler",  icon: "🧙", kind: "offer",   weight: 1, desc: "A hooded stranger sells an ancient Relic." },
@@ -2410,6 +2489,9 @@ const GameState = {
       world: null,                   // the world map (generated on first visit)
       campaign: { done: {}, led: {}, turned: {} },   // story quest progress
       gear: { equipped: { weapon: null, armor: null, helm: null, banner: null, relic: null }, bag: [] },
+      climate: { season: 0, until: SEASON_LENGTH, nextDisaster: 1800 },
+      rivals: null,                  // rival lords (see Rivals.fresh)
+      captains: {},                  // captain id -> {hired, level, xp, assigned}
       city: null,                    // building lots: { slots: [{type, level, build?: {to, remaining, total}} | null] }
       veterancy: {},                 // unit type -> battle experience (veteran ranks)
       nextId: 1,
@@ -2418,7 +2500,7 @@ const GameState = {
     };
   },
   /** A brand-new realm, with its starting buildings placed on lots. */
-  newGame() { const s = this.fresh(); s.city = City.fromCounts(s.buildings); City.sync(s); return s; },
+  newGame() { const s = this.fresh(); s.city = City.fromCounts(s.buildings); City.sync(s); s.rivals = Rivals.fresh(); return s; },
   /** Merge a loaded save onto a fresh template so older saves gain new fields. */
   hydrate(raw) {
     const base = this.fresh();
@@ -2446,6 +2528,11 @@ const GameState = {
     out.buffs = Array.isArray(raw.buffs) ? raw.buffs.filter((b) => EVENTS[b.id]) : [];
     if (out.offer && !EVENTS[out.offer.id]) out.offer = null;
     out.stats.missionWins = { ...((raw.stats && raw.stats.missionWins) || {}) };
+    out.climate = { ...base.climate, ...(raw.climate || {}) };
+    if (out.climate.until < out.time) out.climate.until = out.time + SEASON_LENGTH;
+    if (out.climate.nextDisaster < out.time) out.climate.nextDisaster = out.time + 1200;
+    out.rivals = raw.rivals && typeof raw.rivals === "object" ? raw.rivals : null;
+    out.captains = { ...(raw.captains || {}) };
     if (out.battle && (!out.battle.squads || !out.battle.tiles)) out.battle = null;
     if (out.battle) { try { Battle.repair(out.battle); } catch (e) { console.warn("Saved battle could not be repaired", e); out.battle = null; } }
     for (const k of Object.keys(out.resources)) if (!isFinite(out.resources[k])) out.resources[k] = 0;
@@ -2456,7 +2543,9 @@ const GameState = {
       while (out.city.slots.length < City.MAX_LOTS) out.city.slots.push(null);
     } else out.city = City.fromCounts(out.buildings);
     City.sync(out);
-    out.version = 3;
+    if (!out.rivals) { out.rivals = Rivals.fresh(); for (const r of Object.values(out.rivals)) r.nextAttack += out.time; }
+    for (const id of Object.keys(RIVAL_LORDS)) if (!out.rivals[id]) out.rivals[id] = Rivals.fresh()[id];
+    out.version = 4;
     return out;
   },
   load() {
@@ -2533,10 +2622,10 @@ const Economy = {
     const up = Military.upkeep(s);
     const prod = {
       gold: (b.townhall * 1.0 + b.market * 3 + cit * BALANCE.goldPerCitizen + this.employed(s) * BALANCE.goldPerWorker) * m * (1 + 0.05 * b.market) * (1 + 0.1 * Research.lvl(s, "taxation")) * (Events.active(s, "fair") ? 1.3 : 1),
-      food: j.farmer * 1.1 * m * (1 + 0.1 * Research.lvl(s, "agriculture")) * (Events.active(s, "harvest") ? 1.5 : 1),
+      food: j.farmer * 1.1 * m * (1 + 0.1 * Research.lvl(s, "agriculture")) * (Events.active(s, "harvest") ? 1.5 : 1) * Climate.season(s).food * (Events.active(s, "drought") ? 0.5 : 1) * (Events.active(s, "flood") ? 0.4 : 1),
       stone: j.miner * 0.75 * m * (1 + 0.1 * Research.lvl(s, "masonry")),
       steel: j.blacksmith * 0.35 * m * (1 + 0.1 * Research.lvl(s, "metallurgy")),
-      wood: (j.lumberjack || 0) * 0.8 * m,
+      wood: (j.lumberjack || 0) * 0.8 * m * Climate.season(s).wood * (Events.active(s, "wildfire") ? 0.3 : 1),
       horses: (j.rancher || 0) * 0.08 * m,
       crystals: (j.arcanist || 0) * 0.03 * m,
       ale: (j.brewer || 0) * 0.25 * m,
@@ -2545,8 +2634,9 @@ const Economy = {
     };
     // territories on the world map pay out every second
     for (const [r, v] of Object.entries(World.income(s))) prod[r] = (prod[r] || 0) + v;
+    for (const [r, v] of Object.entries(Rivals.tribute(s))) prod[r] = (prod[r] || 0) + v;
     const soldiers = Military.soldierCount(s);
-    const cons = { wood: 0, horses: 0, crystals: 0, faith: 0, ale: s.resources.ale > 0 || (j.brewer || 0) > 0 ? soldiers * 0.005 : 0, gold: up.gold + (j.arcanist || 0) * 0.5, food: cit * BALANCE.foodPerCitizen * (1 - 0.05 * Research.lvl(s, "medicine")) + up.food + (j.rancher || 0) * 0.3 + (j.brewer || 0) * 0.4, stone: j.blacksmith * 0.5, steel: 0, relics: 0 };
+    const cons = { wood: 0, horses: 0, crystals: 0, faith: 0, ale: s.resources.ale > 0 || (j.brewer || 0) > 0 ? soldiers * 0.005 : 0, gold: up.gold + (j.arcanist || 0) * 0.5, food: cit * BALANCE.foodPerCitizen * (1 - 0.05 * Research.lvl(s, "medicine")) + up.food * Climate.season(s).upkeep * (Events.active(s, "blizzard") ? 1.5 : 1) + (j.rancher || 0) * 0.3 + (j.brewer || 0) * 0.4, stone: j.blacksmith * 0.5, steel: 0, relics: 0 };
     // Blacksmiths can only smelt the stone that exists.
     let smeltEff = 1;
     if (cons.stone > 0) {
@@ -2643,7 +2733,7 @@ const Economy = {
     const r = this.rates(s);
     const fill = clamp(s.resources.food / caps.food, 0, 1);
     const surplus = r.net.food >= 0 ? 1 : 0.25;
-    return 0.06 * (0.5 + fill * 1.5) * surplus * (1 + 0.15 * (s.buildings.townhall - 1)) * (1 + 0.2 * Research.lvl(s, "medicine"));
+    return 0.06 * (0.5 + fill * 1.5) * surplus * (1 + 0.15 * (s.buildings.townhall - 1)) * (1 + 0.2 * Research.lvl(s, "medicine")) * Climate.season(s).growth;
   },
 
   step(s, dt) {
@@ -2816,7 +2906,8 @@ const Military = {
       walls: m.fortified ? { side: "enemy", level: m.fortified } : null,
       context: { kind, mission: id, stage: m.endless ? s.conquest : undefined, cmdLevel: s.commander.level, led: kind === "assault" },
       objective: !!(m.node || m.endless),
-      bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) }, vet: this.vetRanks(s), morale: Math.min(100, s.morale + Armory.b(s, "morale")),
+      bonus: { player: this.battleBonus(s), enemy: Threat.atk(s) }, defBonus: { player: this.defenseBonus(s), enemy: Threat.def(s) }, vet: this.vetRanks(s), morale: Math.min(100, s.morale + Armory.b(s, "morale")),
+      season: Climate.season(s).id, captains: Captains.battleLevels(s),
     };
   },
   /** Veteran ranks: each unit type earns experience from the enemies it kills (+6% attack & defense per rank, max 5). */
@@ -2881,7 +2972,7 @@ const Military = {
   raidPower(s) {
     // grows with every raid and your Town Hall, and never falls far behind your own army
     const base = 12 * Math.pow(1.15, s.raidCount) * (1 + 0.5 * (s.buildings.townhall - 1));
-    return Math.round(Math.max(base, 0.5 * this.power(s, s.army)));
+    return Math.round(Math.max(base, 0.5 * this.power(s, s.army)) * Threat.powerMult(s));
   },
   spawnRaid(s) {
     // sometimes the enemy goes after one of your territories instead of the city
@@ -2916,7 +3007,8 @@ const Military = {
         walls: n.fort ? { side: "player", level: n.fort * 2 } : null,
         context: { kind: "raid", raid: r.id, target: n.id, cmdLevel: s.commander.level },
         objective: true,
-        bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) }, vet: this.vetRanks(s), morale: Math.min(100, s.morale + Armory.b(s, "morale")),
+        bonus: { player: this.battleBonus(s), enemy: Threat.atk(s) }, defBonus: { player: this.defenseBonus(s), enemy: Threat.def(s) }, vet: this.vetRanks(s), morale: Math.min(100, s.morale + Armory.b(s, "morale")),
+      season: Climate.season(s).id, captains: Captains.battleLevels(s),
       };
     }
     return {
@@ -2925,7 +3017,8 @@ const Military = {
       attacker: "enemy", tactic: s.doctrine, enemyTactic: f.tactic,
       walls: s.buildings.walls > 0 ? { side: "player", level: s.buildings.walls, hpMult: 1 + 0.25 * Research.lvl(s, "fortification") } : null,
       context: { kind: "raid", raid: r.id, cmdLevel: s.commander.level },
-      bonus: { player: this.battleBonus(s) }, defBonus: { player: this.defenseBonus(s) }, vet: this.vetRanks(s), morale: Math.min(100, s.morale + Armory.b(s, "morale")),
+      bonus: { player: this.battleBonus(s), enemy: Threat.atk(s) }, defBonus: { player: this.defenseBonus(s), enemy: Threat.def(s) }, vet: this.vetRanks(s), morale: Math.min(100, s.morale + Armory.b(s, "morale")),
+      season: Climate.season(s).id, captains: Captains.battleLevels(s),
     };
   },
   raidEstimate(s) { return s.raid ? Battle.estimate({ ...this.raidOpts(s), context: { kind: "estimate" } }, 6) : null; },
@@ -2965,6 +3058,7 @@ const Military = {
     if (win && ctx.led) s.stats.battlesLedWon++;
     if (b.heroFell) { s.morale = Math.max(0, s.morale - 15); addLog(s, "Your Lord Commander was wounded in battle and needs time to recover (−15 morale).", "bad"); }
     if (b.generalFell && win) rep.parts.push("Enemy general slain");
+    Captains.award(s, b.vetXp);
     // veteran experience
     for (const [t, xp] of Object.entries(b.vetXp || {})) {
       if (!UNITS[t]) continue;
@@ -3005,14 +3099,17 @@ const Military = {
         if (it) rep.parts.push(`🎁 ${GEAR_RARITY[it.rarity].name} ${it.name}`);
         addLog(s, `The ${f} has been driven off! Bounty: ${rep.parts.join(", ")}. Soldiers lost: ${lost}, enemies slain: ${slain}.`, "good");
         this.addXp(s, Math.round((r ? r.power : 50) / 4));
+        if (r && r.rival) Rivals.afterRaid(s, r.rival, true);
       } else {
         s.stats.raidsLost++;
-        const frac = 0.25 * (1 - Math.min(0.5, s.buildings.walls * 0.04));
+        const frac = (r && r.rival ? 0.35 : 0.25) * (1 - Math.min(0.5, s.buildings.walls * 0.04));
+        const took = {};
         for (const res of STORABLE) {
           const take = Math.floor(s.resources[res] * frac);
-          s.resources[res] -= take;
+          s.resources[res] -= take; took[res] = take;
           if (take > 0) rep.parts.push(`${fmt(take)} ${RESOURCES[res].name}`);
         }
+        if (r && r.rival) { Rivals.afterRaid(s, r.rival, false, took); rep.parts.push(`carried off to ${RIVAL_LORDS[r.rival].name}`); }
         const dead = Math.ceil(s.population.citizens * 0.08);
         for (let i = 0; i < dead; i++) Economy.removeCitizen(s);
         s.morale = Math.max(0, s.morale - 25);
@@ -3048,7 +3145,11 @@ const Military = {
         rep.parts.push(`${n} Relic${n > 1 ? "s" : ""}`);
       }
       if (m.endless && ctx.stage === s.conquest) { s.conquest++; rep.parts.push(`Conquest stage ${s.conquest} unlocked`); }
-      if (m.node) {
+      if (m.node && m.rival) {
+        const res = Rivals.defeated(s, m.rival);
+        rep.parts.push(res === "vassal" ? `${RIVAL_LORDS[m.rival].name} is now your vassal!` : `${RIVAL_LORDS[m.rival].name} sacked (${s.rivals[m.rival].defeats}/3)`);
+        const n = World.node(s, m.node); if (n) { n.garrison = null; n.clearedUntil = s.time + 900; }
+      } else if (m.node) {
         s.stats.sitesRaided++;
         const res = World.onWin(s, World.node(s, m.node));
         if (res === "captured") { s.stats.sitesCaptured++; rep.parts.push("Territory captured"); }
@@ -3309,6 +3410,259 @@ const Armory = {
   score(it) { return Object.values(it.stats).reduce((a, c) => a + c, 0); },
 };
 
+/* =====================================================================
+   4c. THREAT, CLIMATE, RIVAL LORDS & CAPTAINS
+   ===================================================================== */
+
+/* ---------- Threat: the world answers your rise with stronger enemies ---------- */
+const THREAT_TIERS = [[1, "Normal"], [3, "Hardened"], [6, "Veteran"], [9, "Elite"], [12, "Champion"], [16, "Legendary"]];
+const Threat = {
+  level(s) {
+    const turned = Object.keys(s.campaign.turned || {}).length;
+    return Math.round((1 + (s.buildings.townhall - 1) * 0.6 + turned * 0.5 + (s.conquest - 1) * 0.3 + s.stats.raidsWon * 0.08) * 10) / 10;
+  },
+  tier(s) { const l = this.level(s); let t = THREAT_TIERS[0][1]; for (const [min, n] of THREAT_TIERS) if (l >= min) t = n; return t; },
+  /** Attack / defense multipliers every enemy army gets. */
+  atk(s) { return 1 + 0.035 * (this.level(s) - 1); },
+  def(s) { return 1 + 0.025 * (this.level(s) - 1); },
+  powerMult(s) { return 1 + 0.05 * (this.level(s) - 1); },
+};
+
+/* ---------- Climate: seasons and natural disasters ---------- */
+const SEASONS = [
+  { id: "spring", name: "Spring", icon: "🌱", food: 1.1, wood: 1, build: 1, growth: 1.25, upkeep: 1, desc: "+10% Food, +25% population growth. Floods are possible." },
+  { id: "summer", name: "Summer", icon: "☀️", food: 1.2, wood: 1, build: 1.1, growth: 1, upkeep: 1, desc: "+20% Food, +10% construction speed. Droughts, wildfires and locusts are possible." },
+  { id: "autumn", name: "Autumn", icon: "🍂", food: 1.15, wood: 1.15, build: 1, growth: 1, upkeep: 1, desc: "Harvest time: +15% Food and Wood. Wildfires and locusts are possible." },
+  { id: "winter", name: "Winter", icon: "❄️", food: 0.7, wood: 0.9, build: 0.75, growth: 0.6, upkeep: 1.2, desc: "−30% Food, −25% construction speed, soldiers eat 20% more. Blizzards are possible." },
+];
+const SEASON_LENGTH = 600;
+const DISASTERS = {
+  earthquake: { name: "Earthquake", icon: "🌋", seasons: ["spring", "summer", "autumn", "winter"], weight: 1, desc: "The ground shakes and a building is damaged." },
+  flood:      { name: "Great Flood", icon: "🌊", seasons: ["spring"], weight: 3, buff: 240, desc: "Rivers burst their banks: food stores are swept away and farms produce 60% less for 4 minutes." },
+  drought:    { name: "Drought", icon: "🏜️", seasons: ["summer"], weight: 3, buff: 300, desc: "No rain: farms produce half as much food for 5 minutes." },
+  wildfire:   { name: "Wildfire", icon: "🔥", seasons: ["summer", "autumn"], weight: 2, buff: 180, desc: "Fire sweeps the forests: timber stores burn and lumber camps produce 70% less for 3 minutes." },
+  locusts:    { name: "Locust Swarm", icon: "🦗", seasons: ["summer", "autumn"], weight: 2, desc: "A cloud of locusts devours the stored food." },
+  blizzard:   { name: "Blizzard", icon: "🌨️", seasons: ["winter"], weight: 4, buff: 240, desc: "Snow buries the city: construction slows to a crawl and soldiers eat 50% more for 4 minutes." },
+};
+const Climate = {
+  season(s) { return SEASONS[s.climate.season % 4]; },
+  left(s) { return Math.max(0, s.climate.until - s.time); },
+  /** Granaries and the Temple soften disasters (0 = no protection, 0.6 max). */
+  shelter(s) { return Math.min(0.6, s.buildings.granary * 0.01 + s.buildings.temple * 0.04 + Research.lvl(s, "medicine") * 0.03); },
+  step(s) {
+    const c = s.climate;
+    if (s.time >= c.until) {
+      c.season = (c.season + 1) % 4; c.until = s.time + SEASON_LENGTH;
+      const se = this.season(s);
+      addLog(s, `${se.icon} ${se.name} has come. ${se.desc}`, "info");
+    }
+    if (s.time >= c.nextDisaster) {
+      c.nextDisaster = s.time + randInt(1500, 2700);
+      this.strike(s);
+    }
+  },
+  strike(s, forced) {
+    const se = this.season(s).id;
+    const pool = Object.entries(DISASTERS).filter(([, d]) => d.seasons.includes(se));
+    const tot = pool.reduce((a, [, d]) => a + d.weight, 0);
+    let r = Math.random() * tot, id = forced || pool[0][0];
+    if (!forced) for (const [k, d] of pool) { r -= d.weight; if (r <= 0) { id = k; break; } }
+    const D = DISASTERS[id];
+    // the Temple's priests sometimes avert a catastrophe
+    if (!forced && Math.random() < Math.min(0.35, s.buildings.temple * 0.04)) { addLog(s, `🙏 The priests' prayers turned aside a ${D.name.toLowerCase()}.`, "good"); return null; }
+    const keep = 1 - this.shelter(s);
+    let detail = "";
+    if (id === "earthquake") {
+      const cands = s.city.slots.map((x, i) => [x, i]).filter(([x, i]) => x && i > 0 && x.level > 1 && !x.build);
+      if (cands.length) {
+        const [x] = cands[Math.floor(Math.random() * cands.length)];
+        x.level--; City.sync(s);
+        detail = ` Your ${BUILDINGS[x.type].name} was damaged (now level ${x.level}).`;
+      } else detail = " Luckily nothing was badly damaged.";
+    } else if (id === "flood") { const l = Math.floor(s.resources.food * 0.2 * keep); s.resources.food -= l; detail = ` ${fmtInt(l)} Food lost.`; }
+    else if (id === "wildfire") { const l = Math.floor(s.resources.wood * 0.3 * keep); s.resources.wood -= l; detail = ` ${fmtInt(l)} Wood burned.`; }
+    else if (id === "locusts") { const l = Math.floor(s.resources.food * 0.25 * keep); s.resources.food -= l; detail = ` ${fmtInt(l)} Food devoured.`; }
+    if (D.buff) { s.buffs = s.buffs.filter((b) => b.id !== id); s.buffs.push({ id, until: s.time + Math.round(D.buff * keep + D.buff * 0.4 * (1 - keep)) }); }
+    s.stats.disasters = (s.stats.disasters || 0) + 1;
+    addLog(s, `${D.icon} ${D.name}! ${D.desc}${detail}${keep < 1 ? ` (Your granaries and temple softened the blow by ${Math.round((1 - keep) * 100)}%.)` : ""}`, "bad");
+    if (typeof UI !== "undefined" && UI.toast && document.getElementById("toasts")) UI.toast(`${D.icon} ${D.name}!`, 5000);
+    return id;
+  },
+};
+
+/* ---------- Rival lords: neighbouring castles that raid you and grow stronger ---------- */
+const RIVAL_LORDS = {
+  varn:   { name: "House Varn",   lord: "Baron Varn the Grim",  color: "#c0392b", tactic: "shieldwall", roster: { footman: 4, spearman: 3, archer: 3, knight: 1 }, start: 70 },
+  morrow: { name: "Morrow Keep",  lord: "Lady Isolde Morrow",   color: "#8e44ad", tactic: "volley",     roster: { archer: 4, longbow: 2, crossbow: 2, pikeman: 3 }, start: 110 },
+  drak:   { name: "Drakmoor",     lord: "Warlord Drak",         color: "#d35400", tactic: "charge",     roster: { lightcav: 3, knight: 2, militia: 4, horsearcher: 2 }, start: 160 },
+  sable:  { name: "Sable Hold",   lord: "The Sable Prince",     color: "#34495e", tactic: "bloodlust",  roster: { paladin: 1, footman: 3, mage: 1, catapult: 1, archer: 2, priest: 1 }, start: 240 },
+};
+// rival armies use the same faction machinery as monsters (never picked for random raids)
+for (const [id, r] of Object.entries(RIVAL_LORDS)) FACTIONS["rival_" + id] = { name: r.name, minPower: Infinity, tactic: r.tactic, roster: r.roster };
+
+const Rivals = {
+  FIRST_ATTACK: 2400,
+  fresh() {
+    return Object.fromEntries(Object.entries(RIVAL_LORDS).map(([id, r], i) => [id, { power: r.start, treasury: { gold: 500, food: 400, stone: 300, steel: 80 }, defeats: 0, vassal: false, nextAttack: this.FIRST_ATTACK + i * 900 + randInt(0, 600), stolen: 0 }]));
+  },
+  cap(s) { return 60 * Math.pow(Threat.level(s), 1.7) + 80; },
+  state(s, id) { return s.rivals[id]; },
+  /** How much a vassal pays per second. */
+  tribute(s) {
+    const out = {};
+    const t = Threat.level(s);
+    for (const [id, r] of Object.entries(s.rivals)) if (r.vassal) { out.gold = (out.gold || 0) + 5 + t * 2 + r.power * 0.01; out.steel = (out.steel || 0) + 0.5 + t * 0.15; out.food = (out.food || 0) + 3 + t; }
+    return out;
+  },
+  step(s, dt) {
+    for (const [id, r] of Object.entries(s.rivals)) {
+      // they grow richer and stronger over time (up to a cap set by the world threat)
+      // they grow over time, and never fall too far behind the world threat
+      const cap = this.cap(s) * (1 + Object.keys(RIVAL_LORDS).indexOf(id) * 0.25);
+      r.power = Math.min(cap, Math.max(r.power * (1 + 0.00008 * dt) + 0.01 * dt, r.vassal ? 0 : cap * 0.18));
+      const t = r.treasury, lim = 40 * r.power + 2000;
+      t.gold = Math.min(lim, t.gold + r.power * 0.006 * dt); t.food = Math.min(lim, t.food + r.power * 0.005 * dt);
+      t.stone = Math.min(lim, t.stone + r.power * 0.004 * dt); t.steel = Math.min(lim / 4, t.steel + r.power * 0.001 * dt);
+      if (!r.vassal && !s.raid && s.time >= r.nextAttack && !s.battle) {
+        r.nextAttack = s.time + randInt(1500, 2700);
+        this.attack(s, id);
+      }
+    }
+  },
+  attack(s, id) {
+    const L = RIVAL_LORDS[id], r = s.rivals[id];
+    const power = Math.round(r.power * 0.75 * Threat.powerMult(s));
+    const army = composeArmy("rival_" + id, power);
+    s.raidCount++;
+    s.raid = { id: s.nextId++, faction: "rival_" + id, rival: id, army, power: armyPower(army), mapType: ["plains", "hills", "forest", "river"][randInt(0, 3)], arriveAt: s.time + BALANCE.raidWarning, deadline: 0, phase: "approaching" };
+    addLog(s, `⚔ ${L.lord} of ${L.name} marches on Ironhold with ${fmtInt(Military.sum(army))} soldiers (power ${fmt(s.raid.power)}) to plunder your stores! They arrive in ${fmtTime(BALANCE.raidWarning)}.`, "bad");
+  },
+  /** After a rival's raid on you is resolved. */
+  afterRaid(s, id, won, plundered) {
+    const r = s.rivals[id];
+    if (!r) return;
+    if (won) { r.power *= 0.85; addLog(s, `${RIVAL_LORDS[id].name}'s army limps home, beaten.`, "good"); }
+    else {
+      r.power *= 1.05;
+      for (const [k, v] of Object.entries(plundered || {})) if (r.treasury[k] !== undefined) r.treasury[k] += v;
+      r.stolen += Object.values(plundered || {}).reduce((a, b) => a + b, 0);
+    }
+  },
+  bribeCost(s, id) { return Math.round(s.rivals[id].power * 8 + 200); },
+  bribe(s, id) {
+    const r = s.rivals[id], c = this.bribeCost(s, id);
+    if (r.vassal || s.resources.gold < c) return false;
+    s.resources.gold -= c; r.treasury.gold += c;
+    r.nextAttack = Math.max(r.nextAttack, s.time) + 1800;
+    addLog(s, `💰 You sent ${fmtInt(c)} Gold to ${RIVAL_LORDS[id].lord}. ${RIVAL_LORDS[id].name} will leave you in peace for a while.`, "info");
+    return true;
+  },
+  /** You stormed their castle. */
+  defeated(s, id) {
+    const r = s.rivals[id], L = RIVAL_LORDS[id];
+    r.defeats++; r.power *= 0.7;
+    for (const k of Object.keys(r.treasury)) r.treasury[k] *= 0.6;
+    r.nextAttack = s.time + 2400;
+    if (r.defeats >= 3 && !r.vassal) {
+      r.vassal = true;
+      addLog(s, `👑 ${L.lord} kneels before you! ${L.name} is now your vassal and pays tribute every second.`, "good");
+      return "vassal";
+    }
+    addLog(s, `🏰 You sacked ${L.name}! (${r.defeats}/3: defeat them three times to make them your vassal.)`, "good");
+    return "sacked";
+  },
+};
+
+/* ---------- Captains: unique heroes who lead one kind of troops ---------- */
+const CAPTAINS = {
+  roland: { name: "Sir Roland the Bold", asset: "c_roland", troops: "Cavalry", match: (d) => d.cls === "cav" && !d.hero, req: { stables: 1 },
+            atk: [0.08, 0.025], def: [0.04, 0.015], perks: { 3: { charge: 0.3, txt: "Charges hit 30% harder" }, 6: { move: 1, txt: "+1 movement" }, 9: { atk: 0.15, txt: "+15% attack" } },
+            bio: "A champion of the tourney fields who has never lost a joust." },
+  elara:  { name: "Elara Swiftbow", asset: "c_elara", troops: "Archers & missile troops", match: (d) => d.cls === "ranged" && !d.splash && !d.hero, req: { barracks: 2 },
+            atk: [0.08, 0.025], def: [0.03, 0.01], perks: { 3: { atk: 0.1, txt: "+10% attack" }, 6: { range: 1, txt: "+1 range" }, 9: { def: 0.2, txt: "+20% defense" } },
+            bio: "A ranger from the northern woods who can split an arrow at a hundred paces." },
+  gorm:   { name: "Gorm Ironwall", asset: "c_gorm", troops: "Infantry", match: (d) => d.cls === "inf" && !d.hero, req: { barracks: 1 },
+            atk: [0.05, 0.02], def: [0.08, 0.025], perks: { 3: { def: 0.1, txt: "+10% defense" }, 6: { counter: 0.25, txt: "Stronger counterattacks" }, 9: { atk: 0.15, txt: "+15% attack" } },
+            bio: "Thirty years in the shield wall and not one step back." },
+  aldous: { name: "Brother Aldous", asset: "c_aldous", troops: "Healers (Priests & Paladins)", match: (d) => !!d.heal && !d.general, req: { temple: 1 },
+            atk: [0, 0.01], def: [0.05, 0.02], heal: [0.25, 0.08], perks: { 3: { heal: 0.3, txt: "+30% healing" }, 6: { def: 0.15, txt: "+15% defense" }, 9: { heal: 0.5, txt: "+50% healing" } },
+            bio: "A gentle old monk whose prayers close wounds faster than any surgeon." },
+  vex:    { name: "Magistra Vex", asset: "c_vex", troops: "Battle Mages", match: (d) => !!d.splash, req: { magetower: 1 },
+            atk: [0.1, 0.03], def: [0, 0.01], perks: { 3: { splash: 0.25, txt: "+25% splash damage" }, 6: { range: 1, txt: "+1 range" }, 9: { atk: 0.2, txt: "+20% attack" } },
+            bio: "Expelled from the Academy for setting the library on fire. Twice." },
+  tobias: { name: "Master Tobias", asset: "c_tobias", troops: "Siege engines", match: (d) => d.cls === "siege", req: { workshop: 1 },
+            atk: [0.08, 0.025], def: [0.03, 0.01], breach: [0.25, 0.08], perks: { 3: { range: 1, txt: "+1 range" }, 6: { breach: 0.5, txt: "+50% wall damage" }, 9: { atk: 0.2, txt: "+20% attack" } },
+            bio: "He has never met a wall he could not knock down." },
+};
+const CAPTAIN_MAX = 10;
+/** Bonuses captain `id` at `lvl` gives unit def d (or null if they don't lead that kind of troops). Used by the battle engine. */
+function captainMods(id, lvl, d) {
+  const C = CAPTAINS[id];
+  if (!C || !d || !C.match(d)) return null;
+  const v = (k) => (C[k] ? C[k][0] + C[k][1] * (lvl - 1) : 0);
+  const out = { atk: v("atk"), def: v("def"), heal: v("heal"), breach: v("breach"), move: 0, range: 0, charge: 0, splash: 0, counter: 0 };
+  for (const [L, p] of Object.entries(C.perks)) if (lvl >= +L) for (const [k, x] of Object.entries(p)) if (k !== "txt") out[k] = (out[k] || 0) + x;
+  return out;
+}
+const Captains = {
+  slots(s) { return Math.min(4, 1 + Math.floor(s.buildings.townhall / 4)); },
+  hiredCount(s) { return Object.values(s.captains).filter((c) => c.hired).length; },
+  assigned(s) { return Object.entries(s.captains).filter(([, c]) => c.hired && c.assigned).map(([id]) => id); },
+  xpNeed(lvl) { return Math.round(220 * Math.pow(lvl, 1.8)); },
+  hireCost(s) { const n = this.hiredCount(s); return { gold: 2000 * (1 + n * 1.5), relics: 1 + Math.floor(n / 2) }; },
+  hireBlocker(s, id) {
+    const C = CAPTAINS[id];
+    if (s.captains[id] && s.captains[id].hired) return "Already in your service";
+    for (const [b, l] of Object.entries(C.req)) if (s.buildings[b] < l) return `Requires ${BUILDINGS[b].name} level ${l}`;
+    const c = this.hireCost(s);
+    if (s.resources.gold < c.gold || s.resources.relics < c.relics) return `Costs ${fmt(c.gold)} Gold and ${c.relics} Relic${c.relics > 1 ? "s" : ""}`;
+    return null;
+  },
+  hire(s, id) {
+    if (this.hireBlocker(s, id)) return false;
+    const c = this.hireCost(s);
+    s.resources.gold -= c.gold; s.resources.relics -= c.relics;
+    s.captains[id] = { hired: true, level: 1, xp: 0, assigned: this.assigned(s).length < this.slots(s) };
+    addLog(s, `🎖 ${CAPTAINS[id].name} has sworn to lead your ${CAPTAINS[id].troops.toLowerCase()}!`, "war");
+    return true;
+  },
+  toggle(s, id) {
+    const c = s.captains[id];
+    if (!c || !c.hired) return false;
+    if (!c.assigned && this.assigned(s).length >= this.slots(s)) return false;
+    c.assigned = !c.assigned;
+    return true;
+  },
+  /** Levels of the captains leading this battle. */
+  battleLevels(s) { return Object.fromEntries(this.assigned(s).map((id) => [id, s.captains[id].level])); },
+  /** Captains earn experience from the enemies their troops kill. */
+  award(s, vetXp) {
+    for (const id of this.assigned(s)) {
+      const c = s.captains[id], C = CAPTAINS[id];
+      let xp = 0;
+      for (const [t, v] of Object.entries(vetXp || {})) if (UNITS[t] && C.match(UNITS[t])) xp += v;
+      if (!xp || c.level >= CAPTAIN_MAX) continue;
+      c.xp += Math.round(xp);
+      while (c.level < CAPTAIN_MAX && c.xp >= this.xpNeed(c.level)) {
+        c.xp -= this.xpNeed(c.level); c.level++;
+        const perk = C.perks[c.level];
+        addLog(s, `🎖 ${C.name} reached level ${c.level}!${perk ? ` New perk: ${perk.txt}.` : ""}`, "war");
+      }
+    }
+  },
+  describe(id, lvl) {
+    const C = CAPTAINS[id], m = captainMods(id, lvl, { cls: "inf", heal: 1, splash: 1 }) || {};
+    const v = (k) => (C[k] ? C[k][0] + C[k][1] * (lvl - 1) : 0);
+    const parts = [];
+    if (v("atk")) parts.push(`+${Math.round(v("atk") * 100)}% attack`);
+    if (v("def")) parts.push(`+${Math.round(v("def") * 100)}% defense`);
+    if (v("heal")) parts.push(`+${Math.round(v("heal") * 100)}% healing`);
+    if (v("breach")) parts.push(`+${Math.round(v("breach") * 100)}% wall damage`);
+    void m;
+    return parts.join(", ");
+  },
+};
+
 const Temple = {
   blocker(s, id) {
     const bl = BLESSINGS[id];
@@ -3455,8 +3809,10 @@ const Engine = {
     const shortage = Economy.step(s, dt);
     Military.step(s, dt, shortage);
     Research.step(s, dt);
-    City.step(s, dt);
+    City.step(s, dt * Climate.season(s).build * (Events.active(s, "blizzard") ? 0.4 : 1));
     Events.step(s);
+    Climate.step(s);
+    Rivals.step(s, dt);
     World.step(s);
   },
 
@@ -4195,18 +4551,61 @@ const HUD = {
       if (dot) { if (n) dot.textContent = a.id === "citizens" || a.id === "army" || a.id === "realm" ? "!" : n; else dot.remove(); }
     }
     this.renderTracker(s);
+    if (this.open === "army") this.renderCaptains(s);
+    if (this.open === "realm") this.renderRivals(s);
     if (this.open === "building" && this.lot !== undefined && this.lot !== null) this.renderBuilding(s);
     if (this.open === "campaign") this.renderCampaign(s);
     if (this.open === "armory") this.renderArmory(s);
   },
 
+  renderCaptains(s) {
+    const sig = JSON.stringify(s.captains) + Captains.slots(s) + Math.floor(s.resources.gold / 500) + s.resources.relics + JSON.stringify(s.buildings);
+    if (sig === this.sig.captains) return;
+    this.sig.captains = sig;
+    $("#capSlots").textContent = `(${Captains.assigned(s).length}/${Captains.slots(s)} leading · more slots at Town Hall 4, 8 and 12)`;
+    $("#captainList").innerHTML = Object.entries(CAPTAINS).map(([id, C]) => {
+      const c = s.captains[id], hired = c && c.hired, lvl = hired ? c.level : 1, blk = hired ? null : Captains.hireBlocker(s, id);
+      const perks = Object.entries(C.perks).map(([L, p]) => `<span class="perk ${hired && lvl >= +L ? "on" : ""}" title="Unlocks at level ${L}">Lv ${L}: ${p.txt}</span>`).join("");
+      const need = Captains.xpNeed(lvl);
+      return `<div class="capcard ${hired ? "hired" : ""} ${hired && c.assigned ? "leading" : ""}">
+        <img src="${AssetPipeline.src(C.asset)}" alt="">
+        <div class="cc-body"><div class="cc-h"><b>${C.name}</b>${hired ? `<span class="badge">Lv ${lvl}${lvl >= CAPTAIN_MAX ? " (max)" : ""}</span>` : ""}</div>
+          <div class="dim" style="font-size:11.5px">Leads <b style="color:var(--text)">${C.troops}</b> · ${esc(C.bio)}</div>
+          <div class="good" style="font-size:12px;margin:3px 0">${Captains.describe(id, lvl)}</div>
+          <div class="perks">${perks}</div>
+          ${hired ? `${lvl < CAPTAIN_MAX ? `<div class="bar war" style="margin:5px 0 2px" title="Earns XP from enemies their troops kill"><i style="width:${(c.xp / need) * 100}%"></i></div><div class="dim" style="font-size:11px">XP ${fmtInt(c.xp)} / ${fmtInt(need)}</div>` : ""}
+            <button class="btn sm ${c.assigned ? "" : "primary"}" data-action="capToggle" data-id="${id}" ${!c.assigned && Captains.assigned(s).length >= Captains.slots(s) ? "disabled" : ""}>${c.assigned ? "🎖 Leading · stand down" : "Assign to lead"}</button>`
+          : `<button class="btn sm primary" data-action="capHire" data-id="${id}" ${blk ? "disabled" : ""} title="${esc(blk || "")}">Hire: ${fmt(Captains.hireCost(s).gold)} Gold + ${Captains.hireCost(s).relics} Relic${Captains.hireCost(s).relics > 1 ? "s" : ""}</button>${blk && !blk.startsWith("Costs") ? `<div class="req">${esc(blk)}</div>` : ""}`}
+        </div></div>`;
+    }).join("");
+  },
+  renderRivals(s) {
+    const sig = JSON.stringify(Object.values(s.rivals).map((r) => [Math.round(r.power), r.defeats, r.vassal, Math.round(r.nextAttack - s.time) > 0])) + Math.floor(s.resources.gold / 200);
+    if (sig !== this.sig.rivals) {
+      this.sig.rivals = sig;
+      $("#rivalList").innerHTML = Object.entries(RIVAL_LORDS).map(([id, L]) => {
+        const r = s.rivals[id], bc = Rivals.bribeCost(s, id);
+        return `<div class="rivalcard" style="--rc:${L.color}"><div class="rv-ban">🏰</div><div style="flex:1">
+          <div class="cc-h"><b>${L.name}</b>${r.vassal ? `<span class="badge teal">👑 Vassal</span>` : `<span class="badge war">Power ⚔ ${fmt(r.power)}</span>`}</div>
+          <div class="dim" style="font-size:11.5px">${L.lord} · ${TACTICS[L.tactic].icon} ${TACTICS[L.tactic].name} · defeats ${r.defeats}/3${r.stolen ? ` · stole ${fmt(r.stolen)} from you` : ""}</div>
+          <div style="font-size:12px;margin-top:3px">Treasury: ${["gold", "food", "stone", "steel"].map((k) => `<img class="inl" src="${AssetPipeline.src(RESOURCES[k].asset)}" alt=""> ${fmt(r.treasury[k])}`).join(" · ")}</div>
+          ${r.vassal ? `<div class="good" style="font-size:12px">Pays you ${(5 + Threat.level(s) * 2 + r.power * 0.01).toFixed(1)} Gold, ${(3 + Threat.level(s)).toFixed(1)} Food and ${(0.5 + Threat.level(s) * 0.15).toFixed(2)} Steel per second.</div>`
+            : `<div style="font-size:12px" data-rival-t="${id}"></div>
+              <div class="btn-row" style="margin-top:5px"><button class="btn sm" data-action="rivalBribe" data-id="${id}" ${s.resources.gold < bc ? "disabled" : ""}>💰 Bribe for peace (${fmt(bc)} Gold)</button><button class="btn sm primary" data-action="rivalAttack" data-id="${id}">⚔ Storm their castle</button></div>`}
+        </div></div>`;
+      }).join("");
+    }
+    for (const [id, r] of Object.entries(s.rivals)) { const t = $(`[data-rival-t="${id}"]`); if (t) t.textContent = s.raid && s.raid.rival === id ? "⚠ Their army is marching on you!" : `Next attack expected in about ${fmtTime(Math.max(0, r.nextAttack - s.time))}`; }
+  },
   renderTracker(s) {
     const cur = Campaign.current(s);
     const open = Quests.open(s, 3);
-    const sig = (cur ? cur + Campaign.state(s, cur) + !!s.campaign.led[cur] : "") + "|" + open.map((q) => q.id + q.check(s)).join() + "|" + s.expeditions.map((e) => e.id).join();
+    const sig = (cur ? cur + Campaign.state(s, cur) + !!s.campaign.led[cur] : "") + "|" + open.map((q) => q.id + q.check(s)).join() + "|" + s.expeditions.map((e) => e.id).join() + "|" + s.climate.season + Threat.level(s);
     if (sig !== this.sig.tracker) {
       this.sig.tracker = sig;
-      let h = "";
+      let h = `<div class="tr-sec climate"><div class="tr-h"><span>${Climate.season(s).icon} ${Climate.season(s).name}</span><span data-season-t="1"></span></div>
+        <div class="tr-obj" style="padding-left:0" title="${esc(Climate.season(s).desc)}">${esc(Climate.season(s).desc)}</div>
+        <div class="tr-obj" style="padding-left:0;color:#ff9a8a" title="Enemies grow stronger as your realm rises: +${Math.round((Threat.atk(s) - 1) * 100)}% attack, +${Math.round((Threat.def(s) - 1) * 100)}% defense">☠ World threat: <b>${Threat.tier(s)}</b> (Lv ${Threat.level(s)})</div></div>`;
       if (cur) {
         const c = CAMPAIGN[cur], st = Campaign.state(s, cur);
         h += `<div class="tr-sec"><div class="tr-h"><span>📖 Campaign</span><span>${CHAPTERS[c.chapter].split(" · ")[0]}</span></div>
@@ -4226,6 +4625,7 @@ const HUD = {
       $("#tracker").innerHTML = h;
     }
     for (const e of s.expeditions) { const t = $(`[data-trt="${e.id}"]`); if (t) t.textContent = "· " + fmtTime(e.endAt - s.time); }
+    const st = $('[data-season-t="1"]'); if (st) st.textContent = fmtTime(Climate.left(s)) + " left";
   },
 
   /* ===================== the city scene ===================== */
@@ -5001,7 +5401,7 @@ const UI = {
       let h = "";
       for (const b of s.buffs) {
         const e = EVENTS[b.id];
-        h += `<div class="alert good-box"><div><b>${e.icon} ${e.name}</b> <span class="dim">${e.desc}</span></div><span class="badge teal" data-buff="${b.id}"></span></div>`;
+        h += `<div class="alert ${e.bad ? "bad" : "good-box"}"><div><b>${e.icon} ${e.name}</b> <span class="dim">${e.desc}</span></div><span class="badge teal" data-buff="${b.id}"></span></div>`;
       }
       if (o) {
         const e = EVENTS[o.id];
@@ -5134,7 +5534,7 @@ const UI = {
         <span>Enemy power <b style="color:var(--text)">⚔ ${fmt(armyPower(m.army))}</b></span><span>Terrain <b style="color:var(--text)">${MAP_TYPES[m.map]}</b></span><span>Duration <b style="color:var(--text)">${fmtTime(m.duration)}</b></span>
         ${m.fortified ? '<span class="tag">Fortified: bring siege units</span>' : ""}</div>
       <div class="chips" style="margin-bottom:8px">${this.armyChips(m.army)}</div>
-      ${m.node ? `<div class="costs" style="margin-bottom:8px">Loot: ${Object.entries(m.loot).map(([r, [v]]) => `<span class="cost"><img data-asset="${RESOURCES[r].asset}" alt="">${fmt(v)}</span>`).join("")}${m.relic ? `<span class="cost"><img data-asset="res_relics" alt="">${m.relic.n[0]}</span>` : ""} <span class="dim">· win to capture it as a territory</span></div>` : ""}
+      ${m.node ? `<div class="costs" style="margin-bottom:8px">Loot: ${Object.entries(m.loot).map(([r, [v]]) => `<span class="cost"><img data-asset="${RESOURCES[r].asset}" alt="">${fmt(v)}</span>`).join("")}${m.relic ? `<span class="cost"><img data-asset="res_relics" alt="">${m.relic.n[0]}</span>` : ""} <span class="dim">· ${m.rival ? "sack their castle (3 defeats makes them your vassal)" : "win to capture it as a territory"}</span></div>` : ""}
       ${rows || '<div class="empty">No troops at home.</div>'}
       <label class="field" style="margin-top:10px"><span>Tactic</span><select id="depTactic">${tactics}</select></label>
       <div class="dim" id="depTacticDesc" style="font-size:12px;margin:-4px 0 8px"></div>
@@ -5318,6 +5718,10 @@ const Actions = {
   },
   resumeBattle: () => UI.openBattle(),
   win: (d) => HUD.openWin(d.win),
+  capHire: (d) => { if (Captains.hire(GameState.current, d.id)) { HUD.sig.captains = ""; UI.toast(`🎖 ${CAPTAINS[d.id].name} joins you!`); UI.update(); } },
+  capToggle: (d) => { if (Captains.toggle(GameState.current, d.id)) { HUD.sig.captains = ""; UI.update(); } },
+  rivalBribe: (d) => { if (Rivals.bribe(GameState.current, d.id)) { HUD.sig.rivals = ""; UI.update(); } },
+  rivalAttack: (d) => { const s = GameState.current; World.ensure(s); const n = s.world.nodes.find((x) => x.type === "rival" && x.rival === d.id); if (n) { HUD.closeWin(); UI.openDeploy("node:" + n.id); } },
   gearSel: (d) => { HUD.gsel = d.id; HUD.sig.armory = ""; UI.update(); },
   gearEquip: (d) => { if (Armory.equip(GameState.current, d.id)) { HUD.sig.armory = ""; UI.update(); } },
   gearUnequip: (d) => { if (Armory.unequip(GameState.current, d.id)) { HUD.sig.armory = ""; UI.update(); } },

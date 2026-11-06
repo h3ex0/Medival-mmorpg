@@ -105,8 +105,13 @@ const WEATHER = {
   snow:  { name: "Snowstorm",   icon: "❄️", weight: 1, move: -1, desc: "All units −1 movement." },
   wind:  { name: "Strong Tailwind", icon: "🌬️", weight: 1, range: 1, desc: "Missile range +1 for both sides." },
 };
-function rollWeather(rand = Math.random) {
-  const list = Object.entries(WEATHER), tot = list.reduce((a, [, w]) => a + w.weight, 0);
+const SEASON_WEATHER = {
+  spring: { rain: 2, fog: 1.5 }, summer: { clear: 1.6, wind: 2, snow: 0 },
+  autumn: { rain: 2, fog: 2, wind: 1.5 }, winter: { snow: 5, clear: 0.6, rain: 0.4 },
+};
+function rollWeather(rand = Math.random, season) {
+  const sw = SEASON_WEATHER[season] || {};
+  const list = Object.entries(WEATHER).map(([k, w]) => [k, { ...w, weight: w.weight * (sw[k] ?? 1) }]), tot = list.reduce((a, [, w]) => a + w.weight, 0);
   let r = rand() * tot;
   for (const [k, w] of list) { r -= w.weight; if (r <= 0) return k; }
   return "clear";
@@ -147,7 +152,7 @@ function pickFaction(power, rand = Math.random) {
 /** Build an army of about `power` from a faction's roster weights. */
 function composeArmy(factionId, power) {
   const roster = FACTIONS[factionId].roster;
-  const per = Object.entries(roster).reduce((a, [t, w]) => a + unitPower(ENEMY_UNITS[t]) * w, 0);
+  const per = Object.entries(roster).reduce((a, [t, w]) => a + unitPower(udef(t)) * w, 0);
   const k = Math.max(power / per, 0.25);
   const army = {};
   for (const [t, w] of Object.entries(roster)) {
@@ -177,6 +182,9 @@ const MAP_TYPES = {
   mountain: "Mountain Pass",
   swamp:    "Fetid Marsh",
 };
+
+const NO_MODS = { atk: 0, def: 0, move: 0, range: 0, heal: 0, charge: 0, splash: 0, breach: 0, counter: 0, by: [] };
+const CAP_CACHE = new WeakMap();
 
 const Battle = {
   W: 18, H: 12,
@@ -312,7 +320,8 @@ const Battle = {
       context: opts.context || {},
       bonus: { player: 1, enemy: 1, ...(opts.bonus || {}) },
       defBonus: { player: 1, enemy: 1, ...(opts.defBonus || {}) },
-      weather: opts.weather && WEATHER[opts.weather] ? opts.weather : rollWeather(),
+      weather: opts.weather && WEATHER[opts.weather] ? opts.weather : rollWeather(Math.random, opts.season),
+      captains: { ...(opts.captains || {}) },     // captain id -> level (player side)
       vet: { ...(opts.vet || {}) },       // player unit type -> veteran rank (each rank: +6% attack and defense)
       vetXp: {},                          // player unit type -> enemy power destroyed in this battle
       fire: {},                           // tile index -> turns left burning
@@ -438,7 +447,8 @@ const Battle = {
     const march = s.side === "player" && b.cmd && b.cmd.march === b.turn && b.active === "player" ? 2 : 0;
     const sprint = s.sprint === b.turn && b.active === s.side ? 3 : 0;
     const w = (b.weather && WEATHER[b.weather].move) || 0;
-    return Math.max(1, udef(s.type).mv + (this.tac(b, s.side).move || 0) + march + sprint + w);
+    const cap = s.side === "player" ? this.capMods(b, s.type).move : 0;
+    return Math.max(1, udef(s.type).mv + (this.tac(b, s.side).move || 0) + march + sprint + w + cap);
   },
 
   /** Tiles a squad can reach this turn: Map(index -> path cost). Enemies block; zone of control stops movement. */
@@ -526,7 +536,7 @@ const Battle = {
   range(b, s, x = s.x, y = s.y) {
     const d = udef(s.type);
     if (d.rng <= 1) return 1;
-    const r = d.rng + (TERRAIN[this.tile(b, x, y)].rangeBonus || 0) + (this.tac(b, s.side).range || 0) + ((b.weather && WEATHER[b.weather].range) || 0);
+    const r = d.rng + (TERRAIN[this.tile(b, x, y)].rangeBonus || 0) + (this.tac(b, s.side).range || 0) + ((b.weather && WEATHER[b.weather].range) || 0) + (s.side === "player" ? this.capMods(b, s.type).range : 0);
     return Math.max(2, r);
   },
   canHit(b, s, x, y, tx, ty) {
@@ -564,6 +574,8 @@ const Battle = {
     if (att.side === "player" && b.cmd && b.cmd.warcry === b.turn && b.active === "player") m *= 1.3;
     if (this.inAura(b, att)) m *= 1.1;
     if (A.hero) m *= b.heroAtk || 1;
+    const capA = att.side === "player" ? this.capMods(b, att.type) : NO_MODS;
+    m *= 1 + capA.atk;
     m *= (STANCES[att.stance || "normal"] || STANCES.normal).atk;
     if (ta.ambush && (at === "forest" || at === "hill")) m *= ta.ambush;
     const ea = TERRAIN[at].elev, ed = TERRAIN[dt].elev;
@@ -573,7 +585,7 @@ const Battle = {
     if (A.vsBig && D.big) m *= A.slayer ? 2.5 : 1.6;
     if (att.side === "player" && b.vet) m *= 1 + 0.06 * (b.vet[att.type] || 0);
     if (dist > 1 && TERRAIN[dt].cover) m *= TERRAIN[dt].cover;
-    if (!retal && A.charge && att.movedDist >= 3) m *= ta.charge || 1.5;
+    if (!retal && A.charge && att.movedDist >= 3) m *= (ta.charge || 1.5) + capA.charge;
     if ((A.cls === "ranged" || A.cls === "siege") && dist === 1 && A.rng > 1) m *= 0.6;
     if (A.rng > 1 && dist > 1 && b.weather && WEATHER[b.weather].rangedAtk) m *= WEATHER[b.weather].rangedAtk;
     if (att.aimed && !retal) m *= 1.5;
@@ -593,6 +605,7 @@ const Battle = {
     if (def.broken) defense *= 0.75;
     if (this.inAura(b, def)) defense *= 1.1;
     defense *= (STANCES[def.stance || "normal"] || STANCES.normal).def;
+    if (def.side === "player") defense *= 1 + this.capMods(b, def.type).def;
     if (A.armorPierce) defense *= 0.6;
     return this.count(att) * A.atk * m * 8 / (8 + defense);
   },
@@ -604,6 +617,7 @@ const Battle = {
     if (def.braced && D.antiCav && A.cls === "cav") f = 1;
     if (def.braced && this.tac(b, def.side).hold) f = 1;
     if (def.stance === "defensive") f = Math.min(1, f + 0.25);
+    if (def.side === "player") f = Math.min(1, f + this.capMods(b, def.type).counter);
     return f;
   },
   /** Attack a squad; the defender strikes back if it's in melee. Returns events for animation. */
@@ -635,7 +649,7 @@ const Battle = {
       for (const o of this.alive(b, def.side)) {
         if (o === def || this.dist(o, def) > 1) continue;
         const b4 = this.count(o);
-        o.hp = Math.max(0, o.hp - this.damage(b, att, o) * A0.splash);
+        o.hp = Math.max(0, o.hp - this.damage(b, att, o) * A0.splash * (1 + (att.side === "player" ? this.capMods(b, att.type).splash : 0)));
         const k = b4 - this.count(o);
         splashKills += k;
         if (att.side === "player" && k > 0) b.vetXp[att.type] = (b.vetXp[att.type] || 0) + k * unitPower(udef(o.type));
@@ -661,7 +675,7 @@ const Battle = {
   },
   attackWall(b, att, idx, events = []) {
     const A = udef(att.type);
-    const dmg = this.count(att) * A.atk * (A.breach ? 4 : 0.25);
+    const dmg = this.count(att) * A.atk * (A.breach ? 4 : 0.25) * (1 + (att.side === "player" ? this.capMods(b, att.type).breach : 0));
     b.wallHp[idx] -= dmg;
     const x = idx % b.w, y = (idx / b.w) | 0;
     events.push({ x, y, text: `−${Math.round(dmg)}`, cls: "wallhit" });
@@ -722,7 +736,7 @@ const Battle = {
     for (const h of this.alive(b, side)) {
       const hd = udef(h.type);
       if (!hd.heal) continue;
-      const amt = this.count(h) * hd.heal;
+      const amt = this.count(h) * hd.heal * (1 + (side === "player" ? this.capMods(b, h.type).heal : 0));
       for (const s of this.alive(b, side)) {
         if (s === h || this.dist(s, h) > 2 || s.hp >= s.maxHp) continue;
         s.hp = Math.min(s.maxHp, s.hp + amt);
@@ -922,6 +936,23 @@ const Battle = {
     s.acted = true; s.moved = true;
     return events;
   },
+  /* ===================== captains ===================== */
+  /** Bonuses your Captains give a unit type: {atk, def, move, range, heal, charge, splash, breach, counter}. */
+  capMods(b, type) {
+    if (!b.captains || typeof captainMods !== "function") return NO_MODS;
+    let cache = CAP_CACHE.get(b);
+    if (!cache) { cache = {}; CAP_CACHE.set(b, cache); }
+    if (cache[type]) return cache[type];
+    const d = udef(type), out = { atk: 0, def: 0, move: 0, range: 0, heal: 0, charge: 0, splash: 0, breach: 0, counter: 0, by: [] };
+    for (const [id, lvl] of Object.entries(b.captains)) {
+      const m = captainMods(id, lvl, d);
+      if (!m) continue;
+      for (const k of Object.keys(out)) if (k !== "by") out[k] += m[k] || 0;
+      out.by.push(id);
+    }
+    return (cache[type] = out);
+  },
+
   /* ===================== army morale ===================== */
   initMorale(b) {
     const fearlessTypes = new Set(["skeleton", "wraith", "necromancer", "lich", "demon"]);
@@ -1474,7 +1505,7 @@ const BattleUI = {
       el.dataset.cell = s.y * b.w + s.x;
       el.style.display = s.side === "enemy" && b.phase !== "deploy" && !Battle.canSee(b, vis, s) ? "none" : "";
       if (b.phase === "deploy" && s.side === "enemy" && !Battle.canSee(b, vis, s)) el.style.display = "none";
-      el.className = `unit side-${s.side} st-${s.stance || "normal"}${d.hero ? " hero" : ""}${d.general ? " general" : ""}${s.broken ? " broken" : ""}${s.aimed ? " aimed" : ""}${sq === s ? " sel" : ""}${s.acted && b.phase === "battle" && s.side === b.active ? " done" : ""}${s.braced ? " braced" : ""}${d.boss ? " boss" : ""}`;
+      el.className = `unit side-${s.side} st-${s.stance || "normal"}${s.side === "player" && Battle.capMods(b, s.type).by.length ? " capt" : ""}${d.hero ? " hero" : ""}${d.general ? " general" : ""}${s.broken ? " broken" : ""}${s.aimed ? " aimed" : ""}${sq === s ? " sel" : ""}${s.acted && b.phase === "battle" && s.side === b.active ? " done" : ""}${s.braced ? " braced" : ""}${d.boss ? " boss" : ""}`;
       el.style.left = s.x * c + "px"; el.style.top = s.y * c + "px";
       el.title = `${d.name} ×${Battle.count(s)}`;
       el.querySelector(".cnt").textContent = Battle.count(s);
@@ -1505,6 +1536,7 @@ const BattleUI = {
       ${traits.length ? `<div class="dim" style="font-size:11.5px;margin-top:4px">${traits.join(" · ")}</div>` : ""}
       ${s.side === "player" && b.vet && b.vet[s.type] ? `<div style="font-size:11.5px;color:var(--accent-2)">${"★".repeat(b.vet[s.type])} Veteran rank ${b.vet[s.type]} (+${b.vet[s.type] * 6}% attack/defense)</div>` : ""}
       ${this.skillLine(s)}
+      ${s.side === "player" && Battle.capMods(b, s.type).by.length ? `<div style="font-size:11.5px;margin-top:3px;color:#ffd94a">🎖 Led by ${Battle.capMods(b, s.type).by.map((id) => esc(CAPTAINS[id].name) + " (Lv " + b.captains[id] + ")").join(", ")}</div>` : ""}
       <div style="font-size:11.5px;margin-top:3px">${STANCES[s.stance || "normal"].icon} <b>${STANCES[s.stance || "normal"].name} stance</b> <span class="dim">${STANCES[s.stance || "normal"].desc} · Sight ${Battle.sight(b, s)}</span></div>
       <div style="font-size:11.5px;margin-top:4px">On <b>${t.name}</b>${s.braced ? " · <b class='good'>Braced</b>" : ""}${s.broken ? " · <b class='bad'>Routed (can't attack)</b>" : ""}${s.aimed ? " · <b class='good'>Aiming (+50%)</b>" : ""}${mine && b.phase === "battle" ? ` · ${s.acted ? "done" : s.moved ? "moved, can still attack" : "ready"}` : ""}</div>`;
   },

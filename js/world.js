@@ -23,6 +23,7 @@ const NODE_TYPES = {
   vineyard: { name: "Vineyard",          icon: "🍇", res: { ale: 250, food: 200 },             weight: 2, desc: "Vines and a winery. Keeps your soldiers' cups full." },
   shrine:   { name: "Holy Shrine",       icon: "⛩️", res: { faith: 120 },                      weight: 2, desc: "Pilgrims' offerings and holy relics." },
   ruins:    { name: "Ancient Ruins",     icon: "🏛️", res: { crystals: 12, gold: 400, relics: 1 }, weight: 1, power: 1.5, far: true, desc: "Elven ruins humming with old magic." },
+  rival:    { name: "Rival Castle",      icon: "🏰", res: {}, weight: 0, fortified: 4, desc: "The seat of a rival lord. Storm it to plunder their treasury." },
   capital:  { name: "Warlord's Capital", icon: "👑", res: { gold: 4000, steel: 800, relics: 3 }, weight: 0, power: 3.5, fortified: 4, far: true, desc: "The seat of the enemy warlord. Take it and the land is yours." },
 };
 
@@ -106,6 +107,19 @@ const World = {
     if (!world.nodes.some((n) => n.type === "vineyard")) { place("vineyard", 3, 7); place("vineyard", 6, 12); }
     if (!world.nodes.some((n) => n.type === "shrine")) { place("shrine", 4, 8); place("shrine", 7, 13); }
     if (!world.nodes.some((n) => n.type === "ruins")) { place("ruins", 8, 15); place("ruins", 9, 15); }
+    if (typeof RIVAL_LORDS !== "undefined") {
+      const corners = [[2, 2], [W - 3, 2], [2, H - 3], [W - 3, H - 3]];
+      Object.keys(RIVAL_LORDS).forEach((rid, k) => {
+        if (world.nodes.some((n) => n.type === "rival" && n.rival === rid)) return;
+        const [tx, ty] = corners[k % 4];
+        let best = null, bd = Infinity;
+        for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+          const d = Math.hypot(x - tx, y - ty);
+          if (d < bd && free(x, y)) { bd = d; best = [x, y]; }
+        }
+        if (best) world.nodes.push({ id: id++, x: best[0], y: best[1], type: "rival", rival: rid, level: 8, owner: "enemy", garrison: null, clearedUntil: 0, fort: 0 });
+      });
+    }
     if (!world.nodes.some((n) => n.type === "capital")) {
       // the capital sits in the farthest free corner
       let best = null, bd = 0;
@@ -120,23 +134,26 @@ const World = {
   /* ---------- helpers ---------- */
   ensure(s) {
     if (!s.world || !s.world.nodes) s.world = this.generate();
-    if (!s.world.nodes.some((n) => n.type === "capital")) this.addNewSites(s.world);
+    if (!s.world.nodes.some((n) => n.type === "capital") || !s.world.nodes.some((n) => n.type === "rival")) this.addNewSites(s.world);
     for (const n of s.world.nodes) if (!n.garrison && n.owner !== "player") this.regarrison(s, n);
     return s.world;
   },
   node(s, id) { return s.world && s.world.nodes.find((n) => n.id === id); },
   dist(s, n) { return Math.hypot(n.x - s.world.city[0], n.y - s.world.city[1]); },
   power(s, n) {
+    if (n.type === "rival") return Math.round(((s.rivals && s.rivals[n.rival]) || { power: 100 }).power * (typeof Threat !== "undefined" ? Threat.powerMult(s) : 1));
     const T = NODE_TYPES[n.type];
     return Math.round(25 * Math.pow(1.5, n.level - 1) * (T.power || 1) * (1 + 0.25 * (s.buildings.townhall - 1)));
   },
   regarrison(s, n) {
+    if (n.type === "rival") { n.faction = "rival_" + n.rival; n.garrison = composeArmy(n.faction, this.power(s, n)); return; }
     const p = this.power(s, n);
     const f = pickFaction(p);
     n.faction = f;
     n.garrison = composeArmy(f, p);
   },
   stock(s, n) {
+    if (n.type === "rival") { const t = (s.rivals && s.rivals[n.rival] || {}).treasury || {}; return Object.fromEntries(Object.entries(t).map(([k, v]) => [k, Math.round(v * 0.4)])); }
     const out = {};
     for (const [r, v] of Object.entries(NODE_TYPES[n.type].res)) out[r] = r === "relics" ? Math.max(1, Math.floor(n.level / 3)) : Math.round(v * Math.pow(1.5, n.level - 1));
     return out;
@@ -154,7 +171,7 @@ const World = {
   travel(s, n) { return Math.round(60 + this.dist(s, n) * 25); },
   /** Fog of war: sites near your city or your territories are scouted (Cartography widens the range). */
   visible(s, n) {
-    if (n.owner === "player") return true;
+    if (n.owner === "player" || n.type === "rival") return true;
     const r = 6 + (s.research && s.research.levels ? (s.research.levels.cartography || 0) * 0.75 : 0);
     if (Math.hypot(n.x - s.world.city[0], n.y - s.world.city[1]) <= r) return true;
     return this.territories(s).some((t) => Math.hypot(n.x - t.x, n.y - t.y) <= 4);
@@ -170,6 +187,17 @@ const World = {
   /** The node as a mission-like object (used by the deploy dialog, expeditions and battle setup). */
   asMission(s, n) {
     const T = NODE_TYPES[n.type];
+    if (n.type === "rival") {
+      const L = RIVAL_LORDS[n.rival], r = s.rivals[n.rival];
+      this.regarrison(s, n);
+      const stock = this.stock(s, n);
+      return {
+        id: "node:" + n.id, node: n.id, rival: n.rival, name: `${L.name} (${L.lord})`, sub: `${r.defeats}/3 defeats`,
+        asset: "n_rival", map: this.mapType(s, n), duration: this.travel(s, n), level: 1, xp: Math.round(60 + r.power / 3),
+        army: n.garrison, fortified: 4 + r.defeats * 2, enemyTactic: L.tactic,
+        loot: Object.fromEntries(Object.entries(stock).map(([k, v]) => [k, [v, v]])), relic: r.defeats === 2 ? { chance: 1, n: [3, 3] } : null,
+      };
+    }
     const stock = this.stock(s, n);
     return {
       id: "node:" + n.id, node: n.id, name: `${T.name} (Lv ${n.level})`, sub: n.faction ? FACTIONS[n.faction].name : "",
@@ -182,6 +210,7 @@ const World = {
   },
   blocker(s, n) {
     if (n.owner === "player") return "This territory is already yours";
+    if (n.type === "rival" && s.rivals && s.rivals[n.rival] && s.rivals[n.rival].vassal) return "This lord is already your vassal";
     if (!this.visible(s, n)) return "Unexplored. Capture nearby sites or research Cartography to scout it";
     if (n.clearedUntil > s.time) return `Garrison regrouping (${fmtTime(n.clearedUntil - s.time)})`;
     if (s.expeditions.some((e) => e.mission === "node:" + n.id)) return "An army is already marching here";
@@ -305,6 +334,10 @@ const WorldUI = {
     document.getElementById("wmNodes").innerHTML = w.nodes.map((n) => {
       const T = NODE_TYPES[n.type];
       if (!World.visible(s, n)) return `<div class="wm-node hidden-site ${this.sel === n.id ? "sel" : ""}" data-node="${n.id}" style="left:${n.x * c}px;top:${n.y * c}px" title="Unexplored"><span>❔</span></div>`;
+      if (n.type === "rival") {
+        const L = RIVAL_LORDS[n.rival], r = s.rivals[n.rival];
+        return `<div class="wm-node rivalnode ${r.vassal ? "vassal" : ""} ${this.sel === n.id ? "sel" : ""}" data-node="${n.id}" style="left:${n.x * c}px;top:${n.y * c}px;--rc:${L.color}" title="${esc(L.name)}"><span>${r.vassal ? "👑" : "🏰"}</span><b>${r.defeats}/3</b></div>`;
+      }
       const st = n.owner === "player" ? "mine" : n.clearedUntil > s.time ? "cleared" : s.expeditions.some((e) => e.mission === "node:" + n.id) ? "marching" : "enemy";
       return `<div class="wm-node ${st} ${this.sel === n.id ? "sel" : ""}" data-node="${n.id}" style="left:${n.x * c}px;top:${n.y * c}px" title="${esc(T.name)} Lv ${n.level}">
         <span>${T.icon}</span><b>${n.level}</b></div>`;
