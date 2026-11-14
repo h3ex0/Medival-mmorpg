@@ -207,6 +207,29 @@ await test("raids, rival lords, seasons and disasters", async () => {
   noErrors(p); await p.close();
 });
 
+await test("rival letters and world map movement", async () => {
+  const p = await page();
+  const r = await p.evaluate(() => {
+    const s = GameState.current, out = {};
+    s.resources.gold = 99999; s.resources.steel = 9999;
+    for (const type of Object.keys(LETTERS)) {
+      s.letters = []; s.nextLetter = 0; Diplomacy.step(s);
+      const l = s.letters[0]; l.type = type;
+      if (type === "alliance") l.x.target = Object.keys(RIVAL_LORDS).find((k) => k !== l.from);
+      out[type] = !!Diplomacy.answer(s, l.id, LETTERS[type].choices[0].id);
+    }
+    s.letters = []; s.nextLetter = 0; Diplomacy.step(s); s.letters[0].expires = s.time - 1; Diplomacy.step(s);
+    out.timeout = s.letters.length === 0;
+    World.ensure(s); s.buildings.barracks = 1; s.army.footman = 20;
+    const n = s.world.nodes.find((x) => World.visible(s, x) && x.type !== "rival");
+    Military.deploy(s, "node:" + n.id, { footman: 10 });
+    out.movers = WorldMovers.list(s).length >= 1;
+    return out;
+  });
+  for (const [k, v] of Object.entries(r)) assert(v, k + ": " + JSON.stringify(r));
+  noErrors(p); await p.close();
+});
+
 await test("old saves migrate", async () => {
   const p = await page();
   const r = await p.evaluate(() => {

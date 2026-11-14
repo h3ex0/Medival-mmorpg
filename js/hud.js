@@ -414,6 +414,8 @@ const HUD = {
     this.updateCity(s);
     Daily.ensure(s);
     Advisor.update(s);
+    if (typeof WorldUI !== "undefined" && WorldUI.open) WorldMovers.render(s);
+    for (const l of s.letters || []) for (const el of $$(`[data-letter-t="${l.id}"]`)) el.textContent = `${fmtTime(Math.max(0, l.expires - s.time))} to answer`;
     if (this.open === "quests") { const sig = JSON.stringify(s.daily) + Daily.claimable(s) + Object.values(DAILY_POOL).map((p) => p.stat(s)).join(); if (sig !== this.sig.daily) { this.sig.daily = sig; $("#dailyBox").innerHTML = Daily.html(s); } }
     // ---- notification dots on the action bar
     const dots = {
@@ -421,7 +423,7 @@ const HUD = {
       campaign: CAMPAIGN_ORDER.filter((id) => ["ready"].includes(Campaign.state(s, id))).length,
       quests: Quests.ready(s) + Daily.claimable(s),
       citizens: Economy.unemployed(s) > 0 ? 1 : 0,
-      realm: s.offer ? 1 : 0,
+      realm: (s.offer ? 1 : 0) + (s.letters || []).filter((l) => !l.read).length,
       armory: s.gear.bag.filter((x) => !s.gear.equipped[x.slot] || Armory.score(x) > Armory.score(s.gear.equipped[x.slot])).length,
       army: s.raid ? 1 : 0,
     };
@@ -482,10 +484,10 @@ const HUD = {
   renderTracker(s) {
     const cur = Campaign.current(s);
     const open = Quests.open(s, 3);
-    const sig = (cur ? cur + Campaign.state(s, cur) + !!s.campaign.led[cur] : "") + "|" + open.map((q) => q.id + q.check(s)).join() + "|" + s.expeditions.map((e) => e.id).join() + "|" + s.climate.season + Threat.level(s);
+    const sig = (s.letters || []).map((l) => l.id + (l.read ? "r" : "")).join() + (cur ? cur + Campaign.state(s, cur) + !!s.campaign.led[cur] : "") + "|" + open.map((q) => q.id + q.check(s)).join() + "|" + s.expeditions.map((e) => e.id).join() + "|" + s.climate.season + Threat.level(s);
     if (sig !== this.sig.tracker) {
       this.sig.tracker = sig;
-      let h = `<div class="tr-sec climate"><div class="tr-h"><span>${Climate.season(s).icon} ${Climate.season(s).name}</span><span data-season-t="1"></span></div>
+      let h = Diplomacy.inboxHtml(s) + `<div class="tr-sec climate"><div class="tr-h"><span>${Climate.season(s).icon} ${Climate.season(s).name}</span><span data-season-t="1"></span></div>
         <div class="tr-obj" style="padding-left:0" title="${esc(Climate.season(s).desc)}">${esc(Climate.season(s).desc)}</div>
         <div class="tr-obj" style="padding-left:0;color:#ff9a8a" title="Enemies grow stronger as your realm rises: +${Math.round((Threat.atk(s) - 1) * 100)}% attack, +${Math.round((Threat.def(s) - 1) * 100)}% defense">☠ World threat: <b>${Threat.tier(s)}</b> (Lv ${Threat.level(s)})</div></div>`;
       if (cur) {

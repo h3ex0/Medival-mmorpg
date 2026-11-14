@@ -774,6 +774,8 @@ const Actions = {
   },
   resumeBattle: () => UI.openBattle(),
   win: (d) => HUD.openWin(d.win),
+  letterOpen: (d) => Diplomacy.open(GameState.current, +d.id),
+  letterAnswer: (d) => { const m = Diplomacy.answer(GameState.current, +d.id, d.c); if (m) { UI.closeModal(); UI.toast(m, 5000); HUD.sig = {}; UI.update(); } },
   collect: (d, e) => {
     const s = GameState.current, r = Life.collect(s, +d.i);
     if (r) { Sound.play("collect"); Life.flyTo(e.target.closest(".bag"), r.res); Life.bubSig = ""; UI.update(); }

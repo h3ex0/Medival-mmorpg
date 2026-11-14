@@ -321,7 +321,7 @@ const WorldUI = {
       const t = w.tiles[y * w.w + x];
       h += `<div class="tile t-${t}" style="left:${x * c}px;top:${y * c}px;cursor:default">${glyph[t] ? `<span style="opacity:.55">${glyph[t]}</span>` : ""}</div>`;
     }
-    h += `<div class="wm-city" style="left:${(w.city[0] - 0.5) * c}px;top:${(w.city[1] - 0.5) * c}px;width:${c * 2}px;height:${c * 2}px">🏰</div><div id="wmNodes"></div>`;
+    h += `<div class="wm-city" style="left:${(w.city[0] - 0.5) * c}px;top:${(w.city[1] - 0.5) * c}px;width:${c * 2}px;height:${c * 2}px">🏰</div><div id="wmNodes"></div><div id="wmMovers"></div>`;
     document.getElementById("wmBoard").innerHTML = h;
   },
   render() {

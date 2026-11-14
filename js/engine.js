@@ -20,6 +20,7 @@ const Engine = {
     Rivals.step(s, dt);
     World.step(s);
     Life.step(s, dt);
+    Diplomacy.step(s);
   },
 
   /** Simulate a long gap in chunks so expeditions and starvation resolve in the right order. */
