@@ -1,6 +1,6 @@
 # Ironhold: Idle Dominion
 
-A single-player idle RPG city builder for the browser. Grow your population, assign workers, raise buildings, train an army, defend against raids, and lead your troops yourself in turn-based battles on mountains, valleys, rivers and forests. It's plain HTML/JS with no build step (`index.html` + `js/battle.js`), and it saves to `localStorage`.
+A single-player idle RPG city builder for the browser. Grow your population, assign workers, raise buildings, train an army, defend against raids, and lead your troops yourself in turn-based battles on mountains, valleys, rivers and forests. It's plain HTML/JS with no build step, and it saves to `localStorage`.
 
 ## Features
 
@@ -67,6 +67,28 @@ Your city is an **isometric town map**: grass ground, cobblestone streets every 
 - **Rival lords** (House Varn, Morrow Keep, Drakmoor, Sable Hold) have castles in the corners of the world map. Their armies and treasuries grow over time (never far behind the world threat), and every 25–45 minutes they march on Ironhold. If they win, they carry 35% of your stores into their treasury. **Bribe** them for 30 minutes of peace, or **storm their castle** (fortified: bring siege) to plunder 40% of the treasury. Sack a castle 3 times and its lord becomes your **vassal**, paying tribute in gold, food and steel every second. Manage them in Realm Affairs (hotkey 8).
 - **Climate**: seasons change every 10 minutes. Spring (+growth), Summer (+food, +build speed), Autumn (harvest: +food, +wood), Winter (−30% food, slower building, hungrier soldiers, snowstorms in battle). Battle weather follows the season. **Natural disasters** strike every 25–45 minutes and depend on the season: earthquakes damage a building, floods and locusts destroy food, wildfires burn timber, droughts halve farm output, blizzards slow construction. Granaries, the Temple and Medicine research soften them, and temple priests can avert one entirely.
 - **Captains** (War Council, hotkey 4): six unique heroes, each leading one kind of troops: Sir Roland (cavalry), Elara Swiftbow (archers), Gorm Ironwall (infantry), Brother Aldous (healers), Magistra Vex (battle mages), Master Tobias (siege). Hire them for gold and relics. 1 captain leads at first, with more slots at Town Hall 4, 8 and 12. A leading captain gives their troops attack and defense (and healing, splash or wall damage), earns XP from the enemies those troops kill, levels up to 10, and unlocks perks at levels 3, 6 and 9 (charge damage, +range, +movement, stronger counters and more). Led squads have a gold ring on the battlefield.
+
+## Life in the realm
+
+- **The city lives**: citizens, farmers, soldiers, merchants and carts walk the streets; a day/night cycle lights the windows and street lanterns; seasons show on the map (spring green, autumn colours, winter snow) and so do disasters; chimneys smoke, clouds drift and birds fly over.
+- **Sound**: music for the city and for battle, and effects for building, collecting, trading, swords, arrows, fireballs, boulders, horns, earthquakes, victory and defeat. Everything is synthesized in the browser, with no audio files. Volume and mute are in Settings.
+- **Things to do every minute**: goods pile up over buildings (click the bubble to collect a bonus); surprises appear in the streets: lost chests, wandering traders with cheap goods, thieves to catch before they escape, and fires to put out; finish construction or training instantly with gold.
+- **Daily quests and login rewards**: three new tasks every day, a bonus chest for finishing all three, and a 7-day login calendar.
+- **Edmund the steward**: a short tutorial for new realms, then timely advice (idle citizens, full storage, raids, rewards to claim). Can be muted.
+- **World map**: your armies, enemy raiders and caravans visibly move across the map. **Rival lords write letters** (tribute demands, peace pacts, offers to strike another rival, taunts) that you answer within 5 minutes.
+- **Battlefield**: full-body unit sprites on coloured bases, units walk along their path, melee lunges, screen shake when squads fall, and a zoom with a banner when a general is slain.
+- **Hall of Fame** (🏆, hotkey −): 30 achievements with points, rewards and titles shown on your portrait frame. From Town Hall 10 you can **Ascend**: start a new realm for **Crowns**, spent on permanent perks (production, storage, army attack, faster building, extra builders, a head start, faster XP). Achievements, titles and equipped gear carry over.
+
+## Development
+
+The game is plain files: `index.html` (markup and the asset catalog), `css/game.css`, and one script per module in `js/` (`core`, `state`, `economy`, `military`, `realm`, `engine`, `assets`, `hud`, `ui`, `sound`, `life`, `progress`, `diplomacy`, `legacy`, `battle`, `world`, `main`). Run the automated tests with:
+
+```bash
+npm install && npx playwright install chromium   # once
+npm test                                         # STRESS=2000 npm test for more random battles
+```
+
+The suite serves the game, drives it in headless Chromium and checks boot, economy, construction, training, random battles, campaign, city life, letters, raids, climate, achievements and ascension, save migration and import/export, and three screen sizes. It fails on any script error or missing file.
 
 ## Armory (hotkey 0)
 

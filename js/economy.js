@@ -10,7 +10,7 @@ const Economy = {
   totalPop(s) { return s.population.citizens + Military.soldierCount(s); },
   jobSlots(s, job) { return s.buildings[JOBS[job].building] * JOBS[job].slots; },
 
-  storageMultiplier(s) { return Math.pow(BALANCE.storageGrowth, s.buildings.townhall - 1) * (1 + 0.15 * Research.lvl(s, "logistics")); },
+  storageMultiplier(s) { return Math.pow(BALANCE.storageGrowth, s.buildings.townhall - 1) * (1 + 0.15 * Research.lvl(s, "logistics")) * (1 + 0.12 * Legacy.lvl(s, "vaults")); },
   caps(s) {
     const b = s.buildings, m = this.storageMultiplier(s);
     return {
@@ -30,7 +30,7 @@ const Economy = {
     const lore = Research.lvl(s, "relicLore");
     return 1 + Math.min(BALANCE.relicBonusCap + 0.2 * lore, s.resources.relics * (BALANCE.relicBonus + 0.005 * lore));
   },
-  multiplier(s) { return Math.pow(BALANCE.prodGrowth, s.buildings.townhall - 1) * this.relicMultiplier(s); },
+  multiplier(s) { return Math.pow(BALANCE.prodGrowth, s.buildings.townhall - 1) * this.relicMultiplier(s) * (1 + 0.08 * Legacy.lvl(s, "prosperity")); },
 
   /**
    * Per-second production & consumption.

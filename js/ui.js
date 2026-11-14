@@ -774,6 +774,21 @@ const Actions = {
   },
   resumeBattle: () => UI.openBattle(),
   win: (d) => HUD.openWin(d.win),
+  noop: () => {},
+  legacyBuy: (d) => { if (Legacy.buy(GameState.current, d.id)) { Sound.play("levelup"); HUD.sig.fame = ""; UI.update(); } },
+  ascend: () => {
+    const s = GameState.current;
+    UI.modal("🔥 Ascend?", `<p>Your realm will be reborn. <b>Your city, army, resources, research, captains, territories and campaign progress are reset.</b></p>
+      <p>You keep: <b>👑 ${Legacy.crownsFor(s)} new Crowns</b> (plus ${Legacy.data(s).crowns} unspent), your legacy perks, achievements, titles and equipped gear.</p>`,
+      `<button class="btn" data-action="closeModal">Not yet</button><button class="btn primary" data-action="confirmAscend">🔥 Ascend</button>`);
+  },
+  confirmAscend: () => {
+    if (BattleUI.b) BattleUI.close();
+    const gain = Legacy.ascend();
+    if (gain === false) return;
+    UI.closeModal(); HUD.closeWin(); CityView.built = false; CityView.sig = ""; UI.build();
+    Sound.play("victory"); UI.toast(`🔥 Reborn! +${gain} Crowns`, 6000);
+  },
   letterOpen: (d) => Diplomacy.open(GameState.current, +d.id),
   letterAnswer: (d) => { const m = Diplomacy.answer(GameState.current, +d.id, d.c); if (m) { UI.closeModal(); UI.toast(m, 5000); HUD.sig = {}; UI.update(); } },
   collect: (d, e) => {
@@ -911,6 +926,9 @@ document.addEventListener("keydown", (e) => {
   if (/^(INPUT|SELECT|TEXTAREA)$/.test((e.target.tagName || "")) || e.ctrlKey || e.metaKey || e.altKey || $("#modalRoot .modal")) return;
   const a = HUD_ACTIONS.find((x) => x.key === e.key);
   if (a) { e.preventDefault(); HUD.openWin(a.id); }
+});
+document.addEventListener("change", (e) => {
+  if (e.target.id === "titleSel") { Legacy.data(GameState.current).title = e.target.value; UI.update(); }
 });
 document.addEventListener("input", (e) => {
   const snd = e.target.closest("[data-snd]");

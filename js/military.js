@@ -32,7 +32,7 @@ const Military = {
   expeditionSlots(s) { return s.buildings.barracks > 0 ? 1 + Math.floor(s.buildings.barracks / 3) : 0; },
   xpForLevel(lvl) { return Math.floor(40 * Math.pow(lvl, 1.6)); },
   /** Attack bonus for your side in battle: commander level and morale. */
-  battleBonus(s) { return (1 + Armory.b(s, "armyAtk") / 100) * (1 + 0.03 * (s.commander.level - 1)) * (0.7 + 0.3 * s.morale / 100) * (1 + 0.05 * Research.lvl(s, "drill")) * (s.resources.ale >= 1 ? 1.05 : 1) * (Events.active(s, "holywar") ? 1.15 : 1); },
+  battleBonus(s) { return (1 + 0.05 * Legacy.lvl(s, "warlord")) * (1 + Armory.b(s, "armyAtk") / 100) * (1 + 0.03 * (s.commander.level - 1)) * (0.7 + 0.3 * s.morale / 100) * (1 + 0.05 * Research.lvl(s, "drill")) * (s.resources.ale >= 1 ? 1.05 : 1) * (Events.active(s, "holywar") ? 1.15 : 1); },
   defenseBonus(s) { return (1 + Armory.b(s, "armyDef") / 100) * (1 + 0.05 * Research.lvl(s, "plate")) * (Events.active(s, "aegis") ? 1.2 : 1); },
   power(s, units) { return armyPower(units) * this.battleBonus(s); },
 
@@ -374,6 +374,7 @@ const Military = {
     return rep;
   },
   addXp(s, xp) {
+    xp = Math.round(xp * (1 + 0.2 * Legacy.lvl(s, "mentors")));
     const c = s.commander;
     c.xp += xp;
     while (c.xp >= this.xpForLevel(c.level)) {

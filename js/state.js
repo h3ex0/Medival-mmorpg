@@ -39,6 +39,7 @@ const GameState = {
       tutorial: { step: 0, done: false },
       surprise: null, nextSurprise: 90,
       letters: [], nextLetter: 900,
+      achievements: {}, legacy: null,
       daily: null,
       climate: { season: 0, until: SEASON_LENGTH, nextDisaster: 1800 },
       rivals: null,                  // rival lords (see Rivals.fresh)

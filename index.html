@@ -26,7 +26,7 @@
   <div class="unitframe" data-action="win" data-win="army" title="Your Lord Commander (A)">
     <div class="uf-portrait"><img data-asset="commander" alt="" /><span class="uf-lvl" id="cmdLevel">1</span></div>
     <div class="uf-body">
-      <div class="uf-name">Lord of Ironhold <span class="uf-power" id="armyBadge"></span></div>
+      <div class="uf-name"><span id="ufName">Lord of Ironhold</span> <span class="uf-power" id="armyBadge"></span></div>
       <div class="uf-bar xp" title="Experience"><i id="cmdXpBar"></i><span id="cmdXp"></span></div>
       <div class="uf-bar mor" title="Morale"><i id="moraleBar"></i><span id="moraleTxt"></span></div>
     </div>
@@ -111,6 +111,10 @@
       <div class="arm-doll"><div class="arm-hero"><img data-asset="commander" alt=""></div><div id="armSlots"></div><div id="armTotals"></div></div>
       <div><div class="section-title">Bag <span class="dim" id="armCount"></span></div><div class="arm-bag" id="armBag"></div><div id="armDetail"></div></div>
     </div>
+  </section>
+
+  <section class="win hidden" id="win-fame" data-title="🏆 Hall of Fame">
+    <div id="fameBody"></div>
   </section>
 
   <section class="win hidden" id="win-building" data-title="Building">
@@ -1655,6 +1659,7 @@
 <script src="js/life.js"></script>
 <script src="js/progress.js"></script>
 <script src="js/diplomacy.js"></script>
+<script src="js/legacy.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

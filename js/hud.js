@@ -19,7 +19,7 @@ const City = {
   MAX_LOTS: 40,
   lots(s) { return Math.min(this.MAX_LOTS, 10 + 2 * s.buildings.townhall); },
   lotUnlockTH(i) { return Math.max(1, Math.ceil((i + 1 - 10) / 2)); },
-  builders(s) { return 1 + Math.floor(s.buildings.townhall / 3); },
+  builders(s) { return 1 + Math.floor(s.buildings.townhall / 3) + Legacy.lvl(s, "builders"); },
   busy(s) { return s.city.slots.filter((x) => x && x.build).length; },
   isMulti(type) { return MULTI_BUILDINGS.includes(type); },
   instCap(s, type) { return this.isMulti(type) ? 5 + s.buildings.townhall : Economy.buildingMax(s, type); },
@@ -55,7 +55,7 @@ const City = {
   },
   buildTime(s, type, to) {
     const base = type === "townhall" ? 30 : this.isMulti(type) ? 6 : 12;
-    return Math.round(Math.min(3600, base * Math.pow(1.32, to - 1)));
+    return Math.round(Math.min(3600, base * Math.pow(1.32, to - 1)) / (1 + 0.12 * Legacy.lvl(s, "masons")));
   },
   /** Where the next level of `type` goes: an instance below its cap, else the first free unlocked lot. */
   target(s, type) {
@@ -364,6 +364,7 @@ const HUD_ACTIONS = [
   { id: "realm",    icon: "⚖️", lbl: "Realm",    key: "8" },
   { id: "settings", icon: "⚙️", lbl: "Settings", key: "9" },
   { id: "armory",   icon: "🎒", lbl: "Armory",   key: "0" },
+  { id: "fame",     icon: "🏆", lbl: "Fame",     key: "-" },
 ];
 const QUEST_MARK = { available: "!", ready: "?", marching: "⚔", complete: "✓", locked: "🔒" };
 
@@ -423,6 +424,7 @@ const HUD = {
       campaign: CAMPAIGN_ORDER.filter((id) => ["ready"].includes(Campaign.state(s, id))).length,
       quests: Quests.ready(s) + Daily.claimable(s),
       citizens: Economy.unemployed(s) > 0 ? 1 : 0,
+      fame: Legacy.canAscend(s) && Legacy.data(s).ascensions === 0 ? 1 : 0,
       realm: (s.offer ? 1 : 0) + (s.letters || []).filter((l) => !l.read).length,
       armory: s.gear.bag.filter((x) => !s.gear.equipped[x.slot] || Armory.score(x) > Armory.score(s.gear.equipped[x.slot])).length,
       army: s.raid ? 1 : 0,
@@ -440,6 +442,8 @@ const HUD = {
     if (this.open === "building" && this.lot !== undefined && this.lot !== null) this.renderBuilding(s);
     if (this.open === "campaign") this.renderCampaign(s);
     if (this.open === "armory") this.renderArmory(s);
+    if (this.open === "fame") { const sig = JSON.stringify(s.achievements) + JSON.stringify(s.legacy) + Legacy.crownsFor(s); if (sig !== this.sig.fame) { this.sig.fame = sig; $("#fameBody").innerHTML = Legacy.html(s); } }
+    const nm = $("#ufName"); if (nm) { const full = Legacy.fullName(s); if (nm.textContent !== full) nm.textContent = full; }
   },
 
   renderCaptains(s) {

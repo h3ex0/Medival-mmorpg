@@ -230,6 +230,25 @@ await test("rival letters and world map movement", async () => {
   noErrors(p); await p.close();
 });
 
+await test("achievements unlock; ascension keeps the legacy and applies perks", async () => {
+  const p = await page();
+  const r = await p.evaluate(() => {
+    let s = GameState.current;
+    s.city.slots[0].level = 10; City.sync(s); s.stats.raidsWon = 12; s.conquest = 5;
+    Legacy.step(s);
+    const unlocked = Object.keys(s.achievements).length;
+    const gain = Legacy.crownsFor(s);
+    const before = { prod: Economy.multiplier(s) };
+    const ok = Legacy.ascend(); s = GameState.current;
+    const kept = Object.keys(s.achievements).length === unlocked && s.legacy.crowns === gain && s.buildings.townhall === 1;
+    const m0 = Economy.multiplier(s); Legacy.buy(s, "prosperity");
+    return { unlocked, gain, ok: ok !== false, kept, perk: Economy.multiplier(s) > m0, asc: s.legacy.ascensions };
+  });
+  assert(r.unlocked >= 2 && r.ok && r.kept && r.perk && r.asc === 1, JSON.stringify(r));
+  noErrors(p); await p.close();
+  return `${r.unlocked} achievements, ${r.gain} crowns`;
+});
+
 await test("old saves migrate", async () => {
   const p = await page();
   const r = await p.evaluate(() => {
