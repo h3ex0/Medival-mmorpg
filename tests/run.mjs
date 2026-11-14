@@ -44,6 +44,7 @@ async function page(viewport = { width: 1366, height: 768 }) {
   const p = await browser.newPage({ viewport });
   p.errors = [];
   p.on("pageerror", (e) => p.errors.push(e.message));
+  p.on("response", (r) => { if (r.status() >= 400) p.errors.push(`HTTP ${r.status()} ${r.url()}`); });
   await p.goto(URL);
   await p.waitForFunction(() => window.Ironhold && window.Ironhold.GameState.current, null, { timeout: 15000 });
   await p.waitForTimeout(300);
@@ -160,6 +161,36 @@ await test("campaign quest: win, turn in, next unlocks", async () => {
   assert(r.win && r.turned, JSON.stringify(r));
   assert(r.next !== "locked" || true, "next quest state");
   noErrors(p); await p.close();
+});
+
+await test("city life: bonuses, surprises, rush, daily quests", async () => {
+  const p = await page();
+  const r = await p.evaluate(() => {
+    const s = GameState.current;
+    for (const sl of s.city.slots) if (sl) sl.bagAt = 0;
+    Engine.tick(s, 1);
+    const i = s.city.slots.findIndex((x) => x && x.bag);
+    const got = Life.collect(s, i);
+    const out = { bag: !!got && got.amt > 0 };
+    for (const type of ["chest", "thief", "trader", "fire"]) {
+      s.surprise = null; s.nextSurprise = 0; Life.spawn(s);
+      if (type === "fire" && s.surprise.type !== "fire") { s.surprise.type = "fire"; s.surprise.slot = 0; s.surprise.clicks = 0; }
+      else s.surprise.type = type;
+      if (type === "thief") s.surprise.loot = 50;
+      if (type === "trader") { s.surprise.offer = { res: "stone", n: 10, gold: 5 }; s.resources.gold = 100; Life.acceptTrade(s); }
+      else { Life.interact(s); if (type === "fire") { Life.interact(s); Life.interact(s); } }
+      out[type] = s.surprise === null;
+    }
+    s.resources.gold = 99999; s.resources.wood = 9999; s.resources.stone = 9999;
+    const lot = s.city.slots.findIndex((x, k) => k > 0 && k < City.lots(s) && !x);
+    City.start(s, "house", lot); out.rush = Life.rushBuild(s, lot) && s.city.slots[lot].level === 1;
+    Daily.ensure(s); out.login = Daily.claimLogin(s); out.daily = s.daily.tasks.length === 3;
+    out.walkers = document.querySelectorAll(".walker").length;
+    return out;
+  });
+  for (const [k, v] of Object.entries(r)) assert(v, k + " failed: " + JSON.stringify(r));
+  noErrors(p); await p.close();
+  return `${r.walkers} walkers`;
 });
 
 await test("raids, rival lords, seasons and disasters", async () => {

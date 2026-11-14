@@ -25,7 +25,7 @@ const AssetPipeline = {
   staticManifest: {},     // key -> relative path
   db: null,
   busy: false,
-  SIZES: { icon: [256, 256], portrait: [384, 384], banner: [960, 540], backdrop: [1600, 900], tile: [128, 128], sprite: [512, 512] },
+  SIZES: { icon: [256, 256], portrait: [384, 384], banner: [960, 540], backdrop: [1600, 900], tile: [128, 128], sprite: [512, 512], unit: [384, 384] },
   DEFAULT_BASE: "https://api.code.signor.ai/api-2/v1",
   KEY_STORAGE: "ironhold_api_key",
   CFG_STORAGE: "ironhold_api_cfg",
@@ -71,7 +71,7 @@ const AssetPipeline = {
         img.src = want;
       }
     }
-    const bg = this.hasArt("backdrop") ? `url("${this.src("backdrop")}")` : "none";
+    const bg = this.hasArt("backdrop") ? `url("${new URL(this.src("backdrop"), document.baseURI).href}")` : "none";
     document.documentElement.style.setProperty("--bg-art", bg);
     UI.updateArtCount && UI.updateArtCount();
   },

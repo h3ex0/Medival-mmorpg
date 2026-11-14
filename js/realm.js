@@ -241,6 +241,7 @@ const Climate = {
     else if (id === "locusts") { const l = Math.floor(s.resources.food * 0.25 * keep); s.resources.food -= l; detail = ` ${fmtInt(l)} Food devoured.`; }
     if (D.buff) { s.buffs = s.buffs.filter((b) => b.id !== id); s.buffs.push({ id, until: s.time + Math.round(D.buff * keep + D.buff * 0.4 * (1 - keep)) }); }
     s.stats.disasters = (s.stats.disasters || 0) + 1;
+    if (typeof Sound !== "undefined" && !Engine.simulating) Sound.play("rumble");
     addLog(s, `${D.icon} ${D.name}! ${D.desc}${detail}${keep < 1 ? ` (Your granaries and temple softened the blow by ${Math.round((1 - keep) * 100)}%.)` : ""}`, "bad");
     if (typeof UI !== "undefined" && UI.toast && document.getElementById("toasts")) UI.toast(`${D.icon} ${D.name}!`, 5000);
     return id;

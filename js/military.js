@@ -379,6 +379,7 @@ const Military = {
     while (c.xp >= this.xpForLevel(c.level)) {
       c.xp -= this.xpForLevel(c.level);
       c.level++;
+      if (typeof Sound !== "undefined" && !Engine.simulating) Sound.play("levelup");
       const t = Object.values(TACTICS).find((x) => x.lvl === c.level);
       addLog(s, `Your Lord Commander reached level ${c.level}!${t ? ` New tactic unlocked: ${t.name}.` : ""}`, "war");
     }
@@ -438,6 +439,7 @@ const Military = {
       if (eligible && s.time >= s.nextRaidAt) this.spawnRaid(s);
     } else if (r.phase === "approaching" && s.time >= r.arriveAt) {
       r.phase = "gates";
+      if (typeof Sound !== "undefined" && !Engine.simulating) Sound.play("horn");
       r.deadline = s.time + BALANCE.raidDecision;
       addLog(s, `⚔ The ${FACTIONS[r.faction].name} is at the gates! Lead the defense yourself, or your captains will fight in ${fmtTime(BALANCE.raidDecision)}.`, "bad");
     } else if (r.phase === "gates" && s.time >= r.deadline) {

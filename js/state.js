@@ -36,6 +36,9 @@ const GameState = {
       world: null,                   // the world map (generated on first visit)
       campaign: { done: {}, led: {}, turned: {} },   // story quest progress
       gear: { equipped: { weapon: null, armor: null, helm: null, banner: null, relic: null }, bag: [] },
+      tutorial: { step: 0, done: false },
+      surprise: null, nextSurprise: 90,
+      daily: null,
       climate: { season: 0, until: SEASON_LENGTH, nextDisaster: 1800 },
       rivals: null,                  // rival lords (see Rivals.fresh)
       captains: {},                  // captain id -> {hired, level, xp, assigned}
@@ -43,7 +46,7 @@ const GameState = {
       veterancy: {},                 // unit type -> battle experience (veteran ranks)
       nextId: 1,
       log: [],                       // [{id, t, msg, type}]
-      stats: { goldEarned: 0, built: 0, trained: 0, won: 0, lost: 0, fallen: 0, deserted: 0, starved: 0, relicsFound: 0, playSeconds: 0, peakPop: 6, raidsWon: 0, raidsLost: 0, enemiesSlain: 0, battlesLed: 0, battlesLedWon: 0, missionWins: {}, sitesRaided: 0, sitesCaptured: 0, blessings: 0, trades: 0, territoriesDefended: 0, territoriesLost: 0 },
+      stats: { goldEarned: 0, built: 0, trained: 0, won: 0, lost: 0, fallen: 0, deserted: 0, starved: 0, relicsFound: 0, playSeconds: 0, peakPop: 6, raidsWon: 0, raidsLost: 0, enemiesSlain: 0, battlesLed: 0, battlesLedWon: 0, missionWins: {}, sitesRaided: 0, sitesCaptured: 0, blessings: 0, trades: 0, territoriesDefended: 0, territoriesLost: 0, collected: 0, surprises: 0 },
     };
   },
   /** A brand-new realm, with its starting buildings placed on lots. */
@@ -92,7 +95,10 @@ const GameState = {
     City.sync(out);
     if (!out.rivals) { out.rivals = Rivals.fresh(); for (const r of Object.values(out.rivals)) r.nextAttack += out.time; }
     for (const id of Object.keys(RIVAL_LORDS)) if (!out.rivals[id]) out.rivals[id] = Rivals.fresh()[id];
-    out.version = 4;
+    // players who are past the basics skip the tutorial
+    if (!raw.tutorial) out.tutorial = { step: 0, done: out.buildings.townhall >= 2 || (out.stats.built || 0) > 8 };
+    if (out.surprise && !SURPRISES[out.surprise.type]) out.surprise = null;
+    out.version = 5;
     return out;
   },
   load() {

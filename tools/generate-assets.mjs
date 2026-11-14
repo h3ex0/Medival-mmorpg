@@ -27,7 +27,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = path.join(ROOT, "assets", "generated");
 const MANIFEST = path.join(ROOT, "assets", "manifest.json");
-const SIZES = { icon: [256, 256], portrait: [384, 384], banner: [960, 540], backdrop: [1600, 900], tile: [128, 128], sprite: [512, 512] };
+const SIZES = { icon: [256, 256], portrait: [384, 384], banner: [960, 540], backdrop: [1600, 900], tile: [128, 128], sprite: [512, 512], unit: [384, 384] };
 
 /** Sprites are painted on solid magenta; turn that background transparent (with soft, de-spilled edges). */
 async function keyOutMagenta(buf, w, h) {
@@ -127,7 +127,7 @@ async function processOne(a) {
   let out = bytes, ext = extFor(bytes);
   if (sharp) {
     const [w, h] = SIZES[a.kind] || [256, 256];
-    out = a.kind === "sprite" ? await keyOutMagenta(bytes, w, h) : await sharp(bytes).resize(w, h, { fit: "cover" }).webp({ quality: 86 }).toBuffer();
+    out = a.kind === "sprite" || a.kind === "unit" ? await keyOutMagenta(bytes, w, h) : await sharp(bytes).resize(w, h, { fit: "cover" }).webp({ quality: 86 }).toBuffer();
     ext = "webp";
   }
   for (const old of fs.readdirSync(OUT_DIR)) if (old.startsWith(a.key + ".")) fs.unlinkSync(path.join(OUT_DIR, old));

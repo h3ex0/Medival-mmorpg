@@ -19,17 +19,21 @@ const Engine = {
     Climate.step(s);
     Rivals.step(s, dt);
     World.step(s);
+    Life.step(s, dt);
   },
 
   /** Simulate a long gap in chunks so expeditions and starvation resolve in the right order. */
   simulate(s, seconds) {
     const step = BALANCE.offlineStepSeconds;
     let left = seconds;
-    while (left > 0) {
-      const dt = Math.min(step, left);
-      this.tick(s, dt);
-      left -= dt;
-    }
+    this.simulating = true;
+    try {
+      while (left > 0) {
+        const dt = Math.min(step, left);
+        this.tick(s, dt);
+        left -= dt;
+      }
+    } finally { this.simulating = false; }
   },
 
   /** On load: award progress made while the game was closed (capped). */

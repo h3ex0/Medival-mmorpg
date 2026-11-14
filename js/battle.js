@@ -1302,6 +1302,7 @@ const BattleUI = {
   open(b, onDone) {
     Battle.repair(b);
     this.b = b; this.onDone = onDone; this.sel = null; this.busy = false; this.targeting = null;
+    if (typeof Sound !== "undefined") { Sound.music("battle"); Sound.play("horn"); }
     let root = document.getElementById("battleRoot");
     if (!root) { root = document.createElement("div"); root.id = "battleRoot"; document.body.appendChild(root); }
     root.innerHTML = `
@@ -1328,6 +1329,7 @@ const BattleUI = {
     window.addEventListener("resize", this._resize = () => { this.layout(); this.renderTiles(); this.render(); });
   },
   close() {
+    if (typeof Sound !== "undefined") Sound.music("city");
     const root = document.getElementById("battleRoot");
     if (root) root.innerHTML = "";
     document.body.classList.remove("in-battle");
@@ -1520,7 +1522,7 @@ const BattleUI = {
     // log
     document.getElementById("bfLog").innerHTML = b.log.slice().reverse().map((l) => `<div>${esc(l)}</div>`).join("");
 
-    if (b.phase === "over" && !this._shownEnd) { this._shownEnd = true; this.banner(b.result.winner === "player" ? "Victory!" : "Defeat", "", b.result.winner === "player" ? "win" : "lose"); setTimeout(() => this.showEnd(), 900); }
+    if (b.phase === "over" && !this._shownEnd) { this._shownEnd = true; this.banner(b.result.winner === "player" ? "Victory!" : "Defeat", "", b.result.winner === "player" ? "win" : "lose"); if (typeof Sound !== "undefined") Sound.play(b.result.winner === "player" ? "victory" : "defeat"); setTimeout(() => this.showEnd(), 900); }
   },
   armySummary(side) {
     const b = this.b, tot = {};
@@ -1656,12 +1658,14 @@ const BattleUI = {
       const [fx0, fy0] = e.from, [tx0, ty0] = e.to;
       if (e.proj === "slash") {
         p.className = "slash";
+        if (typeof Sound !== "undefined") Sound.play("sword");
         p.style.left = tx0 * c + "px"; p.style.top = ty0 * c + "px";
         layer.appendChild(p); setTimeout(() => p.remove(), 450);
         delay = Math.max(delay, 120);
         continue;
       }
       p.className = "proj p-" + e.proj;
+      if (typeof Sound !== "undefined") Sound.play(e.proj === "bolt" ? "arrow" : e.proj);
       const ang = Math.atan2(ty0 - fy0, tx0 - fx0) * 180 / Math.PI;
       p.style.left = (fx0 + 0.5) * c + "px"; p.style.top = (fy0 + 0.5) * c + "px";
       p.style.setProperty("--ang", ang + "deg");

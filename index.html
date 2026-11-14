@@ -93,6 +93,7 @@
   </section>
 
   <section class="win hidden" id="win-quests" data-title="❗ Realm Quests">
+    <div id="dailyBox"></div>
     <div style="margin-bottom:8px">Progress: <span class="badge" id="questBadge"></span></div>
     <div id="questList"></div>
   </section>
@@ -124,6 +125,9 @@
       <button class="btn danger" data-action="reset">Reset</button>
       <span class="save-status" id="saveStatus">Not saved yet</span>
     </div>
+    <div class="section-title" style="margin-top:6px">🔊 Sound</div>
+    <div class="sndrow"><span>Master</span><input type="range" min="0" max="100" data-snd="master"><span>Music</span><input type="range" min="0" max="100" data-snd="music"><span>Effects</span><input type="range" min="0" max="100" data-snd="sfx"></div>
+    <div class="btn-row" style="margin:6px 0 12px"><button class="btn sm" data-action="sndMute" id="sndMute">🔇 Mute</button><button class="btn sm" data-action="advToggle" id="advToggle">Advisor tips: on</button><button class="btn sm" data-action="tutRestart">Restart tutorial</button></div>
     <div class="kv" id="statsBox"></div>
     <div class="section-title" style="margin-top:16px">Artwork Forge <span class="badge teal" id="artCount">0 / 0</span></div>
     <p class="muted" style="margin:0 0 10px;font-size:12.5px">
@@ -160,6 +164,7 @@
   </section>
 </div>
 
+<div class="advisor hidden" id="advisor"><img data-asset="advisor" alt=""><div class="adv-bubble"><b>Edmund, your steward</b><div id="advText"></div><button class="adv-x" data-action="advClose" title="Dismiss">✕</button></div></div>
 <div class="toasts" id="toasts"></div>
 <div id="modalRoot"></div>
 
@@ -178,7 +183,8 @@
   "banner": "Wide cinematic establishing shot, 16:9 composition, atmospheric depth.",
   "backdrop": "Wide panoramic 16:9 landscape, darker toward the bottom so UI text stays readable.",
   "tile": "Seamless square top-down terrain texture for a tactics game board, viewed from directly above with no perspective and no horizon, evenly lit, edges that tile cleanly.",
-  "sprite": "Single isolated game building sprite in isometric 3/4 view from above (about 30 degrees), centered, the whole object fully visible with some margin, painted on a perfectly flat solid pure magenta (#FF00FF) background. No ground plane, no shadow, no other objects, no text."
+  "sprite": "Single isolated game building sprite in isometric 3/4 view from above (about 30 degrees), centered, the whole object fully visible with some margin, painted on a perfectly flat solid pure magenta (#FF00FF) background. No ground plane, no shadow, no other objects, no text.",
+  "unit": "Single full-body game character sprite, standing in a ready pose, viewed in 3/4 view from slightly above, facing to the right, whole figure visible with margin, painted on a perfectly flat solid pure magenta (#FF00FF) background. No ground, no shadow, no other objects, no text."
  },
  "assets": [
   {
@@ -1237,6 +1243,398 @@
    "emoji": "🏰",
    "hue": 0,
    "prompt": "A rival lord's dark stone castle on a hill with red banners, soldiers on the walls, storm clouds"
+  },
+  {
+   "key": "w_peasant",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A medieval peasant villager in a brown tunic walking"
+  },
+  {
+   "key": "w_farmer",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A medieval farmer carrying a bundle of wheat on his shoulder, walking"
+  },
+  {
+   "key": "w_soldier",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A medieval spearman soldier marching with a spear"
+  },
+  {
+   "key": "w_merchant",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A plump medieval merchant in a red coat carrying a sack of coins"
+  },
+  {
+   "key": "w_cart",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A small wooden two-wheeled horse-drawn cart loaded with crates and barrels, the horse facing right"
+  },
+  {
+   "key": "w_chest",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A small wooden treasure chest bound in iron, lid slightly open with gold coins inside"
+  },
+  {
+   "key": "w_trader",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A traveling trader with a donkey laden with colorful bags and rolled carpets"
+  },
+  {
+   "key": "w_thief",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 30,
+   "prompt": "A sneaky hooded thief in dark clothes carrying a stolen sack, tiptoeing"
+  },
+  {
+   "key": "advisor",
+   "kind": "portrait",
+   "emoji": "🧓",
+   "hue": 40,
+   "prompt": "A wise elderly medieval royal steward with a grey beard, chain of office and a ledger, warm smile"
+  },
+  {
+   "key": "lord_varn",
+   "kind": "portrait",
+   "emoji": "👑",
+   "hue": 0,
+   "prompt": "A grim bald medieval baron with a scarred face and black fur cloak"
+  },
+  {
+   "key": "lord_morrow",
+   "kind": "portrait",
+   "emoji": "👑",
+   "hue": 0,
+   "prompt": "A cold elegant medieval noblewoman lady with dark hair, a silver circlet and a longbow"
+  },
+  {
+   "key": "lord_drak",
+   "kind": "portrait",
+   "emoji": "👑",
+   "hue": 0,
+   "prompt": "A fierce barbarian warlord with braided red beard, horned helmet and battle scars"
+  },
+  {
+   "key": "lord_sable",
+   "kind": "portrait",
+   "emoji": "👑",
+   "hue": 0,
+   "prompt": "A mysterious pale young prince in black armor with a sable cloak and violet eyes"
+  },
+  {
+   "key": "sp_militia",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A medieval militia soldier with a spear and a round wooden shield, simple leather armor"
+  },
+  {
+   "key": "sp_spearman",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A medieval spearman with a long spear and round shield, leather cap"
+  },
+  {
+   "key": "sp_archer",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A hooded medieval longbow archer drawing an arrow, green cloak"
+  },
+  {
+   "key": "sp_footman",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A medieval footman in chainmail with a kite shield and arming sword"
+  },
+  {
+   "key": "sp_crossbow",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A medieval crossbowman aiming a heavy crossbow, pavise shield on his back"
+  },
+  {
+   "key": "sp_pikeman",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A medieval pikeman in a steel breastplate holding a very long pike upright"
+  },
+  {
+   "key": "sp_longbow",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A tall veteran medieval longbowman with a yew longbow and arrow quiver"
+  },
+  {
+   "key": "sp_lightcav",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A medieval light cavalry rider on a fast horse with a sabre, flowing cloak"
+  },
+  {
+   "key": "sp_horsearcher",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A medieval horse archer shooting from a galloping horse"
+  },
+  {
+   "key": "sp_knight",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A heavily armored mounted medieval knight with a lance and a plumed great helm"
+  },
+  {
+   "key": "sp_priest",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A medieval battle priest in white and gold robes raising a glowing holy symbol"
+  },
+  {
+   "key": "sp_mage",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A medieval battle mage hurling a fireball, red and gold robes"
+  },
+  {
+   "key": "sp_siege",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A medieval siege engineer with goggles next to a small trebuchet, holding blueprints"
+  },
+  {
+   "key": "sp_ballista",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A heavy medieval ballista siege weapon loaded with a giant bolt"
+  },
+  {
+   "key": "sp_catapult",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A large medieval wooden catapult loaded with a boulder on a battlefield"
+  },
+  {
+   "key": "sp_griffon",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A knight riding a majestic griffon in flight, wings spread"
+  },
+  {
+   "key": "sp_paladin",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A radiant medieval paladin in ornate gilded plate armor with a glowing warhammer"
+  },
+  {
+   "key": "sp_bandit",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A scruffy medieval bandit with a dagger and a hood, menacing grin"
+  },
+  {
+   "key": "sp_bandit_archer",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A hooded bandit archer with a shortbow in a dark forest"
+  },
+  {
+   "key": "sp_goblin",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A snarling green goblin warrior with a rusty blade"
+  },
+  {
+   "key": "sp_wolf_rider",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A goblin riding a huge grey warg wolf, fangs bared"
+  },
+  {
+   "key": "sp_orc",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A muscular green-skinned orc warrior with a crude axe and bone armor"
+  },
+  {
+   "key": "sp_orc_archer",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "An orc archer with a heavy black bow and war paint"
+  },
+  {
+   "key": "sp_berserker",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A raging orc berserker with twin axes, blood-red war paint"
+  },
+  {
+   "key": "sp_troll",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A huge mossy cave troll with a tree-trunk club"
+  },
+  {
+   "key": "sp_ogre",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A massive fat ogre with a spiked iron club"
+  },
+  {
+   "key": "sp_skeleton",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "An undead skeleton warrior with a rusted sword and cracked shield, glowing eyes"
+  },
+  {
+   "key": "sp_wraith",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A spectral hooded wraith floating with ghostly blue flames"
+  },
+  {
+   "key": "sp_necromancer",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A sinister necromancer in black robes holding a skull staff with green magic"
+  },
+  {
+   "key": "sp_frost_giant",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A towering frost giant with icy beard and a glacier hammer"
+  },
+  {
+   "key": "sp_dark_knight",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A dark knight in black spiked armor on a nightmare horse with red eyes"
+  },
+  {
+   "key": "sp_demon",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A horned fire demon with molten skin and burning wings"
+  },
+  {
+   "key": "sp_drake",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A fire drake, a small winged dragon breathing flames"
+  },
+  {
+   "key": "sp_bandit_chief",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A scarred bandit chieftain with an eyepatch, fur mantle and twin daggers"
+  },
+  {
+   "key": "sp_goblin_king",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A cunning goblin king with a crooked crown riding a huge warg"
+  },
+  {
+   "key": "sp_orc_warlord",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A massive orc warlord in spiked iron armor with a great axe and tusks"
+  },
+  {
+   "key": "sp_lich",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A skeletal lich king in tattered royal robes with a glowing green crown"
+  },
+  {
+   "key": "sp_giant_jarl",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A frost giant jarl with an icy crown, braided white beard and huge hammer"
+  },
+  {
+   "key": "sp_dark_lord",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A terrifying dark lord in black spiked plate armor with glowing red eyes"
+  },
+  {
+   "key": "sp_dragon",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A colossal ancient red dragon roaring with fire, scales like armor"
+  },
+  {
+   "key": "sp_titan",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A gigantic storm titan made of stone and lightning, crackling with energy"
+  },
+  {
+   "key": "sp_guard",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "A medieval town guard with a halberd and city tabard"
+  },
+  {
+   "key": "sp_hero",
+   "kind": "unit",
+   "emoji": "",
+   "hue": 0,
+   "prompt": "Lord Commander, a noble knight in steel plate armor with a fur cloak and longsword"
   }
  ]
 }
@@ -1253,6 +1651,9 @@
 <script src="js/assets.js"></script>
 <script src="js/hud.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/sound.js"></script>
+<script src="js/life.js"></script>
+<script src="js/progress.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

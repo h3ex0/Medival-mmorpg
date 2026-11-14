@@ -142,6 +142,7 @@ const UI = {
 
     $("#log").innerHTML = "";
     HUD.build();
+    this.syncSoundUI();
     this.renderedLogId = 0;
     this.expSig = this.queueSig = this.raidSig = this.doctrineSig = "";
     AssetPipeline.applyAll();
@@ -551,6 +552,11 @@ const UI = {
     el.className = "save-status " + (ok ? "" : "bad");
   },
 
+  syncSoundUI() {
+    for (const el of $$("[data-snd]")) el.value = Math.round(Sound.cfg[el.dataset.snd] * 100);
+    const m = $("#sndMute"); if (m) m.textContent = Sound.cfg.muted ? "🔊 Unmute" : "🔇 Mute";
+    const a = $("#advToggle"); if (a) a.textContent = `Advisor tips: ${Advisor.muted() ? "off" : "on"}`;
+  },
   toast(msg, ms = 3200) {
     const t = document.createElement("div");
     t.className = "toast"; t.textContent = msg;
@@ -768,6 +774,30 @@ const Actions = {
   },
   resumeBattle: () => UI.openBattle(),
   win: (d) => HUD.openWin(d.win),
+  collect: (d, e) => {
+    const s = GameState.current, r = Life.collect(s, +d.i);
+    if (r) { Sound.play("collect"); Life.flyTo(e.target.closest(".bag"), r.res); Life.bubSig = ""; UI.update(); }
+  },
+  surprise: (d, e) => {
+    const s = GameState.current, r = Life.interact(s);
+    if (r === "trader") {
+      const o = s.surprise.offer;
+      UI.modal("🐫 Wandering Trader", `<div style="display:flex;gap:14px;align-items:center"><img src="${AssetPipeline.src("w_trader")}" alt="" style="width:110px"><p>"Greetings, my lord! Rare goods from the east, cheaper than any market: <b>${fmtInt(o.n)} ${RESOURCES[o.res].name}</b> for only <b>${fmtInt(o.gold)} Gold</b>. Half the market price!"</p></div>`,
+        `<button class="btn" data-action="closeModal">No thanks</button><button class="btn primary" data-action="traderBuy" ${s.resources.gold < o.gold ? "disabled" : ""}>Buy</button>`);
+    } else if (r) { UI.toast(r); const el = e.target.closest(".surprise,.walker"); if (el && s.surprise === null) el.remove(); }
+    Life.bubSig = ""; UI.update();
+  },
+  traderBuy: () => { if (Life.acceptTrade(GameState.current)) { UI.closeModal(); Life.bubSig = ""; UI.update(); } },
+  rushBuild: (d) => { if (Life.rushBuild(GameState.current, +d.i)) { HUD.sig = {}; UI.update(); } },
+  rushTrain: () => { if (Life.rushTrain(GameState.current)) { Sound.play("levelup"); HUD.sig.building = ""; UI.update(); } },
+  dailyClaim: (d) => { if (Daily.claim(GameState.current, +d.i)) { Sound.play("coin"); HUD.sig.daily = ""; UI.update(); } },
+  dailyBonus: () => { if (Daily.claimBonus(GameState.current)) { Sound.play("chest"); HUD.sig.daily = ""; UI.update(); } },
+  loginClaim: () => { if (Daily.claimLogin(GameState.current)) { Sound.play("chest"); HUD.sig.daily = ""; UI.update(); } },
+  advClose: () => { const t = GameState.current.tutorial; if (t && !t.done && t.step < TUTORIAL.length - 1) return; Advisor.hide(); },
+  tutSkip: () => { GameState.current.tutorial.done = true; Advisor.hide(); },
+  tutRestart: () => { GameState.current.tutorial = { step: 0, done: false }; HUD.closeWin(); },
+  advToggle: () => { try { localStorage.setItem("ironhold_advisor", Advisor.muted() ? "on" : "off"); } catch {} UI.syncSoundUI(); },
+  sndMute: () => { Sound.set("muted", !Sound.cfg.muted); UI.syncSoundUI(); },
   capHire: (d) => { if (Captains.hire(GameState.current, d.id)) { HUD.sig.captains = ""; UI.toast(`🎖 ${CAPTAINS[d.id].name} joins you!`); UI.update(); } },
   capToggle: (d) => { if (Captains.toggle(GameState.current, d.id)) { HUD.sig.captains = ""; UI.update(); } },
   rivalBribe: (d) => { if (Rivals.bribe(GameState.current, d.id)) { HUD.sig.rivals = ""; UI.update(); } },
@@ -881,6 +911,8 @@ document.addEventListener("keydown", (e) => {
   if (a) { e.preventDefault(); HUD.openWin(a.id); }
 });
 document.addEventListener("input", (e) => {
+  const snd = e.target.closest("[data-snd]");
+  if (snd) { Sound.set(snd.dataset.snd, Number(snd.value) / 100); return; }
   const el = e.target.closest("[data-form]");
   if (!el) return;
   const k = el.dataset.form, v = Number(el.value);

@@ -97,6 +97,7 @@ const City = {
     const sl = s.city.slots[idx] || (s.city.slots[idx] = { type, level: 0 });
     const t = this.buildTime(s, type, sl.level + 1);
     sl.build = { to: sl.level + 1, remaining: t, total: t };
+    if (typeof Sound !== "undefined" && !Engine.simulating) Sound.play("build");
     addLog(s, `🔨 Builders start ${sl.level ? `upgrading the ${BUILDINGS[type].name} to level ${sl.level + 1}` : `a new ${BUILDINGS[type].name}`} (${fmtTime(t)}).`, "build");
     return true;
   },
@@ -116,6 +117,7 @@ const City = {
       if (sl.build.remaining <= 0) {
         sl.level = sl.build.to; delete sl.build; changed = true;
         s.stats.built++;
+        if (typeof Sound !== "undefined" && !Engine.simulating) Sound.play("built");
         addLog(s, sl.type === "townhall" ? `🏰 The Town Hall has been raised to level ${sl.level}! New building lots are open.` : `✅ ${BUILDINGS[sl.type].name} ${sl.level === 1 ? "built" : `upgraded to level ${sl.level}`}.`, "build");
       }
     }
@@ -179,7 +181,8 @@ const CityMap = {
 const CityView = {
   zoom: 1, panX: 0, panY: 0, built: false,
   sprite(key) { return AssetPipeline.hasArt(key) ? AssetPipeline.src(key) : null; },
-  tex(key) { return AssetPipeline.hasArt(key) ? `url('${AssetPipeline.src(key)}')` : ""; },
+  // absolute URL: CSS variables resolve relative paths against the stylesheet, not the page
+  tex(key) { return AssetPipeline.hasArt(key) ? `url('${new URL(AssetPipeline.src(key), document.baseURI).href}')` : ""; },
   /** Build the ground (once) and the controls. */
   buildGround() {
     CityMap.init();
@@ -409,11 +412,14 @@ const HUD = {
   update(s) {
     // ---- the city
     this.updateCity(s);
+    Daily.ensure(s);
+    Advisor.update(s);
+    if (this.open === "quests") { const sig = JSON.stringify(s.daily) + Daily.claimable(s) + Object.values(DAILY_POOL).map((p) => p.stat(s)).join(); if (sig !== this.sig.daily) { this.sig.daily = sig; $("#dailyBox").innerHTML = Daily.html(s); } }
     // ---- notification dots on the action bar
     const dots = {
       kingdom: Object.keys(BUILDINGS).filter((id) => !Economy.buildBlocker(s, id)).length,
       campaign: CAMPAIGN_ORDER.filter((id) => ["ready"].includes(Campaign.state(s, id))).length,
-      quests: Quests.ready(s),
+      quests: Quests.ready(s) + Daily.claimable(s),
       citizens: Economy.unemployed(s) > 0 ? 1 : 0,
       realm: s.offer ? 1 : 0,
       armory: s.gear.bag.filter((x) => !s.gear.equipped[x.slot] || Armory.score(x) > Armory.score(s.gear.equipped[x.slot])).length,
@@ -508,6 +514,7 @@ const HUD = {
   updateCity(s) {
     const lots = City.lots(s);
     CityView.update(s);
+    Life.render(s);
     // floating production numbers every few seconds
     if (!this.lastPop || s.time - this.lastPop >= 5 || s.time < this.lastPop) {
       this.lastPop = s.time;
@@ -588,7 +595,7 @@ const HUD = {
     return `<div class="form-sec"><div class="fs-h"><span>⚔ Train troops</span><b>${s.jobs.recruit} recruits ready · queue ${s.queue.length}/${BALANCE.maxQueue}</b></div>
       ${s.jobs.recruit ? "" : `<div class="req" style="margin-bottom:6px">Every soldier needs a Recruit. Assign citizens as Recruits at the Barracks.</div>`}
       <div class="tcards">${cards}</div>
-      ${q.length ? `<div class="queue"><div class="stat-row"><span>Training ${UNITS[s.queue[0].unit].name}</span><b data-qt="1"></b></div><div class="bar war"><i data-qb="1"></i></div><div class="dim" style="font-size:11.5px;margin-top:4px">${q.length} in this building's queue</div></div>` : ""}</div>`;
+      ${q.length ? `<div class="queue"><div class="stat-row"><span>Training ${UNITS[s.queue[0].unit].name}</span><b data-qt="1"></b></div><div class="bar war"><i data-qb="1"></i></div><div class="dim" style="font-size:11.5px;margin-top:4px">${q.length} in this building's queue</div><button class="btn sm primary" style="margin-top:6px" data-action="rushTrain" data-rush="t">⚡ Finish this soldier now</button></div>` : ""}</div>`;
   },
   releaseHtml(s) {
     const list = Object.entries(UNITS).filter(([id]) => (s.army[id] || 0) > 0);
@@ -715,7 +722,8 @@ const HUD = {
           <div class="btn-row" style="margin:4px 0"><span class="badge">Level ${sl.level}${City.isMulti(sl.type) ? ` / ${cap}` : ` / ${Economy.buildingMax(s, sl.type)}`}</span>${City.isMulti(sl.type) ? `<span class="badge teal">All ${B.name}s: Lv ${s.buildings[sl.type]} / ${Economy.buildingMax(s, sl.type)}</span>` : ""}</div>
           <div class="desc" style="color:var(--muted)">${B.desc}</div>
           <div class="effect" style="color:#8de3b0;margin-top:4px">${esc(UI.buildingEffect(s, sl.type))}</div></div></div>
-      <div class="form-sec upg">${sl.build ? `<div class="fs-h"><span>🏗️ ${sl.level ? `Upgrading to level ${sl.build.to}` : "Under construction"}</span><b data-bt="w"></b></div><div class="bar teal"><i data-bb="w"></i></div>`
+      <div class="form-sec upg">${sl.build ? `<div class="fs-h"><span>🏗️ ${sl.level ? `Upgrading to level ${sl.build.to}` : "Under construction"}</span><b data-bt="w"></b></div><div class="bar teal"><i data-bb="w"></i></div>
+        <button class="btn sm primary" style="margin-top:8px" data-action="rushBuild" data-i="${i}" data-rush="b">⚡ Finish now</button>`
         : blk === "Max level reached" || (blk && blk.startsWith("This")) || (blk && blk.startsWith("Upgrade the Town Hall")) ? `<div class="dim">${esc(blk)}</div>`
         : `<div class="fs-h"><span>⬆ Upgrade to level ${sl.level + 1}</span><b>${fmtTime(City.buildTime(s, sl.type, sl.level + 1))} · builders ${busy}/${City.builders(s)}</b></div>
           <div class="costs" style="margin-bottom:6px;font-size:13px">${UI.costHtml(cost, s)}</div>
@@ -734,12 +742,14 @@ const HUD = {
       const t = $('[data-bt="w"]'); if (t) t.textContent = fmtTime(sl.build.remaining) + " left";
       const bb = $('[data-bb="w"]'); if (bb) bb.style.width = p + "%";
       const r = $('[data-ring="w"]'); if (r) r.style.setProperty("--p", p.toFixed(1));
+      const rb = $('#buildingDetail [data-rush="b"]'); if (rb) { const c = Life.rushCost(s, sl.build.remaining); rb.textContent = `⚡ Finish now (${fmt(c)} Gold)`; rb.disabled = s.resources.gold < c; }
     }
     s.city.slots.forEach((x, i) => { const e = $(`#buildingDetail [data-cbt="${i}"]`); if (e && x && x.build) e.textContent = fmtTime(x.build.remaining); });
     if (s.queue.length) {
       const q = s.queue[0];
       const t = $('#buildingDetail [data-qt="1"]'); if (t) t.textContent = fmtTime(q.remaining / Military.trainSpeed(s));
       const b = $('#buildingDetail [data-qb="1"]'); if (b) b.style.width = (1 - q.remaining / q.total) * 100 + "%";
+      const rt = $('#buildingDetail [data-rush="t"]'); if (rt) { const c = Math.ceil(Life.rushCost(s, q.remaining / Military.trainSpeed(s)) * 0.5); rt.textContent = `⚡ Finish this soldier now (${fmt(c)} Gold)`; rt.disabled = s.resources.gold < c; }
     }
     const c = s.research.current;
     if (c) { const t = $('#buildingDetail [data-rt="1"]'); if (t) t.textContent = fmtTime(c.remaining); const b = $('#buildingDetail [data-rb="1"]'); if (b) b.style.width = (1 - c.remaining / c.total) * 100 + "%"; }
