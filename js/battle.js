@@ -625,14 +625,14 @@ const Battle = {
     const before = this.count(def);
     const A1 = udef(att.type);
     const kind = A1.splash ? "fireball" : A1.slayer ? "bolt" : A1.cls === "siege" ? "boulder" : A1.rng > 1 && this.dist(att, def) > 1 ? "arrow" : "slash";
-    events.push({ proj: kind, from: [att.x, att.y], to: [def.x, def.y] });
+    events.push({ proj: kind, from: [att.x, att.y], to: [def.x, def.y], aid: att.id });
     const dmg = this.damage(b, att, def);
     def.hp = Math.max(0, def.hp - dmg);
     const killed = before - this.count(def);
     events.push({ x: def.x, y: def.y, text: `−${killed}`, cls: "hit", id: def.id });
     const an = udef(att.type).name, dn = udef(def.type).name;
     let msg = `${att.side === "player" ? "Your" : "Enemy"} ${an} hit ${dn}: ${killed} killed`;
-    if (def.hp <= 0) { msg += ` (squad destroyed)`; this.onDestroyed(b, def, events); }
+    if (def.hp <= 0) { msg += ` (squad destroyed)`; events.push({ destroyed: true, general: !!udef(def.type).general, hero: !!udef(def.type).hero }); this.onDestroyed(b, def, events); }
     if (udef(att.type).splash) this.ignite(b, def.x, def.y);
     if (att.side === "player" && killed > 0) b.vetXp[att.type] = (b.vetXp[att.type] || 0) + killed * unitPower(udef(def.type));
     att.aimed = false;
@@ -1500,14 +1500,17 @@ const BattleUI = {
       if (!el) {
         el = document.createElement("div");
         el.dataset.sq = s.id;
-        el.innerHTML = `<img data-asset="${d.asset}" alt=""><b class="cnt"></b><i class="hpb"><i></i></i>`;
+        const sk = this.spriteKey(s.type);
+        el.innerHTML = sk ? `<i class="base"></i><img class="fig" src="${AssetPipeline.src(sk)}" alt=""><b class="cnt"></b><i class="hpb"><i></i></i>`
+          : `<img data-asset="${d.asset}" alt=""><b class="cnt"></b><i class="hpb"><i></i></i>`;
+        if (sk) el.classList.add("spr-unit");
         layer.appendChild(el);
         if (typeof AssetPipeline !== "undefined") AssetPipeline.applyAll(el);
       }
       el.dataset.cell = s.y * b.w + s.x;
       el.style.display = s.side === "enemy" && b.phase !== "deploy" && !Battle.canSee(b, vis, s) ? "none" : "";
       if (b.phase === "deploy" && s.side === "enemy" && !Battle.canSee(b, vis, s)) el.style.display = "none";
-      el.className = `unit side-${s.side} st-${s.stance || "normal"}${s.side === "player" && Battle.capMods(b, s.type).by.length ? " capt" : ""}${d.hero ? " hero" : ""}${d.general ? " general" : ""}${s.broken ? " broken" : ""}${s.aimed ? " aimed" : ""}${sq === s ? " sel" : ""}${s.acted && b.phase === "battle" && s.side === b.active ? " done" : ""}${s.braced ? " braced" : ""}${d.boss ? " boss" : ""}`;
+      el.className = `unit${el.querySelector(".fig") ? " spr-unit" : ""}${d.big ? " big" : ""} side-${s.side} st-${s.stance || "normal"}${s.side === "player" && Battle.capMods(b, s.type).by.length ? " capt" : ""}${d.hero ? " hero" : ""}${d.general ? " general" : ""}${s.broken ? " broken" : ""}${s.aimed ? " aimed" : ""}${sq === s ? " sel" : ""}${s.acted && b.phase === "battle" && s.side === b.active ? " done" : ""}${s.braced ? " braced" : ""}${d.boss ? " boss" : ""}`;
       el.style.left = s.x * c + "px"; el.style.top = s.y * c + "px";
       el.title = `${d.name} ×${Battle.count(s)}`;
       el.querySelector(".cnt").textContent = Battle.count(s);
@@ -1634,7 +1637,9 @@ const BattleUI = {
       const r = Battle.reachable(b, sel);
       if (r.has(i)) {
         this.lastMove = { id: sel.id, x: sel.x, y: sel.y, turn: b.turn };
+        const path = this.pathTo(b, sel, i, r), from = [sel.x, sel.y];
         const hp0 = sel.hp, ev = Battle.moveTo(b, sel, i, r.get(i));
+        this.walk(sel, from, path);
         if (sel.hp < hp0) this.lastMove = null; // no undoing a move that cost blood
         this.fx(ev); this.render(); if (sel.hp > 0) this.hover(i); return;
       }
@@ -1647,7 +1652,65 @@ const BattleUI = {
     this.render();
     if (this.b.phase === "battle" && Battle.alive(this.b, "player").every((s) => s.acted)) setTimeout(() => this.action("end", {}), 450);
   },
+  /** Sprite key for a unit type (sp_<type>, the hero uses sp_hero), or null if not generated. */
+  spriteKey(type) {
+    const k = /^hero\d/.test(type) ? "sp_hero" : "sp_" + type;
+    return typeof AssetPipeline !== "undefined" && AssetPipeline.hasArt(k) ? k : null;
+  },
+  /** Tile path (list of [x,y]) from the squad to idx through tiles it can reach this turn. */
+  pathTo(b, s, idx, reach) {
+    const W = b.w, start = s.y * W + s.x, prev = new Map([[start, -1]]), q = [start];
+    const ok = (j) => reach.has(j) || j === idx;
+    while (q.length) {
+      const i = q.shift();
+      if (i === idx) break;
+      const x = i % W, y = (i / W) | 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        if (!dx && !dy) continue;
+        const nx = x + dx, ny = y + dy, j = ny * W + nx;
+        if (nx < 0 || ny < 0 || nx >= W || ny >= b.h || prev.has(j) || !ok(j)) continue;
+        prev.set(j, i); q.push(j);
+      }
+    }
+    const out = [];
+    for (let i = idx; i !== undefined && i !== -1; i = prev.get(i)) out.unshift([i % W, (i / W) | 0]);
+    return out.length ? out : [[s.x, s.y], [idx % W, (idx / W) | 0]];
+  },
+  /** Animate a squad walking tile by tile (its final position is already set by render). */
+  walk(s, from, path) {
+    const el = document.querySelector(`#bfUnits [data-sq="${s.id}"]`);
+    if (!el || path.length < 2) return;
+    const c = this.cell, step = 110 / this.speed;
+    el.classList.add("walking");
+    el.classList.toggle("face-left", path[path.length - 1][0] < from[0]);
+    const kf = path.map(([x, y]) => ({ left: x * c + "px", top: y * c + "px" }));
+    const a = el.animate(kf, { duration: step * (path.length - 1), easing: "linear" });
+    a.onfinish = () => el.classList.remove("walking");
+  },
+  /** Shake the battlefield (and zoom in a little for big moments). */
+  shake(strong) {
+    const board = document.getElementById("bfBoard");
+    if (!board) return;
+    board.animate(strong
+      ? [{ transform: "scale(1)" }, { transform: "scale(1.045) translate(4px,-3px)" }, { transform: "scale(1.045) translate(-4px,3px)" }, { transform: "scale(1.03) translate(3px,2px)" }, { transform: "scale(1)" }]
+      : [{ transform: "translate(0,0)" }, { transform: "translate(-4px,2px)" }, { transform: "translate(4px,-2px)" }, { transform: "translate(-2px,1px)" }, { transform: "translate(0,0)" }],
+      { duration: strong ? 650 : 320, easing: "ease-out" });
+  },
   fx(events) {
+    // melee lunge / missile recoil for the attacker, and shakes for big moments
+    for (const e of events) {
+      if (e.proj && e.aid) {
+        const a = document.querySelector(`#bfUnits [data-sq="${e.aid}"]`);
+        if (a) {
+          const dx = e.to[0] - e.from[0], dy = e.to[1] - e.from[1], len = Math.hypot(dx, dy) || 1, k = e.proj === "slash" ? 0.38 : -0.08;
+          a.classList.toggle("face-left", dx < 0);
+          a.animate([{ translate: "0 0" }, { translate: `${(dx / len) * k * this.cell}px ${(dy / len) * k * this.cell}px` }, { translate: "0 0" }], { duration: 260, easing: "ease-out" });
+        }
+      }
+      if (e.destroyed) setTimeout(() => this.shake(e.general || e.hero), 150);
+      if (e.text === "BREACH") this.shake(true);
+      if (e.general) setTimeout(() => this.banner("General slain!", "The enemy army wavers", "win"), 350);
+    }
     const layer = document.getElementById("bfFx");
     if (!layer) return;
     const c = this.cell;
@@ -1705,7 +1768,10 @@ const BattleUI = {
       const moving = dec && dec.move !== undefined && dec.move !== s.y * b.w + s.x;
       const evs = [];
       if (moving) {
+        const path = this.pathTo(b, s, dec.move, Battle.reachable(b, s)), from = [s.x, s.y];
         const ev = Battle.moveTo(b, s, dec.move, dec.cost);
+        this.walk(s, from, path);
+        await this.sleep(Math.max(0, path.length - 2) * 110);
         this.render(); if (ev.length) this.fx(ev); await this.sleep(260);
         if (s.hp <= 0 || b.phase === "over") { s.acted = true; continue; }
       }
